@@ -1,0 +1,434 @@
+import React, { useState, useEffect } from 'react';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from './ui/dialog';
+import { Button } from './ui/button';
+import { Label } from './ui/label';
+import { Slider } from './ui/slider';
+import { Switch } from './ui/switch';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
+import { Settings, Volume2, Mic, Zap, Play, Check } from 'lucide-react';
+import { UserPreferences } from '../types';
+import { VoiceService } from '../services/voiceService';
+import { useToast } from '../hooks/use-toast';
+
+interface SettingsDialogProps {
+  preferences: UserPreferences;
+  onPreferencesChange: (preferences: UserPreferences) => void;
+}
+
+export function SettingsDialog({ preferences, onPreferencesChange }: SettingsDialogProps) {
+  const [localPreferences, setLocalPreferences] = useState<UserPreferences>(preferences);
+  const [availableVoices, setAvailableVoices] = useState<Array<{name: string, displayName: string, type: 'web' | 'kokoro'}>>([]);
+  const [kokoroConnected, setKokoroConnected] = useState(false);
+  const [isTesting, setIsTesting] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const voiceService = new VoiceService();
+  const { toast } = useToast();
+
+  useEffect(() => {
+    loadVoices();
+    testKokoroConnection();
+  }, []);
+
+  // Check for unsaved changes
+  useEffect(() => {
+    const hasChanges = JSON.stringify(localPreferences) !== JSON.stringify(preferences);
+    setHasUnsavedChanges(hasChanges);
+  }, [localPreferences, preferences]);
+
+  // Add keyboard shortcut for saving
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 's' && hasUnsavedChanges && !isSaving) {
+        e.preventDefault();
+        savePreferences();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [hasUnsavedChanges, isSaving]);
+
+  const loadVoices = () => {
+    const voices = voiceService.getAvailableVoices();
+    setAvailableVoices(voices);
+  };
+
+  const testKokoroConnection = async () => {
+    const connected = await voiceService.testKokoroConnection();
+    setKokoroConnected(connected);
+  };
+
+  const handlePreferenceChange = (path: string[], value: any) => {
+    const newPreferences = { ...localPreferences };
+    let current: any = newPreferences;
+    
+    for (let i = 0; i < path.length - 1; i++) {
+      current = current[path[i]];
+    }
+    current[path[path.length - 1]] = value;
+    
+    setLocalPreferences(newPreferences);
+  };
+
+  const savePreferences = async () => {
+    if (isSaving) return;
+    setIsSaving(true);
+    
+    try {
+      // Simulate a brief save process for better UX
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      onPreferencesChange(localPreferences);
+      setHasUnsavedChanges(false);
+      
+      toast({
+        title: "Settings saved!",
+        description: "Your preferences have been updated successfully.",
+      });
+    } catch (error) {
+      toast({
+        title: "Save failed",
+        description: "There was an error saving your settings. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const testVoice = async () => {
+    if (isTesting) return;
+    setIsTesting(true);
+    
+    try {
+      const testText = "Hello! This is a voice preview test.";
+      await voiceService.speak(testText, {
+        ...localPreferences.voiceSettings,
+        voice: localPreferences.voiceSettings.useKokoro 
+          ? localPreferences.voiceSettings.kokoroVoice 
+          : localPreferences.voiceSettings.voice,
+        useKokoro: localPreferences.voiceSettings.useKokoro
+      });
+    } catch (error) {
+      console.error('Voice test failed:', error);
+    } finally {
+      setIsTesting(false);
+    }
+  };
+
+  return (
+    <Dialog>
+      <DialogTrigger asChild>
+        <Button variant="ghost" size="sm">
+          <Settings className="h-4 w-4" />
+        </Button>
+      </DialogTrigger>
+      
+      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <Settings className="h-5 w-5" />
+            Settings
+          </DialogTitle>
+          <DialogDescription>
+            Customize your voice AI task manager experience
+          </DialogDescription>
+        </DialogHeader>
+
+        <Tabs defaultValue="voice" className="w-full">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="voice">Voice</TabsTrigger>
+            <TabsTrigger value="ai">AI Behavior</TabsTrigger>
+            <TabsTrigger value="general">General</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="voice" className="space-y-6 mt-6">
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label htmlFor="voice-enabled">Voice Features</Label>
+                  <p className="text-sm text-gray-500">Enable voice input and output</p>
+                </div>
+                <Switch
+                  id="voice-enabled"
+                  checked={localPreferences.voiceEnabled}
+                  onCheckedChange={(checked) => handlePreferenceChange(['voiceEnabled'], checked)}
+                />
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label htmlFor="auto-speak">Auto-speak Responses</Label>
+                  <p className="text-sm text-gray-500">Automatically speak AI responses</p>
+                </div>
+                <Switch
+                  id="auto-speak"
+                  checked={localPreferences.autoSpeak}
+                  onCheckedChange={(checked) => handlePreferenceChange(['autoSpeak'], checked)}
+                />
+              </div>
+
+              {/* Kokoro TTS Section */}
+              <div className="border rounded-lg p-4 space-y-4">
+                <div className="flex items-center gap-2">
+                  <Zap className="h-4 w-4 text-purple-600" />
+                  <Label className="font-medium">Kokoro AI TTS</Label>
+                  {kokoroConnected ? (
+                    <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">Connected</span>
+                  ) : (
+                    <span className="text-xs bg-red-100 text-red-800 px-2 py-1 rounded">Offline</span>
+                  )}
+                </div>
+                
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm">Use Kokoro AI for premium voice quality</p>
+                    <p className="text-xs text-gray-500">Requires local Kokoro-FastAPI server</p>
+                  </div>
+                  <Switch
+                    checked={localPreferences.voiceSettings.useKokoro}
+                    onCheckedChange={(checked) => handlePreferenceChange(['voiceSettings', 'useKokoro'], checked)}
+                    disabled={!kokoroConnected}
+                  />
+                </div>
+
+                {localPreferences.voiceSettings.useKokoro && (
+                  <div className="space-y-3">
+                    <Label htmlFor="kokoro-voice">Kokoro Voice</Label>
+                    <Select
+                      value={localPreferences.voiceSettings.kokoroVoice}
+                      onValueChange={(value) => handlePreferenceChange(['voiceSettings', 'kokoroVoice'], value)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {availableVoices
+                          .filter(voice => voice.type === 'kokoro')
+                          .map((voice) => (
+                            <SelectItem key={voice.name} value={voice.name}>
+                              {voice.displayName}
+                            </SelectItem>
+                          ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+              </div>
+
+              {/* Web Speech API Section */}
+              {!localPreferences.voiceSettings.useKokoro && (
+                <div className="space-y-3">
+                  <Label htmlFor="web-voice">Browser Voice</Label>
+                  <Select
+                    value={localPreferences.voiceSettings.voice || ''}
+                    onValueChange={(value) => handlePreferenceChange(['voiceSettings', 'voice'], value)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select voice" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {availableVoices
+                        .filter(voice => voice.type === 'web')
+                        .map((voice) => (
+                          <SelectItem key={voice.name} value={voice.name}>
+                            {voice.displayName}
+                          </SelectItem>
+                        ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+
+              {/* Voice Controls */}
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label>Speech Rate: {localPreferences.voiceSettings.rate}</Label>
+                  <Slider
+                    value={[localPreferences.voiceSettings.rate]}
+                    onValueChange={([value]) => handlePreferenceChange(['voiceSettings', 'rate'], value)}
+                    min={0.5}
+                    max={2}
+                    step={0.1}
+                    className="w-full"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Volume: {Math.round(localPreferences.voiceSettings.volume * 100)}%</Label>
+                  <Slider
+                    value={[localPreferences.voiceSettings.volume]}
+                    onValueChange={([value]) => handlePreferenceChange(['voiceSettings', 'volume'], value)}
+                    min={0}
+                    max={1}
+                    step={0.1}
+                    className="w-full"
+                  />
+                </div>
+
+                {!localPreferences.voiceSettings.useKokoro && (
+                  <div className="space-y-2">
+                    <Label>Pitch: {localPreferences.voiceSettings.pitch}</Label>
+                    <Slider
+                      value={[localPreferences.voiceSettings.pitch]}
+                      onValueChange={([value]) => handlePreferenceChange(['voiceSettings', 'pitch'], value)}
+                      min={0.5}
+                      max={2}
+                      step={0.1}
+                      className="w-full"
+                    />
+                  </div>
+                )}
+              </div>
+
+              {/* Voice Test */}
+              <Button 
+                onClick={testVoice} 
+                disabled={isTesting || !localPreferences.voiceEnabled}
+                className="w-full"
+                variant="outline"
+              >
+                <Play className="h-4 w-4 mr-2" />
+                {isTesting ? 'Testing Voice...' : 'Test Voice'}
+              </Button>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="ai" className="space-y-6 mt-6">
+            <div className="space-y-4">
+              <div className="space-y-3">
+                <Label htmlFor="response-style">AI Response Style</Label>
+                <Select
+                  value={localPreferences.aiSettings.responseStyle}
+                  onValueChange={(value: any) => handlePreferenceChange(['aiSettings', 'responseStyle'], value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="concise">Concise</SelectItem>
+                    <SelectItem value="detailed">Detailed</SelectItem>
+                    <SelectItem value="friendly">Friendly</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-3">
+                <Label htmlFor="extraction-sensitivity">Task Extraction Sensitivity</Label>
+                <Select
+                  value={localPreferences.aiSettings.taskExtractionSensitivity}
+                  onValueChange={(value: any) => handlePreferenceChange(['aiSettings', 'taskExtractionSensitivity'], value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="low">Low - Only obvious tasks</SelectItem>
+                    <SelectItem value="medium">Medium - Balanced detection</SelectItem>
+                    <SelectItem value="high">High - Detect subtle hints</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="general" className="space-y-6 mt-6">
+            <div className="space-y-4">
+              <div className="space-y-3">
+                <Label htmlFor="theme">Theme</Label>
+                <Select
+                  value={localPreferences.theme}
+                  onValueChange={(value: any) => handlePreferenceChange(['theme'], value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="light">Light</SelectItem>
+                    <SelectItem value="dark">Dark</SelectItem>
+                    <SelectItem value="system">System</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-3">
+                <Label htmlFor="language">Language</Label>
+                <Select
+                  value={localPreferences.language}
+                  onValueChange={(value) => handlePreferenceChange(['language'], value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="en-US">English (US)</SelectItem>
+                    <SelectItem value="en-GB">English (UK)</SelectItem>
+                    <SelectItem value="es-ES">Spanish</SelectItem>
+                    <SelectItem value="fr-FR">French</SelectItem>
+                    <SelectItem value="de-DE">German</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </TabsContent>
+        </Tabs>
+
+        <div className="flex justify-between items-center pt-4 border-t">
+          <div className="flex items-center gap-2 text-sm">
+            {hasUnsavedChanges && (
+              <span className="flex items-center gap-1 text-orange-600">
+                <div className="w-2 h-2 bg-orange-500 rounded-full animate-pulse"></div>
+                Unsaved changes
+              </span>
+            )}
+            {!hasUnsavedChanges && !isSaving && (
+              <span className="flex items-center gap-1 text-green-600">
+                <Check className="w-3 h-3" />
+                All changes saved
+              </span>
+            )}
+          </div>
+          
+          <div className="flex gap-2">
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setLocalPreferences(preferences);
+                setHasUnsavedChanges(false);
+              }}
+              disabled={isSaving}
+            >
+              Reset
+            </Button>
+            <Button 
+              onClick={savePreferences}
+              disabled={isSaving || !hasUnsavedChanges}
+              className="min-w-[120px]"
+            >
+              {isSaving ? (
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 border-2 border-gray-300 border-t-white rounded-full animate-spin"></div>
+                  Saving...
+                </div>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <Check className="h-4 w-4" />
+                  Save Changes
+                </div>
+              )}
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
