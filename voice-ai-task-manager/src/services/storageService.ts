@@ -180,7 +180,11 @@ export class StorageService {
       },
       aiSettings: {
         responseStyle: 'friendly',
-        taskExtractionSensitivity: 'medium'
+        taskExtractionSensitivity: 'medium',
+        useOpenRouter: false,
+        selectedModel: 'simulation',
+        temperature: 0.7,
+        maxTokens: 1000
       },
       notificationSettings: {
         enabled: false,

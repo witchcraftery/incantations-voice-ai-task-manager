@@ -385,6 +385,88 @@ export function SettingsDialog({ preferences, onPreferencesChange }: SettingsDia
                   Define your AI's personality and response style. Leave empty for default behavior.
                 </p>
               </div>
+
+              {/* AI Model Selection */}
+              <div className="space-y-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label htmlFor="use-openrouter">Use OpenRouter API</Label>
+                    <p className="text-sm text-gray-500">Access multiple AI models for enhanced task extraction</p>
+                  </div>
+                  <Switch
+                    id="use-openrouter"
+                    checked={localPreferences.aiSettings.useOpenRouter || false}
+                    onCheckedChange={(checked) => handlePreferenceChange(['aiSettings', 'useOpenRouter'], checked)}
+                  />
+                </div>
+
+                {localPreferences.aiSettings.useOpenRouter && (
+                  <>
+                    <div className="space-y-3">
+                      <Label htmlFor="openrouter-api-key">OpenRouter API Key</Label>
+                      <input
+                        id="openrouter-api-key"
+                        type="password"
+                        className="w-full p-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+                        placeholder="sk-or-..."
+                        value={localPreferences.aiSettings.openRouterApiKey || ''}
+                        onChange={(e) => handlePreferenceChange(['aiSettings', 'openRouterApiKey'], e.target.value)}
+                      />
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                        Get your API key from <a href="https://openrouter.ai/keys" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">openrouter.ai/keys</a>
+                      </p>
+                    </div>
+
+                    <div className="space-y-3">
+                      <Label htmlFor="selected-model">AI Model</Label>
+                      <Select
+                        value={localPreferences.aiSettings.selectedModel}
+                        onValueChange={(value) => handlePreferenceChange(['aiSettings', 'selectedModel'], value)}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="simulation">Local Simulation (Free)</SelectItem>
+                          <SelectItem value="anthropic/claude-3.5-sonnet">Claude 3.5 Sonnet</SelectItem>
+                          <SelectItem value="openai/gpt-4o">GPT-4o</SelectItem>
+                          <SelectItem value="openai/gpt-4o-mini">GPT-4o Mini</SelectItem>
+                          <SelectItem value="meta-llama/llama-3.1-70b-instruct">Llama 3.1 70B</SelectItem>
+                          <SelectItem value="google/gemini-pro-1.5">Gemini Pro 1.5</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-3">
+                        <Label htmlFor="temperature">Temperature: {localPreferences.aiSettings.temperature?.toFixed(1) || '0.7'}</Label>
+                        <Slider
+                          value={[localPreferences.aiSettings.temperature || 0.7]}
+                          onValueChange={([value]) => handlePreferenceChange(['aiSettings', 'temperature'], value)}
+                          max={1.0}
+                          min={0.0}
+                          step={0.1}
+                          className="w-full"
+                        />
+                        <p className="text-xs text-gray-500">Higher = more creative, Lower = more focused</p>
+                      </div>
+
+                      <div className="space-y-3">
+                        <Label htmlFor="max-tokens">Max Tokens: {localPreferences.aiSettings.maxTokens || 1000}</Label>
+                        <Slider
+                          value={[localPreferences.aiSettings.maxTokens || 1000]}
+                          onValueChange={([value]) => handlePreferenceChange(['aiSettings', 'maxTokens'], value)}
+                          max={4000}
+                          min={100}
+                          step={100}
+                          className="w-full"
+                        />
+                        <p className="text-xs text-gray-500">Response length limit</p>
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
             </div>
           </TabsContent>
 

@@ -1,16 +1,16 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { Message, Conversation, UserMemory, Task } from '../types';
-import { AIService } from '../services/aiService';
+import { Message, Conversation, UserMemory, Task, UserPreferences } from '../types';
+import { EnhancedAIService } from '../services/enhancedAIService';
 import { StorageService } from '../services/storageService';
 import { v4 as uuidv4 } from 'uuid';
 
-export function useChat() {
+export function useChat(preferences: UserPreferences) {
   const [currentConversation, setCurrentConversation] = useState<Conversation | null>(null);
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [extractedTasks, setExtractedTasks] = useState<Task[]>([]);
 
-  const aiServiceRef = useRef<AIService | null>(null);
+  const aiServiceRef = useRef<EnhancedAIService | null>(null);
   const storageServiceRef = useRef<StorageService>(new StorageService());
 
   useEffect(() => {
@@ -18,9 +18,9 @@ export function useChat() {
     const loadedConversations = storageServiceRef.current.loadConversations();
     setConversations(loadedConversations);
 
-    // Initialize AI service with user memory
+    // Initialize AI service with user memory and preferences
     const userMemory = storageServiceRef.current.loadUserMemory();
-    aiServiceRef.current = new AIService(userMemory);
+    aiServiceRef.current = new EnhancedAIService(preferences, userMemory);
 
     // Create initial conversation if none exist
     if (loadedConversations.length === 0) {
@@ -28,7 +28,14 @@ export function useChat() {
     } else {
       setCurrentConversation(loadedConversations[0]);
     }
-  }, []);
+  }, [preferences]); // Add preferences as dependency
+
+  // Update AI service when preferences change
+  useEffect(() => {
+    if (aiServiceRef.current) {
+      aiServiceRef.current.updatePreferences(preferences);
+    }
+  }, [preferences]);
 
   const startNewConversation = useCallback(() => {
     const newConversation: Conversation = {
@@ -215,6 +222,15 @@ export function useChat() {
     return summary.length > 100 ? summary.slice(0, 100) + '...' : summary;
   }, [conversations]);
 
+  const getServiceInfo = useCallback(() => {
+    return aiServiceRef.current?.getServiceInfo() || {
+      current: 'simulation',
+      model: 'local-simulation',
+      enhanced: false,
+      connected: false
+    };
+  }, []);
+
   return {
     currentConversation,
     conversations,
@@ -226,6 +242,7 @@ export function useChat() {
     deleteConversation,
     clearCurrentConversation,
     updateConversationTitle,
-    getConversationSummary
+    getConversationSummary,
+    getServiceInfo
   };
 }

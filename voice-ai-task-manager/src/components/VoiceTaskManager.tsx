@@ -2,10 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { Brain, Settings, Mic, CheckCircle2, MessageSquare } from 'lucide-react';
 import { Button } from './ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
+import { TooltipProvider } from './ui/tooltip';
 import { ChatInterface } from './ChatInterface';
 import { TaskDashboard } from './TaskDashboard';
 import { ConversationSidebar } from './ConversationSidebar';
 import { SettingsDialog } from './SettingsDialog';
+import { AIStatusIndicator } from './AIStatusIndicator';
 import { useTheme } from './ThemeProvider';
 import { useChat } from '../hooks/useChat';
 import { useTasks } from '../hooks/useTasks';
@@ -34,8 +36,9 @@ export function VoiceTaskManager() {
     selectConversation,
     deleteConversation,
     updateConversationTitle,
-    getConversationSummary
-  } = useChat();
+    getConversationSummary,
+    getServiceInfo
+  } = useChat(preferences);
 
   const {
     tasks,
@@ -174,7 +177,8 @@ export function VoiceTaskManager() {
   };
 
   return (
-    <div className="h-screen bg-gray-50 dark:bg-gray-900 flex overflow-hidden">
+    <TooltipProvider>
+      <div className="h-screen bg-gray-50 dark:bg-gray-900 flex overflow-hidden">
       {/* Sidebar */}
       <motion.div
         initial={false}
@@ -227,9 +231,15 @@ export function VoiceTaskManager() {
                   <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">
                     Voice AI Task Manager
                   </h1>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
-                    Conversational task management powered by AI
-                  </p>
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      Conversational task management powered by AI
+                    </p>
+                    <AIStatusIndicator 
+                      {...getServiceInfo()} 
+                      className="ml-2" 
+                    />
+                  </div>
                 </div>
               </div>
             </div>
@@ -305,5 +315,6 @@ export function VoiceTaskManager() {
         </div>
       </div>
     </div>
+    </TooltipProvider>
   );
 }

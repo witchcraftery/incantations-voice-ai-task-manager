@@ -61,6 +61,11 @@ export interface UserPreferences {
     responseStyle: 'concise' | 'detailed' | 'friendly';
     taskExtractionSensitivity: 'low' | 'medium' | 'high';
     systemPrompt?: string;
+    useOpenRouter: boolean;
+    openRouterApiKey?: string;
+    selectedModel: string;
+    temperature: number;
+    maxTokens: number;
   };
   notificationSettings: {
     enabled: boolean;
