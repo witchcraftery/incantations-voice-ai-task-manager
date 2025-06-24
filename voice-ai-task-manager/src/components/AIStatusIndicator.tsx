@@ -4,7 +4,7 @@ import { Brain, Zap, Wifi, WifiOff } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
 
 interface AIStatusIndicatorProps {
-  service: 'simulation' | 'openrouter';
+  current: string;
   model: string;
   enhanced: boolean;
   connected: boolean;
@@ -12,20 +12,20 @@ interface AIStatusIndicatorProps {
 }
 
 export function AIStatusIndicator({ 
-  service, 
+  current, 
   model, 
   enhanced, 
   connected, 
   className = '' 
 }: AIStatusIndicatorProps) {
   const getStatusColor = () => {
-    if (!connected && service === 'openrouter') return 'destructive';
+    if (!connected && current === 'openrouter') return 'destructive';
     if (enhanced) return 'default';
     return 'secondary';
   };
 
   const getStatusIcon = () => {
-    if (!connected && service === 'openrouter') return <WifiOff className="h-3 w-3" />;
+    if (!connected && current === 'openrouter') return <WifiOff className="h-3 w-3" />;
     if (enhanced) return <Zap className="h-3 w-3" />;
     return <Brain className="h-3 w-3" />;
   };
@@ -40,7 +40,7 @@ export function AIStatusIndicator({
   };
 
   const getTooltipText = () => {
-    if (!connected && service === 'openrouter') {
+    if (!connected && current === 'openrouter') {
       return 'OpenRouter disconnected - using local simulation';
     }
     if (enhanced) {

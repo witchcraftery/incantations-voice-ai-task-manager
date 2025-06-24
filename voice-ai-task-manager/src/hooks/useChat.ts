@@ -82,9 +82,11 @@ export function useChat(preferences: UserPreferences) {
       setCurrentConversation(updatedConversation);
 
       // Process with AI
+      const userMemory = storageServiceRef.current.loadUserMemory();
       const aiResponse = await aiServiceRef.current.processMessage(
         content,
-        updatedConversation.messages
+        updatedConversation.messages,
+        userMemory
       );
 
       // Create assistant message

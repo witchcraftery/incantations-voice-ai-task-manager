@@ -123,5 +123,10 @@ export interface AIResponse {
     confidence: number;
     processingTime: number;
     intent: string;
+    service?: string;
+    model?: string;
+    enhanced?: boolean;
+    tokensUsed?: number;
+    error?: string;
   };
 }
