@@ -181,6 +181,13 @@ export class StorageService {
       aiSettings: {
         responseStyle: 'friendly',
         taskExtractionSensitivity: 'medium'
+      },
+      notificationSettings: {
+        enabled: false,
+        dailyAgenda: true,
+        taskReminders: true,
+        celebrateCompletions: true,
+        smartSuggestions: true
       }
     };
   }

@@ -13,6 +13,7 @@ import { Slider } from './ui/slider';
 import { Switch } from './ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
+import { notificationService } from '../services/notificationService';
 import { Settings, Volume2, Mic, Zap, Play, Check } from 'lucide-react';
 import { UserPreferences } from '../types';
 import { VoiceService } from '../services/voiceService';
@@ -30,6 +31,7 @@ export function SettingsDialog({ preferences, onPreferencesChange }: SettingsDia
   const [isTesting, setIsTesting] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [notificationPermission, setNotificationPermission] = useState(notificationService.permissionStatus);
   const voiceService = new VoiceService();
   const { toast } = useToast();
 
@@ -125,6 +127,36 @@ export function SettingsDialog({ preferences, onPreferencesChange }: SettingsDia
     }
   };
 
+  const requestNotificationPermission = async () => {
+    try {
+      const granted = await notificationService.requestPermission();
+      setNotificationPermission(notificationService.permissionStatus);
+      
+      if (granted) {
+        toast({
+          title: "Notifications Enabled!",
+          description: "You'll now receive task reminders and productivity suggestions.",
+        });
+        
+        // Auto-enable notification settings when permission is granted
+        handlePreferenceChange(['notificationSettings', 'enabled'], true);
+      } else {
+        toast({
+          title: "Notifications Blocked",
+          description: "Enable notifications in your browser settings to get task reminders.",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error('Error requesting notification permission:', error);
+      toast({
+        title: "Error",
+        description: "Failed to request notification permission.",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <Dialog>
       <DialogTrigger asChild>
@@ -145,9 +177,10 @@ export function SettingsDialog({ preferences, onPreferencesChange }: SettingsDia
         </DialogHeader>
 
         <Tabs defaultValue="voice" className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="voice">Voice</TabsTrigger>
             <TabsTrigger value="ai">AI Behavior</TabsTrigger>
+            <TabsTrigger value="notifications">Notifications</TabsTrigger>
             <TabsTrigger value="general">General</TabsTrigger>
           </TabsList>
 
@@ -351,6 +384,96 @@ export function SettingsDialog({ preferences, onPreferencesChange }: SettingsDia
                 <p className="text-xs text-gray-500 dark:text-gray-400">
                   Define your AI's personality and response style. Leave empty for default behavior.
                 </p>
+              </div>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="notifications" className="space-y-6 mt-6">
+            <div className="space-y-4">
+              {/* Notification Permission Section */}
+              <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label className="text-blue-900 dark:text-blue-100">Browser Notification Permission</Label>
+                    <p className="text-sm text-blue-700 dark:text-blue-300">
+                      {notificationPermission === 'granted' 
+                        ? 'Notifications are enabled and ready to use!'
+                        : notificationPermission === 'denied'
+                        ? 'Notifications are blocked. Enable them in browser settings.'
+                        : 'Grant permission to receive task reminders and updates.'
+                      }
+                    </p>
+                  </div>
+                  {notificationPermission !== 'granted' && (
+                    <Button 
+                      onClick={requestNotificationPermission}
+                      size="sm"
+                      className="bg-blue-600 hover:bg-blue-700"
+                    >
+                      {notificationPermission === 'denied' ? 'Check Settings' : 'Enable Notifications'}
+                    </Button>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label htmlFor="notifications-enabled">Enable Notifications</Label>
+                  <p className="text-sm text-gray-500">Allow browser notifications for task reminders</p>
+                </div>
+                <Switch
+                  id="notifications-enabled"
+                  checked={localPreferences.notificationSettings?.enabled || false}
+                  onCheckedChange={(checked) => handlePreferenceChange(['notificationSettings', 'enabled'], checked)}
+                />
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label htmlFor="daily-agenda">Daily Agenda</Label>
+                  <p className="text-sm text-gray-500">Get a morning summary of your tasks</p>
+                </div>
+                <Switch
+                  id="daily-agenda"
+                  checked={localPreferences.notificationSettings?.dailyAgenda || false}
+                  onCheckedChange={(checked) => handlePreferenceChange(['notificationSettings', 'dailyAgenda'], checked)}
+                />
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label htmlFor="task-reminders">Task Reminders</Label>
+                  <p className="text-sm text-gray-500">Get notified about due and overdue tasks</p>
+                </div>
+                <Switch
+                  id="task-reminders"
+                  checked={localPreferences.notificationSettings?.taskReminders || false}
+                  onCheckedChange={(checked) => handlePreferenceChange(['notificationSettings', 'taskReminders'], checked)}
+                />
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label htmlFor="celebrate-completions">Celebrate Completions</Label>
+                  <p className="text-sm text-gray-500">Get celebration notifications when you complete tasks</p>
+                </div>
+                <Switch
+                  id="celebrate-completions"
+                  checked={localPreferences.notificationSettings?.celebrateCompletions || false}
+                  onCheckedChange={(checked) => handlePreferenceChange(['notificationSettings', 'celebrateCompletions'], checked)}
+                />
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label htmlFor="smart-suggestions">Smart Suggestions</Label>
+                  <p className="text-sm text-gray-500">Receive AI-powered productivity suggestions</p>
+                </div>
+                <Switch
+                  id="smart-suggestions"
+                  checked={localPreferences.notificationSettings?.smartSuggestions || false}
+                  onCheckedChange={(checked) => handlePreferenceChange(['notificationSettings', 'smartSuggestions'], checked)}
+                />
               </div>
             </div>
           </TabsContent>

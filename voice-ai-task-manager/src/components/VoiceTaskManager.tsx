@@ -10,6 +10,7 @@ import { useTheme } from './ThemeProvider';
 import { useChat } from '../hooks/useChat';
 import { useTasks } from '../hooks/useTasks';
 import { useVoice } from '../hooks/useVoice';
+import { useNotifications } from '../hooks/useNotifications';
 import { StorageService } from '../services/storageService';
 import { UserPreferences } from '../types';
 import { motion } from 'framer-motion';
@@ -46,6 +47,14 @@ export function VoiceTaskManager() {
 
   const { speak } = useVoice(preferences);
 
+  const {
+    requestPermission: requestNotificationPermission,
+    sendDailyAgenda,
+    celebrateCompletion,
+    sendSuggestion,
+    hasPermission: hasNotificationPermission
+  } = useNotifications(tasks, { enabled: true });
+
   // Save preferences when they change
   useEffect(() => {
     const storage = new StorageService();
@@ -64,6 +73,69 @@ export function VoiceTaskManager() {
     }
   }, [theme, preferences.theme]);
 
+  // Daily agenda notification (9 AM daily)
+  useEffect(() => {
+    const scheduleAgenda = () => {
+      const now = new Date();
+      const target = new Date();
+      target.setHours(9, 0, 0, 0);
+      
+      // If it's past 9 AM today, schedule for tomorrow
+      if (now > target) {
+        target.setDate(target.getDate() + 1);
+      }
+      
+      const timeUntilTarget = target.getTime() - now.getTime();
+      
+      setTimeout(() => {
+        sendDailyAgenda();
+        // Schedule next day
+        scheduleAgenda();
+      }, timeUntilTarget);
+    };
+
+    scheduleAgenda();
+  }, [sendDailyAgenda]);
+
+  // Smart suggestions based on task patterns
+  useEffect(() => {
+    const checkForSuggestions = () => {
+      const now = new Date();
+      const hour = now.getHours();
+      
+      // Morning productivity suggestion (10 AM)
+      if (hour === 10) {
+        const pendingTasks = tasks.filter(t => t.status === 'pending');
+        const quickTasks = pendingTasks.filter(t => t.priority === 'low').slice(0, 3);
+        
+        if (quickTasks.length >= 3) {
+          sendSuggestion(`You could knock out ${quickTasks.length} quick tasks now to build momentum!`);
+        }
+      }
+      
+      // End of day reminder (5 PM)
+      if (hour === 17) {
+        const todayTasks = tasks.filter(task => {
+          if (!task.dueDate) return false;
+          const taskDate = new Date(task.dueDate);
+          return taskDate.toDateString() === now.toDateString() && task.status !== 'completed';
+        });
+        
+        if (todayTasks.length > 0) {
+          sendSuggestion(`You have ${todayTasks.length} tasks due today. Need a final push?`);
+        }
+      }
+    };
+
+    // Check every hour
+    const interval = setInterval(checkForSuggestions, 60 * 60 * 1000);
+    
+    // Initial check
+    checkForSuggestions();
+    
+    return () => clearInterval(interval);
+  }, [tasks, sendSuggestion]);
+
   const handleSendMessage = async (content: string, isVoiceInput = false) => {
     try {
       const response = await sendMessage(content, isVoiceInput);
@@ -77,13 +149,15 @@ export function VoiceTaskManager() {
     }
   };
 
-  const handleToggleComplete = (taskId: string) => {
+  const handleToggleComplete = async (taskId: string) => {
     const task = tasks.find(t => t.id === taskId);
     if (task) {
       if (task.status === 'completed') {
         reopenTask(taskId);
       } else {
         completeTask(taskId);
+        // Celebrate task completion with notification
+        await celebrateCompletion(task.title);
       }
     }
   };

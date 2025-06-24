@@ -8,10 +8,10 @@ Transform from intelligent task extraction to fully autonomous AI productivity a
 ## 📋 **IMMEDIATE PRIORITY TASKS**
 
 ### **🔧 Critical Fixes & Improvements**
-- [ ] **Fix dark theme system** - Theme switching doesn't work
-- [ ] **Add Voices to Settings Dropdown Selection** - af_aoede, af_jadzia, hf_alpha
-- [ ] **Add configurable system prompt editor** - Let user customize AI personality
-- [ ] **Switch default view from Chat to Task Dashboard** - Tasks should be primary focus
+- [x] **Fix dark theme system** - Theme switching now works with proper provider
+- [x] **Add Voices to Settings Dropdown Selection** - af_aoede, af_jadzia, hf_alpha added
+- [x] **Add configurable system prompt editor** - Custom AI personality in settings
+- [x] **Switch default view from Chat to Task Dashboard** - Tasks now primary focus
 - [ ] **Improve task-focused navigation** - Optimize for productivity workflow
 
 ### **🔔 Smart Notifications (High Impact)**

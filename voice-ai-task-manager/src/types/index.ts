@@ -62,6 +62,13 @@ export interface UserPreferences {
     taskExtractionSensitivity: 'low' | 'medium' | 'high';
     systemPrompt?: string;
   };
+  notificationSettings: {
+    enabled: boolean;
+    dailyAgenda: boolean;
+    taskReminders: boolean;
+    celebrateCompletions: boolean;
+    smartSuggestions: boolean;
+  };
 }
 
 export interface UserMemory {
