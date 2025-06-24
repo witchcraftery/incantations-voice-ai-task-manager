@@ -192,6 +192,12 @@ export class StorageService {
         taskReminders: true,
         celebrateCompletions: true,
         smartSuggestions: true
+      },
+      googleIntegration: {
+        enabled: false,
+        calendarEnabled: true,
+        gmailEnabled: true,
+        autoExtractTasks: true
       }
     };
   }

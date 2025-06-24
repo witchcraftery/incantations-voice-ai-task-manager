@@ -74,6 +74,14 @@ export interface UserPreferences {
     celebrateCompletions: boolean;
     smartSuggestions: boolean;
   };
+  googleIntegration: {
+    enabled: boolean;
+    clientId?: string;
+    apiKey?: string;
+    calendarEnabled: boolean;
+    gmailEnabled: boolean;
+    autoExtractTasks: boolean;
+  };
 }
 
 export interface UserMemory {

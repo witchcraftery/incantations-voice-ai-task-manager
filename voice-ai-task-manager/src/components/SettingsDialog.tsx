@@ -177,10 +177,11 @@ export function SettingsDialog({ preferences, onPreferencesChange }: SettingsDia
         </DialogHeader>
 
         <Tabs defaultValue="voice" className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="voice">Voice</TabsTrigger>
             <TabsTrigger value="ai">AI Behavior</TabsTrigger>
             <TabsTrigger value="notifications">Notifications</TabsTrigger>
+            <TabsTrigger value="google">Google</TabsTrigger>
             <TabsTrigger value="general">General</TabsTrigger>
           </TabsList>
 
@@ -557,6 +558,105 @@ export function SettingsDialog({ preferences, onPreferencesChange }: SettingsDia
                   onCheckedChange={(checked) => handlePreferenceChange(['notificationSettings', 'smartSuggestions'], checked)}
                 />
               </div>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="google" className="space-y-6 mt-6">
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label htmlFor="google-integration">Enable Google Integration</Label>
+                  <p className="text-sm text-gray-500">Connect Calendar and Gmail for enhanced task management</p>
+                </div>
+                <Switch
+                  id="google-integration"
+                  checked={localPreferences.googleIntegration?.enabled || false}
+                  onCheckedChange={(checked) => handlePreferenceChange(['googleIntegration', 'enabled'], checked)}
+                />
+              </div>
+
+              {localPreferences.googleIntegration?.enabled && (
+                <>
+                  <div className="space-y-3">
+                    <Label htmlFor="google-client-id">Google Client ID</Label>
+                    <input
+                      id="google-client-id"
+                      type="text"
+                      className="w-full p-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+                      placeholder="123456789-abcdefghijklmnop.apps.googleusercontent.com"
+                      value={localPreferences.googleIntegration?.clientId || ''}
+                      onChange={(e) => handlePreferenceChange(['googleIntegration', 'clientId'], e.target.value)}
+                    />
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                      Get from <a href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">Google Cloud Console</a>
+                    </p>
+                  </div>
+
+                  <div className="space-y-3">
+                    <Label htmlFor="google-api-key">Google API Key</Label>
+                    <input
+                      id="google-api-key"
+                      type="password"
+                      className="w-full p-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+                      placeholder="AIzaSyA..."
+                      value={localPreferences.googleIntegration?.apiKey || ''}
+                      onChange={(e) => handlePreferenceChange(['googleIntegration', 'apiKey'], e.target.value)}
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <Label htmlFor="calendar-enabled">Calendar Integration</Label>
+                        <p className="text-xs text-gray-500">Extract tasks from calendar events</p>
+                      </div>
+                      <Switch
+                        id="calendar-enabled"
+                        checked={localPreferences.googleIntegration?.calendarEnabled || false}
+                        onCheckedChange={(checked) => handlePreferenceChange(['googleIntegration', 'calendarEnabled'], checked)}
+                      />
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <Label htmlFor="gmail-enabled">Gmail Integration</Label>
+                        <p className="text-xs text-gray-500">Extract tasks from emails</p>
+                      </div>
+                      <Switch
+                        id="gmail-enabled"
+                        checked={localPreferences.googleIntegration?.gmailEnabled || false}
+                        onCheckedChange={(checked) => handlePreferenceChange(['googleIntegration', 'gmailEnabled'], checked)}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <Label htmlFor="auto-extract-tasks">Auto-Extract Tasks</Label>
+                      <p className="text-sm text-gray-500">Automatically create tasks from emails and calendar events</p>
+                    </div>
+                    <Switch
+                      id="auto-extract-tasks"
+                      checked={localPreferences.googleIntegration?.autoExtractTasks || false}
+                      onCheckedChange={(checked) => handlePreferenceChange(['googleIntegration', 'autoExtractTasks'], checked)}
+                    />
+                  </div>
+
+                  <div className="p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800">
+                    <h4 className="font-medium text-yellow-900 dark:text-yellow-100 mb-2">Setup Required</h4>
+                    <p className="text-sm text-yellow-700 dark:text-yellow-300 mb-3">
+                      To use Google integration, you'll need to set up OAuth credentials in Google Cloud Console:
+                    </p>
+                    <ol className="text-xs text-yellow-700 dark:text-yellow-300 space-y-1 list-decimal list-inside">
+                      <li>Go to Google Cloud Console → APIs & Services → Credentials</li>
+                      <li>Create OAuth 2.0 Client ID for web application</li>
+                      <li>Add your domain to authorized origins</li>
+                      <li>Enable Calendar and Gmail APIs</li>
+                      <li>Copy Client ID and API Key to settings above</li>
+                    </ol>
+                  </div>
+                </>
+              )}
             </div>
           </TabsContent>
 
