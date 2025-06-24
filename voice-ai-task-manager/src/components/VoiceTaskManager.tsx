@@ -64,17 +64,12 @@ export function VoiceTaskManager() {
     storage.savePreferences(preferences);
   }, [preferences]);
 
-  // Sync theme with preferences
+  // Sync theme with preferences (one-way only)
   useEffect(() => {
     setTheme(preferences.theme);
   }, [preferences.theme, setTheme]);
 
-  // Sync preferences when theme changes externally
-  useEffect(() => {
-    if (theme !== preferences.theme) {
-      setPreferences(prev => ({ ...prev, theme }));
-    }
-  }, [theme, preferences.theme]);
+  // Remove the circular sync - let preferences control theme, not vice versa
 
   // Daily agenda notification (9 AM daily)
   useEffect(() => {

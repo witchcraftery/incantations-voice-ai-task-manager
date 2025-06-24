@@ -8,13 +8,19 @@
     transition: none !important;
   }
 
-  /* Smooth theme transitions - only for theme-related properties */
-  html {
-    transition: background-color 0.3s ease, color 0.3s ease;
+  /* Smooth theme transitions - only for major elements */
+  html, body {
+    transition: background-color 0.25s ease;
   }
   
-  body, div, button, input, textarea, select {
-    transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+  /* More selective transitions for interactive elements */
+  .bg-white, .bg-gray-50, .bg-gray-900, .bg-gray-950,
+  .dark\\:bg-gray-800, .dark\\:bg-gray-900, .dark\\:bg-gray-950 {
+    transition: background-color 0.2s ease;
+  }
+  
+  .text-gray-900, .text-gray-100, .dark\\:text-gray-100, .dark\\:text-gray-900 {
+    transition: color 0.2s ease;
   }
 
   :root {

@@ -40,10 +40,14 @@ export function SettingsDialog({ preferences, onPreferencesChange }: SettingsDia
     testKokoroConnection();
   }, []);
 
-  // Check for unsaved changes
+  // Check for unsaved changes (with debouncing to prevent flashing)
   useEffect(() => {
-    const hasChanges = JSON.stringify(localPreferences) !== JSON.stringify(preferences);
-    setHasUnsavedChanges(hasChanges);
+    const timeoutId = setTimeout(() => {
+      const hasChanges = JSON.stringify(localPreferences) !== JSON.stringify(preferences);
+      setHasUnsavedChanges(hasChanges);
+    }, 100); // 100ms debounce
+
+    return () => clearTimeout(timeoutId);
   }, [localPreferences, preferences]);
 
   // Add keyboard shortcut for saving

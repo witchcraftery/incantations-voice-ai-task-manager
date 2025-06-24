@@ -17,12 +17,24 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     return saved || 'system';
   });
 
-  const [actualTheme, setActualTheme] = useState<'light' | 'dark'>('light');
+  const [actualTheme, setActualTheme] = useState<'light' | 'dark'>(() => {
+    // Initialize with correct theme immediately to prevent flash
+    const saved = localStorage.getItem('theme') as Theme;
+    if (saved === 'dark') return 'dark';
+    if (saved === 'light') return 'light';
+    // For system theme, check system preference
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  });
 
   // Remove preload class on mount to enable transitions
   useEffect(() => {
     document.body.classList.remove('preload');
-  }, []);
+    
+    // Set initial theme class immediately
+    const root = window.document.documentElement;
+    root.classList.remove('light', 'dark');
+    root.classList.add(actualTheme);
+  }, [actualTheme]);
 
   useEffect(() => {
     const root = window.document.documentElement;
