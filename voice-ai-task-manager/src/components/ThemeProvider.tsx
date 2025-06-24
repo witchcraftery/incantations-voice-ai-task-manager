@@ -19,6 +19,11 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   const [actualTheme, setActualTheme] = useState<'light' | 'dark'>('light');
 
+  // Remove preload class on mount to enable transitions
+  useEffect(() => {
+    document.body.classList.remove('preload');
+  }, []);
+
   useEffect(() => {
     const root = window.document.documentElement;
 
