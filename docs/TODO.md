@@ -12,6 +12,15 @@ Transform from intelligent task extraction to fully autonomous AI productivity a
 - [x] **Add Voices to Settings Dropdown Selection** - af_aoede, af_jadzia, hf_alpha added
 - [x] **Add configurable system prompt editor** - Custom AI personality in settings
 - [x] **Switch default view from Chat to Task Dashboard** - Tasks now primary focus
+- [x] **Fix voice-to-chat transcript accumulation** - STT now captures complete thoughts
+- [x] **Fix conversation context loss** - AI now maintains conversation history
+- [x] **Prevent voice transcript race conditions** - Fallback logic ensures no lost speech
+- [x] **Implement auto-send voice chat** - 2.5s silence triggers auto-send, continuous conversation
+- [x] **Add keyboard shortcuts for voice control** - Ctrl+Shift+V toggle, Space push-to-talk, Esc stop
+- [x] **Fix network timeout errors** - Auto-restart speech recognition on network failures
+- [x] **Add comprehensive documentation modal** - Interactive guide with examples and feature explanations
+- [x] **Fix system prompt saving** - Custom AI personality now persists properly in localStorage
+- [x] **Implement auto-save settings UX** - All settings auto-save with instant theme changes, no save button needed
 - [ ] **Improve task-focused navigation** - Optimize for productivity workflow
 
 ### **🔔 Smart Notifications (High Impact)**

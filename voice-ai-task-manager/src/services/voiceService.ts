@@ -10,6 +10,16 @@ export class VoiceService {
     'af', 'af_bella', 'af_nicole', 'af_sarah', 'af_sky', 'am_adam', 'am_michael', 
     'bf_emma', 'bf_isabella', 'bm_george', 'bm_lewis', 'us_male', 'us_female'
   ];
+  
+  // Auto-restart handling
+  private autoRestartEnabled = true;
+  private restartTimeoutId: NodeJS.Timeout | null = null;
+  private currentCallbacks: {
+    onResult?: (transcript: string, isFinal: boolean) => void;
+    onError?: (error: string) => void;
+    onStart?: () => void;
+    onEnd?: () => void;
+  } = {};
 
   constructor() {
     this.synthesis = window.speechSynthesis;
@@ -44,7 +54,23 @@ export class VoiceService {
       return false;
     }
 
+    // Store callbacks for auto-restart
+    this.currentCallbacks = { onResult, onError, onStart, onEnd };
+    this.autoRestartEnabled = true;
+
+    return this.startRecognitionSession();
+  }
+
+  private startRecognitionSession(): boolean {
+    if (!this.recognition) return false;
+
     try {
+      // Clear any existing restart timeout
+      if (this.restartTimeoutId) {
+        clearTimeout(this.restartTimeoutId);
+        this.restartTimeoutId = null;
+      }
+
       this.recognition.onresult = (event) => {
         let finalTranscript = '';
         let interimTranscript = '';
@@ -58,28 +84,78 @@ export class VoiceService {
           }
         }
 
-        onResult(finalTranscript || interimTranscript, !!finalTranscript);
+        this.currentCallbacks.onResult?.(finalTranscript || interimTranscript, !!finalTranscript);
       };
 
       this.recognition.onerror = (event) => {
-        onError(`Speech recognition error: ${event.error}`);
+        console.log('Speech recognition error:', event.error);
+        
+        // Handle network errors with auto-restart
+        if (event.error === 'network' && this.autoRestartEnabled) {
+          console.log('🔄 Network error detected, restarting speech recognition...');
+          this.scheduleRestart();
+        } else if (event.error === 'no-speech' && this.autoRestartEnabled) {
+          console.log('🔄 No speech detected, restarting...');
+          this.scheduleRestart();
+        } else {
+          this.currentCallbacks.onError?.(`Speech recognition error: ${event.error}`);
+        }
       };
 
-      this.recognition.onstart = onStart;
-      this.recognition.onend = onEnd;
+      this.recognition.onstart = () => {
+        console.log('🎤 Speech recognition started');
+        this.currentCallbacks.onStart?.();
+      };
+
+      this.recognition.onend = () => {
+        console.log('🎤 Speech recognition ended');
+        
+        // Auto-restart if enabled and not manually stopped
+        if (this.autoRestartEnabled) {
+          console.log('🔄 Auto-restarting speech recognition...');
+          this.scheduleRestart(500); // 500ms delay to prevent rapid cycling
+        } else {
+          this.currentCallbacks.onEnd?.();
+        }
+      };
 
       this.recognition.start();
       return true;
     } catch (error) {
-      onError(`Failed to start speech recognition: ${error}`);
+      this.currentCallbacks.onError?.(`Failed to start speech recognition: ${error}`);
       return false;
     }
   }
 
+  private scheduleRestart(delay: number = 1000): void {
+    if (!this.autoRestartEnabled) return;
+
+    if (this.restartTimeoutId) {
+      clearTimeout(this.restartTimeoutId);
+    }
+
+    this.restartTimeoutId = setTimeout(() => {
+      if (this.autoRestartEnabled && this.recognition) {
+        console.log('🔄 Restarting speech recognition session...');
+        this.startRecognitionSession();
+      }
+    }, delay);
+  }
+
   stopListening() {
+    this.autoRestartEnabled = false;
+    
+    if (this.restartTimeoutId) {
+      clearTimeout(this.restartTimeoutId);
+      this.restartTimeoutId = null;
+    }
+    
     if (this.recognition) {
       this.recognition.stop();
     }
+    
+    // Call the end callback when manually stopped
+    this.currentCallbacks.onEnd?.();
   }
 
   async speak(

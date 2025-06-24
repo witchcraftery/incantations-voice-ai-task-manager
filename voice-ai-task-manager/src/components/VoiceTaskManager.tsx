@@ -7,6 +7,7 @@ import { ChatInterface } from './ChatInterface';
 import { TaskDashboard } from './TaskDashboard';
 import { ConversationSidebar } from './ConversationSidebar';
 import { SettingsDialog } from './SettingsDialog';
+import { DocumentationModal } from './DocumentationModal';
 import { AIStatusIndicator } from './AIStatusIndicator';
 import { useTheme } from './ThemeProvider';
 import { useChat } from '../hooks/useChat';
@@ -263,10 +264,13 @@ export function VoiceTaskManager() {
               )}
             </div>
 
-            <SettingsDialog 
-              preferences={preferences}
-              onPreferencesChange={setPreferences}
-            />
+            <div className="flex items-center gap-3">
+              <DocumentationModal />
+              <SettingsDialog 
+                preferences={preferences}
+                onPreferencesChange={setPreferences}
+              />
+            </div>
           </div>
         </header>
 

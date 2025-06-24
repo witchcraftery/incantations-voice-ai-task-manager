@@ -118,31 +118,63 @@ export class AIService {
     extractedTasks: Partial<Task>[], 
     history: Message[]
   ): string {
+    // Check conversation context
+    const recentHistory = history.slice(-6); // Last 6 messages for context
+    const hasRecentContext = recentHistory.length > 0;
+    const lastAssistantMessage = recentHistory.filter(m => m.type === 'assistant').pop();
+    const conversationThemes = this.extractConversationThemes(recentHistory);
+
     const responses = {
       task_creation: [
-        "I've identified some tasks from what you said. Let me help you organize them.",
-        "Great! I've extracted a few action items from your message.",
-        "Perfect, I can see some tasks here. I'll add them to your list.",
+        hasRecentContext && conversationThemes.includes('project') 
+          ? "Adding those tasks to what we were discussing. I can see how they fit into your project."
+          : "I've identified some tasks from what you said. Let me help you organize them.",
+        
+        hasRecentContext && recentHistory.length > 2
+          ? "Great! Building on our conversation, I've extracted a few more action items."
+          : "Great! I've extracted a few action items from your message.",
+        
+        hasRecentContext && conversationThemes.includes('deadline')
+          ? "Perfect, more tasks to add to your timeline. I'll add them to your list."
+          : "Perfect, I can see some tasks here. I'll add them to your list.",
+        
         "Got it! I've found some actionable items in your conversation."
       ],
       task_query: [
-        "Let me check your current tasks and provide you with an update.",
+        hasRecentContext 
+          ? "Let me update you on the tasks we've been discussing, plus anything else relevant."
+          : "Let me check your current tasks and provide you with an update.",
+        
         "I'll look through your task list and show you what's relevant.",
         "Here's what I found in your current projects and tasks."
       ],
       project_discussion: [
-        "Sounds like an interesting project! Tell me more about what needs to be done.",
-        "I'm listening. What specific tasks or goals do you have for this project?",
+        hasRecentContext && lastAssistantMessage?.content.includes('project')
+          ? "Continuing with that project - tell me more about what specific tasks need to be done."
+          : "Sounds like an interesting project! Tell me more about what needs to be done.",
+        
+        hasRecentContext 
+          ? "Building on what you mentioned earlier - what specific tasks or goals do you have for this project?"
+          : "I'm listening. What specific tasks or goals do you have for this project?",
+        
         "Great project discussion! What are the next steps you'd like to focus on?"
       ],
       casual_conversation: [
-        "Hello! I'm here to help you manage your tasks and stay organized. What's on your mind?",
-        "Hi there! Ready to tackle some tasks together?",
+        hasRecentContext 
+          ? "Thanks for the additional context! What else can I help you accomplish?"
+          : "Hello! I'm here to help you manage your tasks and stay organized. What's on your mind?",
+        
+        hasRecentContext && recentHistory.some(m => m.extractedTasks && m.extractedTasks.length > 0)
+          ? "Good to continue our task planning! What else would you like to work on?"
+          : "Hi there! Ready to tackle some tasks together?",
+        
         "Hey! What can I help you accomplish today?"
       ],
       help_request: [
         "I'm your AI task assistant! I can help you capture tasks from conversations, organize your work, and keep track of your projects. Just speak naturally about what you need to do.",
-        "I specialize in understanding your tasks and helping you stay organized. You can talk to me about your work, projects, or anything you need to remember.",
+        hasRecentContext 
+          ? "I specialize in understanding your tasks and helping you stay organized. As we've been discussing, you can talk to me about your work, projects, or anything you need to remember."
+          : "I specialize in understanding your tasks and helping you stay organized. You can talk to me about your work, projects, or anything you need to remember.",
         "I'm here to make task management effortless! Just speak naturally about your work and I'll help extract and organize your tasks."
       ]
     };
@@ -153,16 +185,51 @@ export class AIService {
     // Add task-specific information if tasks were extracted
     if (extractedTasks.length > 0) {
       const taskCount = extractedTasks.length;
-      response += ` I found ${taskCount} ${taskCount === 1 ? 'task' : 'tasks'} that I can add to your list.`;
+      const contextualTaskMessage = hasRecentContext && recentHistory.some(m => m.extractedTasks && m.extractedTasks.length > 0)
+        ? ` I found ${taskCount} more ${taskCount === 1 ? 'task' : 'tasks'} to add to what we've been working on.`
+        : ` I found ${taskCount} ${taskCount === 1 ? 'task' : 'tasks'} that I can add to your list.`;
+      
+      response += contextualTaskMessage;
     }
 
-    // Add contextual information based on user memory
+    // Add contextual information based on user memory and conversation
     if (this.userMemory.contextualInfo.currentProjects.length > 0 && intent === 'project_discussion') {
       const currentProject = this.userMemory.contextualInfo.currentProjects[0];
-      response += ` This seems related to your ${currentProject} project.`;
+      response += hasRecentContext 
+        ? ` This fits well with your ongoing ${currentProject} project.`
+        : ` This seems related to your ${currentProject} project.`;
+    }
+
+    // Add conversation continuity
+    if (hasRecentContext && conversationThemes.length > 0) {
+      const theme = conversationThemes[0];
+      if (!response.toLowerCase().includes(theme)) {
+        response += ` I'm keeping track of our ${theme} discussion.`;
+      }
     }
 
     return response;
+  }
+
+  private extractConversationThemes(history: Message[]): string[] {
+    const themes: string[] = [];
+    const content = history.map(m => m.content.toLowerCase()).join(' ');
+    
+    const themePatterns = {
+      'project': /project|development|build|create|design/,
+      'deadline': /deadline|due|urgent|asap|rush|deadline/,
+      'meeting': /meeting|call|discuss|presentation|demo/,
+      'planning': /plan|schedule|organize|strategy|roadmap/,
+      'review': /review|feedback|check|evaluate|assess/
+    };
+
+    Object.entries(themePatterns).forEach(([theme, pattern]) => {
+      if (pattern.test(content)) {
+        themes.push(theme);
+      }
+    });
+
+    return themes;
   }
 
   private generateSuggestions(input: string, intent: string): string[] {

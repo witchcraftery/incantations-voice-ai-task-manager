@@ -53,10 +53,22 @@ export function ChatInterface({
   const handleVoiceTranscript = async (transcript: string) => {
     if (!transcript.trim()) return;
 
+    console.log('🎤 Manual voice transcript:', transcript);
     try {
       await onSendMessage(transcript, true);
     } catch (error) {
       console.error('Failed to send voice message:', error);
+    }
+  };
+
+  const handleVoiceAutoSend = async (transcript: string) => {
+    if (!transcript.trim()) return;
+
+    console.log('🤖 Auto-sending voice transcript:', transcript);
+    try {
+      await onSendMessage(transcript, true);
+    } catch (error) {
+      console.error('Failed to auto-send voice message:', error);
     }
   };
 
@@ -91,6 +103,7 @@ export function ChatInterface({
             <VoiceControls
               preferences={preferences}
               onTranscript={handleVoiceTranscript}
+              onAutoSend={handleVoiceAutoSend}
               onStartListening={() => setIsVoiceInputMode(true)}
               onStopListening={() => setIsVoiceInputMode(false)}
             />
@@ -263,7 +276,7 @@ export function ChatInterface({
 
         <div className="mt-2 text-xs text-gray-500 dark:text-gray-400">
           {preferences.voiceEnabled 
-            ? "Type or use voice input to describe your tasks naturally"
+            ? "Type, use voice input, or try keyboard shortcuts: Ctrl+Shift+V (toggle) • Space (hold) • Esc (stop)"
             : "Type to describe your tasks naturally"
           }
         </div>

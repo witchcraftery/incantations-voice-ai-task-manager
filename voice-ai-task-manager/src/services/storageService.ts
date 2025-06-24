@@ -119,7 +119,30 @@ export class StorageService {
       const stored = localStorage.getItem(this.PREFERENCES_KEY);
       if (!stored) return this.getDefaultPreferences();
       
-      return { ...this.getDefaultPreferences(), ...JSON.parse(stored) };
+      const defaultPrefs = this.getDefaultPreferences();
+      const storedPrefs = JSON.parse(stored);
+      
+      // Deep merge to ensure all nested properties are preserved
+      return {
+        ...defaultPrefs,
+        ...storedPrefs,
+        aiSettings: {
+          ...defaultPrefs.aiSettings,
+          ...storedPrefs.aiSettings
+        },
+        voiceSettings: {
+          ...defaultPrefs.voiceSettings,
+          ...storedPrefs.voiceSettings
+        },
+        notificationSettings: {
+          ...defaultPrefs.notificationSettings,
+          ...storedPrefs.notificationSettings
+        },
+        googleIntegration: {
+          ...defaultPrefs.googleIntegration,
+          ...storedPrefs.googleIntegration
+        }
+      };
     } catch (error) {
       console.error('Failed to load preferences:', error);
       return this.getDefaultPreferences();
@@ -181,7 +204,9 @@ export class StorageService {
       aiSettings: {
         responseStyle: 'friendly',
         taskExtractionSensitivity: 'medium',
+        systemPrompt: '', // Add default empty system prompt
         useOpenRouter: false,
+        openRouterApiKey: '',
         selectedModel: 'simulation',
         temperature: 0.7,
         maxTokens: 1000

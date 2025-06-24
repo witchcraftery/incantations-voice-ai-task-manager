@@ -14,7 +14,7 @@ import { Switch } from './ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { notificationService } from '../services/notificationService';
-import { Settings, Volume2, Mic, Zap, Play, Check } from 'lucide-react';
+import { Settings, Volume2, Mic, Zap, Play, Check, X } from 'lucide-react';
 import { UserPreferences } from '../types';
 import { VoiceService } from '../services/voiceService';
 import { useToast } from '../hooks/use-toast';
@@ -29,8 +29,6 @@ export function SettingsDialog({ preferences, onPreferencesChange }: SettingsDia
   const [availableVoices, setAvailableVoices] = useState<Array<{name: string, displayName: string, type: 'web' | 'kokoro'}>>([]);
   const [kokoroConnected, setKokoroConnected] = useState(false);
   const [isTesting, setIsTesting] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
-  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [notificationPermission, setNotificationPermission] = useState(notificationService.permissionStatus);
   const voiceService = new VoiceService();
   const { toast } = useToast();
@@ -40,28 +38,37 @@ export function SettingsDialog({ preferences, onPreferencesChange }: SettingsDia
     testKokoroConnection();
   }, []);
 
-  // Check for unsaved changes (with debouncing to prevent flashing)
+  // Auto-save changes immediately when they occur
   useEffect(() => {
     const timeoutId = setTimeout(() => {
       const hasChanges = JSON.stringify(localPreferences) !== JSON.stringify(preferences);
-      setHasUnsavedChanges(hasChanges);
-    }, 100); // 100ms debounce
+      if (hasChanges) {
+        console.log('Auto-saving preferences:', localPreferences);
+        onPreferencesChange(localPreferences);
+        
+        toast({
+          title: "Settings updated!",
+          description: "Changes saved automatically.",
+          duration: 2000,
+        });
+      }
+    }, 500); // 500ms debounce for auto-save
 
     return () => clearTimeout(timeoutId);
-  }, [localPreferences, preferences]);
+  }, [localPreferences, preferences, onPreferencesChange, toast]);
 
-  // Add keyboard shortcut for saving
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === 's' && hasUnsavedChanges && !isSaving) {
-        e.preventDefault();
-        savePreferences();
-      }
-    };
+  // Remove manual save keyboard shortcut since we auto-save
+  // useEffect(() => {
+  //   const handleKeyDown = (e: KeyboardEvent) => {
+  //     if ((e.metaKey || e.ctrlKey) && e.key === 's' && hasUnsavedChanges && !isSaving) {
+  //       e.preventDefault();
+  //       savePreferences();
+  //     }
+  //   };
 
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [hasUnsavedChanges, isSaving]);
+  //   document.addEventListener('keydown', handleKeyDown);
+  //   return () => document.removeEventListener('keydown', handleKeyDown);
+  // }, [hasUnsavedChanges, isSaving]);
 
   const loadVoices = () => {
     const voices = voiceService.getAvailableVoices();
@@ -85,30 +92,22 @@ export function SettingsDialog({ preferences, onPreferencesChange }: SettingsDia
     setLocalPreferences(newPreferences);
   };
 
-  const savePreferences = async () => {
-    if (isSaving) return;
-    setIsSaving(true);
+  const handleThemeChange = (newTheme: 'light' | 'dark' | 'system') => {
+    // Update local preferences immediately
+    const updatedPreferences = {
+      ...localPreferences,
+      theme: newTheme
+    };
+    setLocalPreferences(updatedPreferences);
     
-    try {
-      // Simulate a brief save process for better UX
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      onPreferencesChange(localPreferences);
-      setHasUnsavedChanges(false);
-      
-      toast({
-        title: "Settings saved!",
-        description: "Your preferences have been updated successfully.",
-      });
-    } catch (error) {
-      toast({
-        title: "Save failed",
-        description: "There was an error saving your settings. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsSaving(false);
-    }
+    // Apply theme change immediately (no wait for auto-save)
+    onPreferencesChange(updatedPreferences);
+    
+    toast({
+      title: "Theme updated!",
+      description: `Switched to ${newTheme} mode.`,
+      duration: 2000,
+    });
   };
 
   const testVoice = async () => {
@@ -384,7 +383,10 @@ export function SettingsDialog({ preferences, onPreferencesChange }: SettingsDia
                   className="w-full h-32 p-3 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 resize-vertical focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="Customize how your AI assistant behaves. For example: 'You are a productivity-focused assistant who is encouraging but direct. Always prioritize actionable advice.'"
                   value={localPreferences.aiSettings.systemPrompt || ''}
-                  onChange={(e) => handlePreferenceChange(['aiSettings', 'systemPrompt'], e.target.value)}
+                  onChange={(e) => {
+                    console.log('System prompt changed:', e.target.value);
+                    handlePreferenceChange(['aiSettings', 'systemPrompt'], e.target.value);
+                  }}
                 />
                 <p className="text-xs text-gray-500 dark:text-gray-400">
                   Define your AI's personality and response style. Leave empty for default behavior.
@@ -670,7 +672,7 @@ export function SettingsDialog({ preferences, onPreferencesChange }: SettingsDia
                 <Label htmlFor="theme">Theme</Label>
                 <Select
                   value={localPreferences.theme}
-                  onValueChange={(value: any) => handlePreferenceChange(['theme'], value)}
+                  onValueChange={(value: any) => handleThemeChange(value)}
                 >
                   <SelectTrigger>
                     <SelectValue />
@@ -707,18 +709,10 @@ export function SettingsDialog({ preferences, onPreferencesChange }: SettingsDia
 
         <div className="flex justify-between items-center pt-4 border-t">
           <div className="flex items-center gap-2 text-sm">
-            {hasUnsavedChanges && (
-              <span className="flex items-center gap-1 text-orange-600">
-                <div className="w-2 h-2 bg-orange-500 rounded-full animate-pulse"></div>
-                Unsaved changes
-              </span>
-            )}
-            {!hasUnsavedChanges && !isSaving && (
-              <span className="flex items-center gap-1 text-green-600">
-                <Check className="w-3 h-3" />
-                All changes saved
-              </span>
-            )}
+            <span className="flex items-center gap-1 text-green-600">
+              <Check className="w-3 h-3" />
+              Auto-save enabled
+            </span>
           </div>
           
           <div className="flex gap-2">
@@ -726,28 +720,21 @@ export function SettingsDialog({ preferences, onPreferencesChange }: SettingsDia
               variant="outline" 
               onClick={() => {
                 setLocalPreferences(preferences);
-                setHasUnsavedChanges(false);
               }}
-              disabled={isSaving}
             >
-              Reset
+              Reset to Defaults
             </Button>
             <Button 
-              onClick={savePreferences}
-              disabled={isSaving || !hasUnsavedChanges}
+              onClick={() => {
+                // The dialog will close automatically due to DialogTrigger
+                // This is just for explicit closing if needed
+              }}
               className="min-w-[120px]"
             >
-              {isSaving ? (
-                <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 border-2 border-gray-300 border-t-white rounded-full animate-spin"></div>
-                  Saving...
-                </div>
-              ) : (
-                <div className="flex items-center gap-2">
-                  <Check className="h-4 w-4" />
-                  Save Changes
-                </div>
-              )}
+              <div className="flex items-center gap-2">
+                <X className="h-4 w-4" />
+                Close
+              </div>
             </Button>
           </div>
         </div>

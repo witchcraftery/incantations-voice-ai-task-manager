@@ -1,7 +1,8 @@
 import React from 'react';
-import { Mic, MicOff, Volume2, VolumeX, Square } from 'lucide-react';
+import { Mic, MicOff, Volume2, VolumeX, Square, Keyboard } from 'lucide-react';
 import { Button } from './ui/button';
 import { useVoice } from '../hooks/useVoice';
+import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts';
 import { UserPreferences } from '../types';
 import { motion } from 'framer-motion';
 
@@ -10,13 +11,15 @@ interface VoiceControlsProps {
   onTranscript: (transcript: string) => void;
   onStartListening?: () => void;
   onStopListening?: () => void;
+  onAutoSend?: (transcript: string) => void;
 }
 
 export function VoiceControls({
   preferences,
   onTranscript,
   onStartListening,
-  onStopListening
+  onStopListening,
+  onAutoSend
 }: VoiceControlsProps) {
   const {
     voiceState,
@@ -26,7 +29,15 @@ export function VoiceControls({
     getFinalTranscript,
     isSupported,
     clearError
-  } = useVoice(preferences);
+  } = useVoice(preferences, onAutoSend);
+
+  // Keyboard shortcuts for voice control
+  const { shortcuts } = useKeyboardShortcuts({
+    onToggleVoice: voiceState.isListening ? handleStopListening : handleStartListening,
+    onStopVoice: handleStopListening,
+    isVoiceActive: voiceState.isListening,
+    enabled: preferences.voiceEnabled && isSupported()
+  });
 
   const handleStartListening = () => {
     const success = startListening();
@@ -39,10 +50,15 @@ export function VoiceControls({
     stopListening();
     onStopListening?.();
     
-    // Get the final transcript and pass it up
+    // Get the final transcript with fallback to displayed transcript
     const finalTranscript = getFinalTranscript();
-    if (finalTranscript.trim()) {
-      onTranscript(finalTranscript);
+    const transcriptToSend = finalTranscript || voiceState.transcript.trim();
+    
+    if (transcriptToSend) {
+      console.log('🎤 Sending voice transcript:', transcriptToSend);
+      onTranscript(transcriptToSend);
+    } else {
+      console.warn('⚠️ No transcript captured');
     }
   };
 
@@ -67,6 +83,17 @@ export function VoiceControls({
         </motion.div>
       )}
 
+      {/* Keyboard Shortcuts Hint */}
+      {!voiceState.isListening && (
+        <div 
+          className="hidden lg:flex items-center gap-1 px-2 py-1 bg-gray-100 dark:bg-gray-800 rounded text-xs text-gray-600 dark:text-gray-400"
+          title="Keyboard shortcuts available"
+        >
+          <Keyboard className="h-3 w-3" />
+          <span>{shortcuts.toggle}</span>
+        </div>
+      )}
+
       {/* Listening Button */}
       <Button
         variant={voiceState.isListening ? "destructive" : "default"}
@@ -74,6 +101,7 @@ export function VoiceControls({
         onClick={voiceState.isListening ? handleStopListening : handleStartListening}
         disabled={voiceState.isProcessing}
         className="relative"
+        title={voiceState.isListening ? 'Stop recording (Esc)' : 'Start recording (Ctrl+Shift+V or Space)'}
       >
         {voiceState.isListening ? (
           <>
@@ -129,6 +157,17 @@ export function VoiceControls({
             <span className="text-xs">Processing</span>
           </motion.div>
         )}
+
+        {voiceState.isListening && !voiceState.transcript && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="flex items-center gap-1 text-green-600 dark:text-green-400"
+          >
+            <div className="h-2 w-2 bg-green-600 rounded-full animate-pulse" />
+            <span className="text-xs">Listening</span>
+          </motion.div>
+        )}
       </div>
 
       {/* Error Display */}
@@ -136,11 +175,18 @@ export function VoiceControls({
         <motion.div
           initial={{ opacity: 0, x: 10 }}
           animate={{ opacity: 1, x: 0 }}
-          className="px-2 py-1 bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200 rounded text-xs cursor-pointer"
+          className="px-2 py-1 bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200 rounded text-xs cursor-pointer flex items-center gap-1"
           onClick={clearError}
           title="Click to dismiss"
         >
-          {voiceState.error}
+          {voiceState.error.includes('network') && (
+            <div className="h-2 w-2 bg-yellow-500 rounded-full animate-pulse" />
+          )}
+          <span>
+            {voiceState.error.includes('network') 
+              ? 'Reconnecting...' 
+              : voiceState.error}
+          </span>
         </motion.div>
       )}
     </div>
