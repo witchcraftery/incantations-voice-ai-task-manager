@@ -6,6 +6,7 @@ import { ChatInterface } from './ChatInterface';
 import { TaskDashboard } from './TaskDashboard';
 import { ConversationSidebar } from './ConversationSidebar';
 import { SettingsDialog } from './SettingsDialog';
+import { useTheme } from './ThemeProvider';
 import { useChat } from '../hooks/useChat';
 import { useTasks } from '../hooks/useTasks';
 import { useVoice } from '../hooks/useVoice';
@@ -14,11 +15,13 @@ import { UserPreferences } from '../types';
 import { motion } from 'framer-motion';
 
 export function VoiceTaskManager() {
+  const { theme, setTheme } = useTheme();
+  
   const [preferences, setPreferences] = useState<UserPreferences>(() => {
     const storage = new StorageService();
     return storage.loadPreferences();
   });
-  const [activeTab, setActiveTab] = useState('chat');
+  const [activeTab, setActiveTab] = useState('tasks');
   const [sidebarVisible, setSidebarVisible] = useState(true);
 
   const {
@@ -48,6 +51,18 @@ export function VoiceTaskManager() {
     const storage = new StorageService();
     storage.savePreferences(preferences);
   }, [preferences]);
+
+  // Sync theme with preferences
+  useEffect(() => {
+    setTheme(preferences.theme);
+  }, [preferences.theme, setTheme]);
+
+  // Sync preferences when theme changes externally
+  useEffect(() => {
+    if (theme !== preferences.theme) {
+      setPreferences(prev => ({ ...prev, theme }));
+    }
+  }, [theme, preferences.theme]);
 
   const handleSendMessage = async (content: string, isVoiceInput = false) => {
     try {

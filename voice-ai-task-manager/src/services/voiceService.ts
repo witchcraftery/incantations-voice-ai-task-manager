@@ -6,6 +6,7 @@ export class VoiceService {
   private isInitialized = false;
   private kokoroApiUrl = 'http://0.0.0.0:8880';
   private kokoroVoices = [
+    'af_aoede', 'af_jadzia', 'hf_alpha',
     'af', 'af_bella', 'af_nicole', 'af_sarah', 'af_sky', 'am_adam', 'am_michael', 
     'bf_emma', 'bf_isabella', 'bm_george', 'bm_lewis', 'us_male', 'us_female'
   ];

@@ -338,6 +338,20 @@ export function SettingsDialog({ preferences, onPreferencesChange }: SettingsDia
                   </SelectContent>
                 </Select>
               </div>
+
+              <div className="space-y-3">
+                <Label htmlFor="system-prompt">Custom System Prompt</Label>
+                <textarea
+                  id="system-prompt"
+                  className="w-full h-32 p-3 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 resize-vertical focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Customize how your AI assistant behaves. For example: 'You are a productivity-focused assistant who is encouraging but direct. Always prioritize actionable advice.'"
+                  value={localPreferences.aiSettings.systemPrompt || ''}
+                  onChange={(e) => handlePreferenceChange(['aiSettings', 'systemPrompt'], e.target.value)}
+                />
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  Define your AI's personality and response style. Leave empty for default behavior.
+                </p>
+              </div>
             </div>
           </TabsContent>
 

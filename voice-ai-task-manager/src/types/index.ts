@@ -60,6 +60,7 @@ export interface UserPreferences {
   aiSettings: {
     responseStyle: 'concise' | 'detailed' | 'friendly';
     taskExtractionSensitivity: 'low' | 'medium' | 'high';
+    systemPrompt?: string;
   };
 }
 
