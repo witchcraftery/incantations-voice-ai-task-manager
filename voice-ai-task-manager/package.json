@@ -6,6 +6,8 @@
   "type": "module",
   "scripts": {
     "dev": "yes | pnpm install && vite",
+    "dev:ssl": "yes | pnpm install && vite --https --host 0.0.0.0",
+    "dev:network": "yes | pnpm install && vite --host 0.0.0.0",
     "build": "yes | pnpm install && rm -rf node_modules/.vite-temp && tsc -b && vite build",
     "lint": "yes | pnpm install && eslint .",
     "preview": "yes | pnpm install && vite preview"

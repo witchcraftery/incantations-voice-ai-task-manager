@@ -61,28 +61,98 @@ export class OpenRouterService {
       this.availableModels = data.data || [];
       
       // Filter and sort for task management relevant models
-      return this.availableModels
+      const filteredModels = this.availableModels
         .filter(model => 
           model.architecture.modality === 'text' && 
           model.context_length >= 4000 // Minimum context for task management
-        )
-        .sort((a, b) => {
-          // Prioritize models good for task management
-          const taskModels = [
-            'anthropic/claude-3', 'openai/gpt-4', 'openai/gpt-3.5',
-            'meta-llama/llama-3', 'google/gemini', 'cohere/command'
-          ];
-          
-          const aScore = taskModels.some(prefix => a.id.includes(prefix)) ? 1 : 0;
-          const bScore = taskModels.some(prefix => b.id.includes(prefix)) ? 1 : 0;
-          
-          if (aScore !== bScore) return bScore - aScore;
-          return a.name.localeCompare(b.name);
-        });
+        );
+
+      // Popular models list (most commonly used for productivity tasks)
+      const popularModels = [
+        'anthropic/claude-3.5-sonnet',
+        'anthropic/claude-3-haiku',
+        'openai/gpt-4o',
+        'openai/gpt-4o-mini',
+        'openai/gpt-3.5-turbo',
+        'meta-llama/llama-3.1-8b-instruct:free',
+        'google/gemini-flash-1.5',
+        'mistralai/mistral-7b-instruct:free',
+        'microsoft/wizardlm-2-8x22b',
+        'cohere/command-r-plus'
+      ];
+
+      return filteredModels.sort((a, b) => {
+        // First, check if models are in popular list
+        const aPopularIndex = popularModels.indexOf(a.id);
+        const bPopularIndex = popularModels.indexOf(b.id);
+        
+        // If both are popular, sort by popularity order
+        if (aPopularIndex !== -1 && bPopularIndex !== -1) {
+          return aPopularIndex - bPopularIndex;
+        }
+        
+        // Popular models come first
+        if (aPopularIndex !== -1) return -1;
+        if (bPopularIndex !== -1) return 1;
+        
+        // Then prioritize free models
+        const aFree = a.id.includes(':free') || a.pricing.prompt === 0;
+        const bFree = b.id.includes(':free') || b.pricing.prompt === 0;
+        
+        if (aFree && !bFree) return -1;
+        if (!aFree && bFree) return 1;
+        
+        // Finally, sort alphabetically
+        return a.name.localeCompare(b.name);
+      });
     } catch (error) {
       console.error('Error fetching OpenRouter models:', error);
       return [];
     }
+  }
+
+  getPopularModels(): string[] {
+    return [
+      'anthropic/claude-3.5-sonnet',
+      'anthropic/claude-3-haiku', 
+      'openai/gpt-4o',
+      'openai/gpt-4o-mini',
+      'openai/gpt-3.5-turbo',
+      'meta-llama/llama-3.1-8b-instruct:free',
+      'google/gemini-flash-1.5',
+      'mistralai/mistral-7b-instruct:free',
+      'microsoft/wizardlm-2-8x22b',
+      'cohere/command-r-plus'
+    ];
+  }
+
+  isModelFree(model: OpenRouterModel): boolean {
+    return model.id.includes(':free') || model.pricing.prompt === 0;
+  }
+
+  isModelPopular(modelId: string): boolean {
+    return this.getPopularModels().includes(modelId);
+  }
+
+  formatModelDescription(model: OpenRouterModel): string {
+    const contextLength = (model.context_length / 1000).toFixed(0) + 'K';
+    const isFree = this.isModelFree(model);
+    const isPopular = this.isModelPopular(model.id);
+    
+    let description = `${contextLength} context`;
+    
+    if (isFree) {
+      description += ' • FREE';
+    } else {
+      const promptPrice = (model.pricing.prompt * 1000000).toFixed(2);
+      description += ` • $${promptPrice}/M tokens`;
+    }
+    
+    if (isPopular) {
+      description += ' • ⭐ Popular';
+    }
+    
+    return description;
   }
 
   async processMessage(

@@ -15,6 +15,10 @@ interface ConversationSidebarProps {
   onDeleteConversation: (conversationId: string) => void;
   onUpdateTitle?: (conversationId: string, title: string) => void;
   getConversationSummary: (conversationId: string) => string;
+  minimized?: boolean;
+  onToggleMinimized?: () => void;
+  settingsComponent?: React.ReactNode;
+  docsComponent?: React.ReactNode;
 }
 
 export function ConversationSidebar({
@@ -24,7 +28,11 @@ export function ConversationSidebar({
   onNewConversation,
   onDeleteConversation,
   onUpdateTitle,
-  getConversationSummary
+  getConversationSummary,
+  minimized = false,
+  onToggleMinimized,
+  settingsComponent,
+  docsComponent
 }: ConversationSidebarProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -221,41 +229,67 @@ export function ConversationSidebar({
   };
 
   return (
-    <div className="w-80 border-r bg-white dark:bg-gray-950 flex flex-col h-full">
+    <div className={`${minimized ? 'w-20' : 'w-80'} border-r bg-white dark:bg-gray-950 flex flex-col h-full transition-all duration-300`}>
       {/* Header */}
       <div className="p-4 border-b">
         <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-2">
-            <MessageSquare className="h-5 w-5 text-gray-600 dark:text-gray-400" />
-            <h2 className="font-semibold text-gray-900 dark:text-gray-100">
-              Conversations
-            </h2>
-          </div>
+          {!minimized && (
+            <div className="flex items-center gap-2">
+              <MessageSquare className="h-5 w-5 text-gray-600 dark:text-gray-400" />
+              <h2 className="font-semibold text-gray-900 dark:text-gray-100">
+                Conversations
+              </h2>
+            </div>
+          )}
           <Button
             onClick={onNewConversation}
             size="sm"
-            className="gap-1 h-8"
+            className={`gap-1 h-8 ${minimized ? 'w-full justify-center' : ''}`}
+            title={minimized ? "New Conversation" : ""}
           >
             <Plus className="h-3 w-3" />
-            New
+            {!minimized && "New"}
           </Button>
         </div>
 
         {/* Search */}
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-          <Input
-            placeholder="Search conversations..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10 h-8"
-          />
-        </div>
+        {!minimized && (
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <Input
+              placeholder="Search conversations..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10 h-8"
+            />
+          </div>
+        )}
+        
+        {minimized && (
+          <div className="flex justify-center">
+            <Button
+              onClick={onToggleMinimized}
+              variant="ghost"
+              size="sm"
+              className="w-8 h-8 p-0"
+              title="Expand Sidebar"
+            >
+              <Search className="h-4 w-4" />
+            </Button>
+          </div>
+        )}
       </div>
 
       {/* Conversations List */}
       <ScrollArea className="flex-1 p-2">
-        {filteredConversations.length === 0 ? (
+        {minimized ? (
+          <div className="text-center py-6">
+            <MessageSquare className="h-6 w-6 text-gray-300 dark:text-gray-600 mx-auto mb-2" />
+            <p className="text-xs text-gray-500 dark:text-gray-400">
+              {conversations.length}
+            </p>
+          </div>
+        ) : filteredConversations.length === 0 ? (
           <div className="text-center py-8">
             <MessageSquare className="h-12 w-12 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
             <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
@@ -276,6 +310,24 @@ export function ConversationSidebar({
           </div>
         )}
       </ScrollArea>
+      
+      {/* Bottom Controls */}
+      <div className="border-t p-3">
+        <div className={`flex ${minimized ? 'flex-col gap-2' : 'gap-3'} items-center`}>
+          {!minimized && (
+            <div className="flex-1">
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                {conversations.length} conversation{conversations.length !== 1 ? 's' : ''}
+              </p>
+            </div>
+          )}
+          
+          <div className={`flex ${minimized ? 'flex-col gap-1' : ''} gap-1 ${minimized ? 'w-full justify-center' : ''}`}>
+            {docsComponent}
+            {settingsComponent}
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

@@ -56,6 +56,7 @@ export interface UserPreferences {
     voice?: string;
     useKokoro: boolean;
     kokoroVoice: string;
+    microphoneId?: string;
   };
   aiSettings: {
     responseStyle: 'concise' | 'detailed' | 'friendly';
