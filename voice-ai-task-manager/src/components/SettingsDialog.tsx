@@ -6,6 +6,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogClose,
 } from './ui/dialog';
 import { Button } from './ui/button';
 import { Label } from './ui/label';
@@ -27,35 +28,59 @@ interface SettingsDialogProps {
 export function SettingsDialog({ preferences, onPreferencesChange }: SettingsDialogProps) {
   const [localPreferences, setLocalPreferences] = useState<UserPreferences>(preferences);
   const [availableVoices, setAvailableVoices] = useState<Array<{name: string, displayName: string, type: 'web' | 'kokoro'}>>([]);
+  const [availableAudioInputs, setAvailableAudioInputs] = useState<Array<{deviceId: string, label: string}>>([]);
   const [kokoroConnected, setKokoroConnected] = useState(false);
   const [isTesting, setIsTesting] = useState(false);
   const [notificationPermission, setNotificationPermission] = useState(notificationService.permissionStatus);
+  const [isOpen, setIsOpen] = useState(false);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const voiceService = new VoiceService();
   const { toast } = useToast();
 
   useEffect(() => {
     loadVoices();
+    loadAudioInputs();
     testKokoroConnection();
   }, []);
 
-  // Auto-save changes immediately when they occur
+  const loadAudioInputs = async () => {
+    const inputs = await voiceService.getAvailableAudioInputs();
+    setAvailableAudioInputs(inputs);
+  };
+
+  // Auto-save changes with proper change detection and smarter notifications
   useEffect(() => {
     const timeoutId = setTimeout(() => {
       const hasChanges = JSON.stringify(localPreferences) !== JSON.stringify(preferences);
       if (hasChanges) {
         console.log('Auto-saving preferences:', localPreferences);
         onPreferencesChange(localPreferences);
+        setHasUnsavedChanges(false);
         
-        toast({
-          title: "Settings updated!",
-          description: "Changes saved automatically.",
-          duration: 2000,
-        });
+        // Only show toast notification if user made actual meaningful changes
+        const changedFields = Object.keys(localPreferences).filter(key => 
+          JSON.stringify(localPreferences[key as keyof UserPreferences]) !== 
+          JSON.stringify(preferences[key as keyof UserPreferences])
+        );
+        
+        if (changedFields.length > 0) {
+          toast({
+            title: "Settings saved!",
+            description: `Updated: ${changedFields.join(', ')}`,
+            duration: 2000,
+          });
+        }
       }
     }, 500); // 500ms debounce for auto-save
 
     return () => clearTimeout(timeoutId);
   }, [localPreferences, preferences, onPreferencesChange, toast]);
+
+  // Track unsaved changes for UI feedback
+  useEffect(() => {
+    const hasChanges = JSON.stringify(localPreferences) !== JSON.stringify(preferences);
+    setHasUnsavedChanges(hasChanges);
+  }, [localPreferences, preferences]);
 
   // Remove manual save keyboard shortcut since we auto-save
   // useEffect(() => {
@@ -161,9 +186,9 @@ export function SettingsDialog({ preferences, onPreferencesChange }: SettingsDia
   };
 
   return (
-    <Dialog>
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button variant="ghost" size="sm">
+        <Button variant="ghost" size="sm" title="Settings">
           <Settings className="h-4 w-4" />
         </Button>
       </DialogTrigger>
@@ -212,6 +237,33 @@ export function SettingsDialog({ preferences, onPreferencesChange }: SettingsDia
                   checked={localPreferences.autoSpeak}
                   onCheckedChange={(checked) => handlePreferenceChange(['autoSpeak'], checked)}
                 />
+              </div>
+
+              {/* Microphone Selection */}
+              <div className="space-y-3">
+                <Label htmlFor="microphone">Microphone Input</Label>
+                <Select
+                  value={localPreferences.voiceSettings.microphoneId || 'default'}
+                  onValueChange={(value) => {
+                    handlePreferenceChange(['voiceSettings', 'microphoneId'], value === 'default' ? undefined : value);
+                    voiceService.setAudioInput(value === 'default' ? undefined : value);
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select microphone" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="default">System Default</SelectItem>
+                    {availableAudioInputs.map((input) => (
+                      <SelectItem key={input.deviceId} value={input.deviceId}>
+                        {input.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-gray-500">
+                  Choose which microphone to use for voice input
+                </p>
               </div>
 
               {/* Kokoro TTS Section */}
@@ -337,6 +389,34 @@ export function SettingsDialog({ preferences, onPreferencesChange }: SettingsDia
                 <Play className="h-4 w-4 mr-2" />
                 {isTesting ? 'Testing Voice...' : 'Test Voice'}
               </Button>
+
+              {/* Voice Notifications Test */}
+              <Button 
+                onClick={async () => {
+                  if (!localPreferences.voiceEnabled) return;
+                  setIsTesting(true);
+                  try {
+                    // Test celebration notification
+                    await voiceService.speak("Hell yeah! Task mastery achieved!", {
+                      ...localPreferences.voiceSettings,
+                      voice: localPreferences.voiceSettings.useKokoro 
+                        ? localPreferences.voiceSettings.kokoroVoice 
+                        : localPreferences.voiceSettings.voice,
+                      useKokoro: localPreferences.voiceSettings.useKokoro
+                    });
+                  } catch (error) {
+                    console.error('Voice notification test failed:', error);
+                  } finally {
+                    setIsTesting(false);
+                  }
+                }} 
+                disabled={isTesting || !localPreferences.voiceEnabled}
+                className="w-full"
+                variant="outline"
+              >
+                <Volume2 className="h-4 w-4 mr-2" />
+                {isTesting ? 'Testing Notification...' : 'Test Voice Notification'}
+              </Button>
             </div>
           </TabsContent>
 
@@ -433,15 +513,93 @@ export function SettingsDialog({ preferences, onPreferencesChange }: SettingsDia
                         <SelectTrigger>
                           <SelectValue />
                         </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="simulation">Local Simulation (Free)</SelectItem>
-                          <SelectItem value="anthropic/claude-3.5-sonnet">Claude 3.5 Sonnet</SelectItem>
-                          <SelectItem value="openai/gpt-4o">GPT-4o</SelectItem>
-                          <SelectItem value="openai/gpt-4o-mini">GPT-4o Mini</SelectItem>
-                          <SelectItem value="meta-llama/llama-3.1-70b-instruct">Llama 3.1 70B</SelectItem>
-                          <SelectItem value="google/gemini-pro-1.5">Gemini Pro 1.5</SelectItem>
+                        <SelectContent className="max-h-96">
+                          <SelectItem value="simulation">
+                            <div className="flex flex-col">
+                              <span>Local Simulation</span>
+                              <span className="text-xs text-gray-500">FREE • Offline fallback</span>
+                            </div>
+                          </SelectItem>
+                          
+                          {/* Popular Models Section */}
+                          <div className="px-2 py-1 text-xs font-semibold text-gray-500 border-b">
+                            ⭐ Popular Models
+                          </div>
+                          <SelectItem value="anthropic/claude-3.5-sonnet">
+                            <div className="flex flex-col">
+                              <span>Claude 3.5 Sonnet</span>
+                              <span className="text-xs text-gray-500">200K context • $3/M tokens • ⭐ Popular</span>
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="openai/gpt-4o">
+                            <div className="flex flex-col">
+                              <span>GPT-4o</span>
+                              <span className="text-xs text-gray-500">128K context • $2.50/M tokens • ⭐ Popular</span>
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="openai/gpt-4o-mini">
+                            <div className="flex flex-col">
+                              <span>GPT-4o Mini</span>
+                              <span className="text-xs text-gray-500">128K context • $0.15/M tokens • ⭐ Popular</span>
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="anthropic/claude-3-haiku">
+                            <div className="flex flex-col">
+                              <span>Claude 3 Haiku</span>
+                              <span className="text-xs text-gray-500">200K context • $0.25/M tokens • ⭐ Popular</span>
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="google/gemini-flash-1.5">
+                            <div className="flex flex-col">
+                              <span>Gemini Flash 1.5</span>
+                              <span className="text-xs text-gray-500">1M context • $0.075/M tokens • ⭐ Popular</span>
+                            </div>
+                          </SelectItem>
+
+                          {/* Free Models Section */}
+                          <div className="px-2 py-1 text-xs font-semibold text-gray-500 border-b border-t">
+                            💰 Free Models
+                          </div>
+                          <SelectItem value="meta-llama/llama-3.1-8b-instruct:free">
+                            <div className="flex flex-col">
+                              <span>Llama 3.1 8B Instruct</span>
+                              <span className="text-xs text-green-600">128K context • FREE</span>
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="mistralai/mistral-7b-instruct:free">
+                            <div className="flex flex-col">
+                              <span>Mistral 7B Instruct</span>
+                              <span className="text-xs text-green-600">32K context • FREE</span>
+                            </div>
+                          </SelectItem>
+
+                          {/* Other Models Section */}
+                          <div className="px-2 py-1 text-xs font-semibold text-gray-500 border-b border-t">
+                            🔧 Other Models
+                          </div>
+                          <SelectItem value="meta-llama/llama-3.1-70b-instruct">
+                            <div className="flex flex-col">
+                              <span>Llama 3.1 70B Instruct</span>
+                              <span className="text-xs text-gray-500">128K context • $0.35/M tokens</span>
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="google/gemini-pro-1.5">
+                            <div className="flex flex-col">
+                              <span>Gemini Pro 1.5</span>
+                              <span className="text-xs text-gray-500">2M context • $1.25/M tokens</span>
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="cohere/command-r-plus">
+                            <div className="flex flex-col">
+                              <span>Command R+</span>
+                              <span className="text-xs text-gray-500">128K context • $2.50/M tokens</span>
+                            </div>
+                          </SelectItem>
                         </SelectContent>
                       </Select>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                        ⭐ Popular models are optimized for task management. 💰 Free models have usage limits.
+                      </p>
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
@@ -709,10 +867,17 @@ export function SettingsDialog({ preferences, onPreferencesChange }: SettingsDia
 
         <div className="flex justify-between items-center pt-4 border-t">
           <div className="flex items-center gap-2 text-sm">
-            <span className="flex items-center gap-1 text-green-600">
-              <Check className="w-3 h-3" />
-              Auto-save enabled
-            </span>
+            {hasUnsavedChanges ? (
+              <span className="flex items-center gap-1 text-orange-600">
+                <div className="w-2 h-2 bg-orange-600 rounded-full animate-pulse" />
+                Unsaved changes
+              </span>
+            ) : (
+              <span className="flex items-center gap-1 text-green-600">
+                <Check className="w-3 h-3" />
+                All changes saved
+              </span>
+            )}
           </div>
           
           <div className="flex gap-2">
@@ -720,22 +885,30 @@ export function SettingsDialog({ preferences, onPreferencesChange }: SettingsDia
               variant="outline" 
               onClick={() => {
                 setLocalPreferences(preferences);
+                setHasUnsavedChanges(false);
+                toast({
+                  title: "Settings reset",
+                  description: "Preferences restored to saved state.",
+                  duration: 2000,
+                });
               }}
             >
-              Reset to Defaults
+              Reset Changes
             </Button>
-            <Button 
-              onClick={() => {
-                // The dialog will close automatically due to DialogTrigger
-                // This is just for explicit closing if needed
-              }}
-              className="min-w-[120px]"
-            >
-              <div className="flex items-center gap-2">
-                <X className="h-4 w-4" />
-                Close
-              </div>
-            </Button>
+            <DialogClose asChild>
+              <Button 
+                onClick={() => {
+                  setIsOpen(false);
+                  setHasUnsavedChanges(false);
+                }}
+                className="min-w-[120px]"
+              >
+                <div className="flex items-center gap-2">
+                  <X className="h-4 w-4" />
+                  Close
+                </div>
+              </Button>
+            </DialogClose>
           </div>
         </div>
       </DialogContent>

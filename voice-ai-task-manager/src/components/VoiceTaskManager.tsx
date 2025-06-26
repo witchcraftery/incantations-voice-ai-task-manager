@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Brain, Settings, Mic, CheckCircle2, MessageSquare } from 'lucide-react';
+import { Brain, Settings, Mic, CheckCircle2, MessageSquare, Bot } from 'lucide-react';
 import { Button } from './ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { TooltipProvider } from './ui/tooltip';
@@ -9,17 +9,22 @@ import { ConversationSidebar } from './ConversationSidebar';
 import { SettingsDialog } from './SettingsDialog';
 import { DocumentationModal } from './DocumentationModal';
 import { AIStatusIndicator } from './AIStatusIndicator';
+import { LoginButton } from './auth/LoginButton';
+import { UserMenu } from './auth/UserMenu';
+import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from './ThemeProvider';
 import { useChat } from '../hooks/useChat';
 import { useTasks } from '../hooks/useTasks';
 import { useVoice } from '../hooks/useVoice';
 import { useNotifications } from '../hooks/useNotifications';
+import { useBackgroundAgent } from '../hooks/useBackgroundAgent';
 import { StorageService } from '../services/storageService';
 import { UserPreferences } from '../types';
 import { motion } from 'framer-motion';
 
 export function VoiceTaskManager() {
   const { theme, setTheme } = useTheme();
+  const { user, loading: authLoading, updatePreferences: updateCloudPreferences } = useAuth();
   
   const [preferences, setPreferences] = useState<UserPreferences>(() => {
     const storage = new StorageService();
@@ -27,6 +32,31 @@ export function VoiceTaskManager() {
   });
   const [activeTab, setActiveTab] = useState('tasks');
   const [sidebarVisible, setSidebarVisible] = useState(true);
+  const [sidebarMinimized, setSidebarMinimized] = useState(false);
+
+  // Enhanced preferences handler that syncs to cloud if authenticated
+  const handlePreferencesChange = async (newPreferences: UserPreferences) => {
+    setPreferences(newPreferences);
+    
+    // Save to localStorage for offline access
+    const storage = new StorageService();
+    storage.savePreferences(newPreferences);
+    
+    // If user is authenticated, also save to cloud
+    if (user) {
+      try {
+        await updateCloudPreferences(newPreferences);
+      } catch (error) {
+        console.error('Failed to sync preferences to cloud:', error);
+        // Could show a toast notification here
+      }
+    }
+  };
+
+  // Auto-minimize sidebar on Tasks view, expand on Chat view
+  useEffect(() => {
+    setSidebarMinimized(activeTab === 'tasks');
+  }, [activeTab]);
 
   const {
     currentConversation,
@@ -50,6 +80,13 @@ export function VoiceTaskManager() {
   } = useTasks();
 
   const { speak } = useVoice(preferences);
+
+  // Initialize background agent
+  const backgroundAgent = useBackgroundAgent(preferences, {
+    enabled: preferences.notificationSettings?.enabled || false,
+    aggressiveness: 'normal',
+    checkInterval: 5 * 60 * 1000 // 5 minutes
+  });
 
   const {
     requestPermission: requestNotificationPermission,
@@ -155,8 +192,9 @@ export function VoiceTaskManager() {
         reopenTask(taskId);
       } else {
         completeTask(taskId);
-        // Celebrate task completion with notification
+        // Celebrate task completion with notification AND voice
         await celebrateCompletion(task.title);
+        await backgroundAgent.playCustomCelebration(task.title);
       }
     }
   };
@@ -178,7 +216,10 @@ export function VoiceTaskManager() {
       {/* Sidebar */}
       <motion.div
         initial={false}
-        animate={{ x: sidebarVisible ? 0 : -320 }}
+        animate={{ 
+          x: sidebarVisible ? 0 : (sidebarMinimized ? -240 : -320),
+          width: sidebarMinimized ? 80 : 320 
+        }}
         transition={{ type: 'spring', stiffness: 300, damping: 30 }}
         className="absolute left-0 top-0 h-full z-10 md:relative md:z-0"
       >
@@ -190,6 +231,15 @@ export function VoiceTaskManager() {
           onDeleteConversation={deleteConversation}
           onUpdateTitle={updateConversationTitle}
           getConversationSummary={getConversationSummary}
+          minimized={sidebarMinimized}
+          onToggleMinimized={() => setSidebarMinimized(!sidebarMinimized)}
+          settingsComponent={
+            <SettingsDialog 
+              preferences={preferences}
+              onPreferencesChange={handlePreferencesChange}
+            />
+          }
+          docsComponent={<DocumentationModal />}
         />
       </motion.div>
 
@@ -262,14 +312,35 @@ export function VoiceTaskManager() {
                   </span>
                 </div>
               )}
+              {backgroundAgent.state.isRunning && (
+                <div className="flex items-center gap-2">
+                  <Bot className="h-4 w-4 text-orange-600" />
+                  <span className="text-gray-600 dark:text-gray-400">
+                    AI Agent active
+                  </span>
+                  {backgroundAgent.state.emailMonitoring && (
+                    <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                      Gmail
+                    </span>
+                  )}
+                </div>
+              )}
             </div>
 
             <div className="flex items-center gap-3">
-              <DocumentationModal />
-              <SettingsDialog 
-                preferences={preferences}
-                onPreferencesChange={setPreferences}
-              />
+              {/* Auth Components */}
+              {!authLoading && (
+                <>
+                  {user ? (
+                    <UserMenu />
+                  ) : (
+                    <div className="w-48">
+                      <LoginButton />
+                    </div>
+                  )}
+                </>
+              )}
+              {/* Removed Settings and Docs from header - moved to sidebar */}
             </div>
           </div>
         </header>

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { 
   BookOpen, 
+  FileText,
   X, 
   Mic, 
   Brain, 
@@ -155,9 +156,8 @@ export function DocumentationModal() {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button variant="ghost" size="sm" className="gap-2">
-          <BookOpen className="h-4 w-4" />
-          Documentation
+        <Button variant="ghost" size="sm" title="Documentation">
+          <FileText className="h-4 w-4" />
         </Button>
       </DialogTrigger>
       

@@ -31,14 +31,6 @@ export function VoiceControls({
     clearError
   } = useVoice(preferences, onAutoSend);
 
-  // Keyboard shortcuts for voice control
-  const { shortcuts } = useKeyboardShortcuts({
-    onToggleVoice: voiceState.isListening ? handleStopListening : handleStartListening,
-    onStopVoice: handleStopListening,
-    isVoiceActive: voiceState.isListening,
-    enabled: preferences.voiceEnabled && isSupported()
-  });
-
   const handleStartListening = () => {
     const success = startListening();
     if (success) {
@@ -61,6 +53,14 @@ export function VoiceControls({
       console.warn('⚠️ No transcript captured');
     }
   };
+
+  // Keyboard shortcuts for voice control
+  const { shortcuts } = useKeyboardShortcuts({
+    onToggleVoice: voiceState.isListening ? handleStopListening : handleStartListening,
+    onStopVoice: handleStopListening,
+    isVoiceActive: voiceState.isListening,
+    enabled: preferences.voiceEnabled && isSupported()
+  });
 
   const handleStopSpeaking = () => {
     stopSpeaking();

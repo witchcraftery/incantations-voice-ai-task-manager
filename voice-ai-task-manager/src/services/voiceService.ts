@@ -21,6 +21,33 @@ export class VoiceService {
     onEnd?: () => void;
   } = {};
 
+  // Audio device management
+  async getAvailableAudioInputs(): Promise<Array<{deviceId: string, label: string}>> {
+    try {
+      // Request permission first
+      await navigator.mediaDevices.getUserMedia({ audio: true });
+      
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      return devices
+        .filter(device => device.kind === 'audioinput')
+        .map(device => ({
+          deviceId: device.deviceId,
+          label: device.label || `Microphone ${device.deviceId.slice(0, 8)}`
+        }));
+    } catch (error) {
+      console.error('Failed to enumerate audio devices:', error);
+      return [];
+    }
+  }
+
+  setAudioInput(deviceId?: string) {
+    // Note: Web Speech API doesn't directly support device selection
+    // This would need getUserMedia integration for device-specific capture
+    console.log('Audio input selection requested:', deviceId);
+    // For now, we'll store the preference and inform user
+    return deviceId;
+  }
+
   constructor() {
     this.synthesis = window.speechSynthesis;
     this.initializeSpeechRecognition();
