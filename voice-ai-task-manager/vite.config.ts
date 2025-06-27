@@ -11,7 +11,8 @@ export default defineConfig({
     },
   },
   server: {
-    https: {
+    // Check if SSL certificates exist
+    https: process.env.VITE_DISABLE_HTTPS === 'true' ? false : {
       key: fs.existsSync('./ssl/localhost-key.pem') 
         ? fs.readFileSync('./ssl/localhost-key.pem')
         : fs.existsSync('../docker/ssl/localhost-key.pem')
@@ -24,7 +25,6 @@ export default defineConfig({
         : undefined,
     },
     host: true,
-    port: 5174,
+    port: process.env.PORT ? parseInt(process.env.PORT) : 5174,
   },
 })
-
