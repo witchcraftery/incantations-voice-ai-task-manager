@@ -53,6 +53,10 @@ services:
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-your_dev_google_client_id}
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-your_dev_google_client_secret}
       GOOGLE_REDIRECT_URI: https://localhost:5174/auth/callback
+      # Development mode - bypass OAuth for testing
+      ENABLE_DEV_MODE: true
+      DEV_USER_EMAIL: developer@incantations.dev
+      DEV_USER_NAME: Development User
     volumes:
       - ./backend/src:/app/src
       - ./backend/package.json:/app/package.json
@@ -89,6 +93,45 @@ services:
     depends_on:
       - backend
     command: npm run dev:ssl
+
+  # Frontend HTTP Fallback (if SSL issues)
+  frontend-http:
+    build:
+      context: ./voice-ai-task-manager
+      dockerfile: Dockerfile
+      target: development
+    container_name: incantations-frontend-http
+    ports:
+      - "5175:5175"
+    environment:
+      VITE_API_URL: http://localhost:3001/api
+      VITE_GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-your_dev_google_client_id}
+    volumes:
+      - ./voice-ai-task-manager/src:/app/src
+      - ./voice-ai-task-manager/public:/app/public
+      - ./voice-ai-task-manager/package.json:/app/package.json
+      - ./voice-ai-task-manager/vite.config.ts:/app/vite.config.ts
+      - ./voice-ai-task-manager/tsconfig.json:/app/tsconfig.json
+      - ./voice-ai-task-manager/tailwind.config.js:/app/tailwind.config.js
+      - /app/node_modules
+    depends_on:
+      - backend
+    command: npm run dev:http
+    profiles:
+      - http
+
+  # Kokoro-FastAPI Voice Service
+  kokoro:
+    image: ghcr.io/remsky/kokoro-fastapi-cpu:latest
+    container_name: incantations-kokoro
+    ports:
+      - "8880:8880"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8880/v1/audio/voices"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
 
 volumes:
   postgres_data:
