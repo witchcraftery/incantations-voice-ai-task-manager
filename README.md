@@ -4,8 +4,6 @@
 > **Transform your thoughts into action through the magic of conversation.**  
 > Simply speak naturally—your AI assistant extracts tasks, monitors your productivity, and coaches you toward success.
 
-![Incantations Hero](./assets/hero-image.png)
-*[Hero image placeholder - will be updated with your custom branding]*
 
 ---
 
