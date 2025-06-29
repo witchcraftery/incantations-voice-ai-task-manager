@@ -11,7 +11,7 @@ export default defineConfig({
     },
   },
   server: {
-    // Check if SSL certificates exist
+    // Disable HTTPS in Docker - use VITE_DISABLE_HTTPS env var
     https: process.env.VITE_DISABLE_HTTPS === 'true' ? false : {
       key: fs.existsSync('./ssl/localhost-key.pem') 
         ? fs.readFileSync('./ssl/localhost-key.pem')
@@ -25,6 +25,6 @@ export default defineConfig({
         : undefined,
     },
     host: true,
-    port: process.env.PORT ? parseInt(process.env.PORT) : 5174,
+    port: process.env.FRONTEND_PORT ? parseInt(process.env.FRONTEND_PORT) : 5174,
   },
 })
