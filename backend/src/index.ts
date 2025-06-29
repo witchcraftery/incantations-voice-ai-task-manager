@@ -11,6 +11,7 @@ import { authRouter } from './routes/auth';
 import { userRouter } from './routes/user';
 import { taskRouter } from './routes/tasks';
 import { syncRouter } from './routes/sync';
+import ttsRouter from './routes/tts';
 import { logger } from './utils/logger';
 import { errorHandler } from './middleware/errorHandler';
 
@@ -74,6 +75,7 @@ app.use('/api/auth', authRouter);
 app.use('/api/user', userRouter);
 app.use('/api/tasks', taskRouter);
 app.use('/api/sync', syncRouter);
+app.use('/api/tts', ttsRouter);
 
 // Error handling
 app.use(errorHandler);

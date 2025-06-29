@@ -54,8 +54,8 @@ export interface UserPreferences {
     pitch: number;
     volume: number;
     voice?: string;
-    useKokoro: boolean;
-    kokoroVoice: string;
+    useDeepgram: boolean;
+    deepgramVoice: string;
     microphoneId?: string;
   };
   aiSettings: {
