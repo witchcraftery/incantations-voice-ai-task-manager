@@ -198,8 +198,9 @@ export class StorageService {
         rate: 1.0,
         pitch: 1.0,
         volume: 0.8,
-        useKokoro: false,
-        kokoroVoice: 'af_bella'
+        useDeepgram: true,
+        deepgramVoice: 'aura-asteria-en',
+        microphoneId: undefined
       },
       aiSettings: {
         responseStyle: 'friendly',

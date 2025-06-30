@@ -4,11 +4,13 @@ export class VoiceService {
   private recognition: any | null = null;
   private synthesis: SpeechSynthesis;
   private isInitialized = false;
-  private kokoroApiUrl = 'http://0.0.0.0:8880';
-  private kokoroVoices = [
-    'af_aoede', 'af_jadzia', 'hf_alpha',
-    'af', 'af_bella', 'af_nicole', 'af_sarah', 'af_sky', 'am_adam', 'am_michael', 
-    'bf_emma', 'bf_isabella', 'bm_george', 'bm_lewis', 'us_male', 'us_female'
+  private backendApiUrl = process.env.NODE_ENV === 'production' 
+    ? 'http://137.184.13.35:3001' 
+    : 'http://localhost:3001';
+  private deepgramVoices = [
+    'aura-asteria-en', 'aura-luna-en', 'aura-stella-en', 'aura-athena-en', 
+    'aura-hera-en', 'aura-orion-en', 'aura-arcas-en', 'aura-perseus-en',
+    'aura-angus-en', 'aura-orpheus-en'
   ];
   
   // Auto-restart handling
@@ -20,6 +22,33 @@ export class VoiceService {
     onStart?: () => void;
     onEnd?: () => void;
   } = {};
+
+  // Audio device management
+  async getAvailableAudioInputs(): Promise<Array<{deviceId: string, label: string}>> {
+    try {
+      // Request permission first
+      await navigator.mediaDevices.getUserMedia({ audio: true });
+      
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      return devices
+        .filter(device => device.kind === 'audioinput')
+        .map(device => ({
+          deviceId: device.deviceId,
+          label: device.label || `Microphone ${device.deviceId.slice(0, 8)}`
+        }));
+    } catch (error) {
+      console.error('Failed to enumerate audio devices:', error);
+      return [];
+    }
+  }
+
+  setAudioInput(deviceId?: string) {
+    // Note: Web Speech API doesn't directly support device selection
+    // This would need getUserMedia integration for device-specific capture
+    console.log('Audio input selection requested:', deviceId);
+    // For now, we'll store the preference and inform user
+    return deviceId;
+  }
 
   constructor() {
     this.synthesis = window.speechSynthesis;
@@ -165,16 +194,16 @@ export class VoiceService {
       pitch?: number;
       volume?: number;
       voice?: string;
-      useKokoro?: boolean;
+      useDeepgram?: boolean;
     } = {}
   ): Promise<void> {
-    // Try Kokoro first if enabled and voice is Kokoro voice
-    if (options.useKokoro && this.isKokoroVoice(options.voice)) {
+    // Try Deepgram first if enabled and voice is Deepgram voice
+    if (options.useDeepgram && this.isDeepgramVoice(options.voice)) {
       try {
-        await this.speakWithKokoro(text, options.voice, options);
+        await this.speakWithDeepgram(text, options.voice, options);
         return;
       } catch (error) {
-        console.warn('Kokoro TTS failed, falling back to Web Speech API:', error);
+        console.warn('Deepgram TTS failed, falling back to Web Speech API:', error);
         // Fall through to Web Speech API
       }
     }
@@ -183,40 +212,45 @@ export class VoiceService {
     return this.speakWithWebAPI(text, options);
   }
 
-  private async speakWithKokoro(
+  private async speakWithDeepgram(
     text: string, 
-    voice: string = 'af_bella',
+    voice: string = 'aura-asteria-en',
     options: any = {}
   ): Promise<void> {
     return new Promise(async (resolve, reject) => {
       try {
-        const response = await fetch(`${this.kokoroApiUrl}/v1/audio/speech`, {
+        console.log(`🎤 Using Deepgram TTS: "${text.slice(0, 50)}..." with voice: ${voice}`);
+        
+        const response = await fetch(`${this.backendApiUrl}/api/tts/synthesize`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            model: 'kokoro',
-            input: text,
+            text: text,
             voice: voice,
-            response_format: 'wav',
             speed: options.rate || 1.0
           })
         });
 
         if (!response.ok) {
-          throw new Error(`Kokoro API error: ${response.status}`);
+          const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+          throw new Error(`Deepgram API error: ${response.status} - ${errorData.error}`);
         }
 
         const audioBlob = await response.blob();
         const audio = new Audio(URL.createObjectURL(audioBlob));
         
-        audio.onended = () => resolve();
+        audio.onended = () => {
+          console.log('✅ Deepgram TTS playback completed');
+          resolve();
+        };
         audio.onerror = () => reject(new Error('Audio playback failed'));
         
         audio.volume = options.volume || 1;
         await audio.play();
       } catch (error) {
+        console.error('❌ Deepgram TTS error:', error);
         reject(error);
       }
     });
@@ -246,7 +280,7 @@ export class VoiceService {
       utterance.pitch = options.pitch || 1;
       utterance.volume = options.volume || 1;
 
-      if (options.voice && !this.isKokoroVoice(options.voice)) {
+      if (options.voice && !this.isDeepgramVoice(options.voice)) {
         const voices = this.synthesis.getVoices();
         const selectedVoice = voices.find(voice => voice.name === options.voice);
         if (selectedVoice) {
@@ -267,34 +301,38 @@ export class VoiceService {
     }
   }
 
-  getAvailableVoices(): Array<{name: string, displayName: string, type: 'web' | 'kokoro'}> {
+  getAvailableVoices(): Array<{name: string, displayName: string, type: 'web' | 'deepgram'}> {
     const webVoices = this.synthesis ? this.synthesis.getVoices().map(voice => ({
       name: voice.name,
       displayName: `${voice.name} (${voice.lang})`,
       type: 'web' as const
     })) : [];
 
-    const kokoroVoicesFormatted = this.kokoroVoices.map(voice => ({
+    const deepgramVoicesFormatted = this.deepgramVoices.map(voice => ({
       name: voice,
-      displayName: `${voice.replace('_', ' ')} (Kokoro)`,
-      type: 'kokoro' as const
+      displayName: `${voice.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())} (Deepgram)`,
+      type: 'deepgram' as const
     }));
 
-    return [...kokoroVoicesFormatted, ...webVoices];
+    return [...deepgramVoicesFormatted, ...webVoices];
   }
 
-  getKokoroVoices(): string[] {
-    return this.kokoroVoices;
+  getDeepgramVoices(): string[] {
+    return this.deepgramVoices;
   }
 
-  private isKokoroVoice(voice?: string): boolean {
-    return voice ? this.kokoroVoices.includes(voice) : false;
+  private isDeepgramVoice(voice?: string): boolean {
+    return voice ? this.deepgramVoices.includes(voice) : false;
   }
 
-  async testKokoroConnection(): Promise<boolean> {
+  async testDeepgramConnection(): Promise<boolean> {
     try {
-      const response = await fetch(`${this.kokoroApiUrl}/docs`, { method: 'HEAD' });
-      return response.ok;
+      const response = await fetch(`${this.backendApiUrl}/api/tts/health`, { method: 'GET' });
+      if (response.ok) {
+        const data = await response.json();
+        return data.status === 'healthy';
+      }
+      return false;
     } catch {
       return false;
     }
