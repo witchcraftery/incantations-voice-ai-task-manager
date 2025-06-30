@@ -45,3 +45,5 @@ coverage/
 tmp/
 temp/
 .env.docker
+zzz_files-archive/
+zzz_docs-archive/
