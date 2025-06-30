@@ -1,0 +1,143 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: incantations-postgres
+    environment:
+      POSTGRES_DB: incantations_dev
+      POSTGRES_USER: incantations_user
+      POSTGRES_PASSWORD: dev_password_change_in_production
+      POSTGRES_HOST_AUTH_METHOD: trust
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./docker/postgres-init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U incantations_user -d incantations_dev"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: incantations-redis
+    # SECURITY FIX: Removed public port exposure - only accessible internally
+    # ports:
+    #   - "6379:6379"  # DANGEROUS - exposed Redis to public internet!
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  # Backend API (FIXED for production deployment)
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: development
+    container_name: incantations-backend
+    env_file:
+      - .env.docker  # ADDED: Load environment from file
+    ports:
+      - "3001:3001"
+    # REMOVED: Individual environment variables, now using .env.docker
+    volumes:
+      - ./backend/src:/app/src
+      - ./backend/package.json:/app/package.json
+      - ./backend/tsconfig.json:/app/tsconfig.json
+      - /app/node_modules
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    # ADDED: Health check for backend
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    restart: unless-stopped
+    command: npm run dev
+
+  # Frontend (FIXED - Using HTTP internally)
+  frontend:
+    build:
+      context: ./voice-ai-task-manager
+      dockerfile: Dockerfile
+      target: development
+    container_name: incantations-frontend
+    env_file:
+      - .env.docker  # ADDED: Load environment from file
+    ports:
+      - "5174:5174"
+    volumes:
+      - ./voice-ai-task-manager/src:/app/src
+      - ./voice-ai-task-manager/public:/app/public
+      - ./voice-ai-task-manager/package.json:/app/package.json
+      - ./voice-ai-task-manager/vite.config.ts:/app/vite.config.ts
+      - ./voice-ai-task-manager/tsconfig.json:/app/tsconfig.json
+      - ./voice-ai-task-manager/tailwind.config.js:/app/tailwind.config.js
+      - /app/node_modules
+    depends_on:
+      - backend
+    restart: unless-stopped
+    command: npm run dev  # CHANGED: Remove SSL for now
+
+  # Frontend HTTP Fallback (if SSL issues)
+  frontend-http:
+    build:
+      context: ./voice-ai-task-manager
+      dockerfile: Dockerfile
+      target: development
+    container_name: incantations-frontend-http
+    ports:
+      - "5175:5175"
+    environment:
+      VITE_API_URL: http://localhost:3001/api
+      VITE_GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-your_dev_google_client_id}
+    volumes:
+      - ./voice-ai-task-manager/src:/app/src
+      - ./voice-ai-task-manager/public:/app/public
+      - ./voice-ai-task-manager/package.json:/app/package.json
+      - ./voice-ai-task-manager/vite.config.ts:/app/vite.config.ts
+      - ./voice-ai-task-manager/tsconfig.json:/app/tsconfig.json
+      - ./voice-ai-task-manager/tailwind.config.js:/app/tailwind.config.js
+      - /app/node_modules
+    depends_on:
+      - backend
+    command: npm run dev:http
+    profiles:
+      - http
+
+  # KOKORO SERVICE TEMPORARILY DISABLED DUE TO RESOURCE USAGE
+  # Uncomment when droplet has sufficient resources or after Deepgram integration
+  # kokoro:
+  #   image: ghcr.io/remsky/kokoro-fastapi-cpu:latest
+  #   container_name: incantations-kokoro
+  #   ports:
+  #     - "8880:8880"
+  #   healthcheck:
+  #     test: ["CMD", "curl", "-f", "http://localhost:8880/v1/audio/voices"]
+  #     interval: 30s
+  #     timeout: 10s
+  #     retries: 5
+  #     start_period: 40s
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  default:
+    name: incantations-network
