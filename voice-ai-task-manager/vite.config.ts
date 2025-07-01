@@ -26,5 +26,10 @@ export default defineConfig({
     },
     host: true,
     port: process.env.FRONTEND_PORT ? parseInt(process.env.FRONTEND_PORT) : 5174,
+    allowedHosts: [
+      'incantations.witchcraftery.io',
+      'witchcraftery.io',
+      'localhost'
+    ],
   },
 })
