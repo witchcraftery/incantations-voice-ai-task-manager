@@ -1,3 +1,10 @@
+export interface TimeEntry {
+  id: string;
+  startTime: Date;
+  endTime: Date;
+  duration: number; // in minutes
+}
+
 export interface Task {
   id: string;
   title: string;
@@ -10,6 +17,30 @@ export interface Task {
   createdAt: Date;
   updatedAt: Date;
   extractedFrom?: string; // Message ID that created this task
+  estimatedMinutes?: number; // AI-estimated completion time
+  actualMinutes?: number; // Legacy: total time from first start to completion
+  startedAt?: Date; // Legacy: when task was first started
+  completedAt?: Date; // When task was completed
+  // New multi-session time tracking
+  timeEntries: TimeEntry[];
+  totalTimeSpent: number; // calculated from all time entries
+  isActiveTimer?: boolean; // currently being timed
+  currentSessionStart?: Date; // for active session
+}
+
+export interface TaskTemplate {
+  id: string;
+  name: string;
+  description?: string;
+  title: string;
+  taskDescription?: string;
+  priority: 'low' | 'medium' | 'high' | 'urgent';
+  project?: string;
+  tags: string[];
+  estimatedDuration?: number; // in minutes
+  isDefault?: boolean;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export interface Message {
@@ -25,6 +56,17 @@ export interface Message {
   };
 }
 
+export interface ConversationBookmark {
+  id: string;
+  conversationId: string;
+  messageId: string; // Message at which the bookmark was created
+  title: string;
+  description?: string;
+  createdAt: Date;
+  tags: string[];
+  isStarred: boolean;
+}
+
 export interface Conversation {
   id: string;
   title: string;
@@ -32,6 +74,7 @@ export interface Conversation {
   createdAt: Date;
   updatedAt: Date;
   summary?: string;
+  bookmarks?: ConversationBookmark[];
 }
 
 export interface Project {
@@ -53,9 +96,9 @@ export interface UserPreferences {
     rate: number;
     pitch: number;
     volume: number;
-    voice?: string;
-    useKokoro: boolean;
-    kokoroVoice: string;
+    useDeepgram: boolean;
+    deepgramVoice: string;
+    microphoneId?: string;
   };
   aiSettings: {
     responseStyle: 'concise' | 'detailed' | 'friendly';
@@ -84,6 +127,27 @@ export interface UserPreferences {
   };
 }
 
+export interface ConversationStage {
+  stage: 'rapport-building' | 'task-analysis' | 'mixed';
+  confidence: number;
+  messageCount: number;
+  lastTaskExtraction?: Date;
+  userEnergyLevel: 'high' | 'medium' | 'low';
+  topicFocus: 'casual' | 'work' | 'planning';
+  lastStageChange?: Date;
+}
+
+export interface ConversationFlow {
+  stageHistory: ConversationStage[];
+  currentStage: ConversationStage;
+  triggerPhrases: {
+    taskAnalysis: string[];
+    completion: string[];
+  };
+  silentTasks: Partial<Task>[]; // Tasks logged but not discussed yet
+  sessionStartTime: Date;
+}
+
 export interface UserMemory {
   workPatterns: {
     preferredWorkingHours: string[];
@@ -104,6 +168,7 @@ export interface UserMemory {
       timestamp: Date;
     }>;
   };
+  conversationFlow: ConversationFlow;
 }
 
 export interface VoiceState {
@@ -128,5 +193,47 @@ export interface AIResponse {
     enhanced?: boolean;
     tokensUsed?: number;
     error?: string;
+    conversationStage?: 'rapport-building' | 'task-analysis' | 'mixed';
+    silentTasksCount?: number;
+    energyLevel?: 'high' | 'medium' | 'low';
+  };
+}
+
+export interface TaskAnalytics {
+  id: string;
+  taskId: string;
+  actualMinutes: number;
+  completedAt: Date;
+  priority: Task['priority'];
+  tags: string[];
+  project?: string;
+  hourOfDay: number; // 0-23
+  dayOfWeek: number; // 0-6 (Sunday=0)
+}
+
+export interface ProductivityPattern {
+  hourOfDay: number;
+  completionRate: number; // 0-1
+  avgCompletionTime: number; // minutes
+  taskCount: number;
+}
+
+export interface EnergyWindow {
+  startHour: number;
+  endHour: number;
+  energyLevel: 'high' | 'medium' | 'low';
+  confidence: number;
+}
+
+export interface TaskEstimation {
+  taskId: string;
+  estimatedMinutes: number;
+  confidence: number;
+  basedOnSimilar: string[]; // Similar task IDs used for estimation
+  factors: {
+    priority: number;
+    complexity: number;
+    projectFamiliarity: number;
+    tagSimilarity: number;
   };
 }

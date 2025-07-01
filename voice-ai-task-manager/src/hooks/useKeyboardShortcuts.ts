@@ -5,13 +5,24 @@ interface UseKeyboardShortcutsProps {
   onStopVoice?: () => void;
   isVoiceActive?: boolean;
   enabled?: boolean;
+  // Task operation callbacks
+  onCreateTask?: () => void;
+  onFocusSearch?: () => void;
+  onDeleteSelected?: () => void;
+  onToggleComplete?: () => void;
+  onBulkSelect?: () => void;
 }
 
 export function useKeyboardShortcuts({
   onToggleVoice,
   onStopVoice,
   isVoiceActive = false,
-  enabled = true
+  enabled = true,
+  onCreateTask,
+  onFocusSearch,
+  onDeleteSelected,
+  onToggleComplete,
+  onBulkSelect
 }: UseKeyboardShortcutsProps) {
 
   const handleKeyDown = useCallback((event: KeyboardEvent) => {
@@ -45,7 +56,43 @@ export function useKeyboardShortcuts({
       onStopVoice?.();
       return;
     }
-  }, [enabled, onToggleVoice, onStopVoice, isVoiceActive]);
+
+    // Task Management Shortcuts
+    // Ctrl/Cmd + N = Create new task
+    if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'n') {
+      event.preventDefault();
+      onCreateTask?.();
+      return;
+    }
+
+    // Ctrl/Cmd + F = Focus search
+    if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'f') {
+      event.preventDefault();
+      onFocusSearch?.();
+      return;
+    }
+
+    // Delete = Delete selected tasks
+    if (event.key === 'Delete' || event.key === 'Backspace') {
+      event.preventDefault();
+      onDeleteSelected?.();
+      return;
+    }
+
+    // Enter = Toggle completion for selected task
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      onToggleComplete?.();
+      return;
+    }
+
+    // Ctrl/Cmd + A = Select all tasks
+    if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'a') {
+      event.preventDefault();
+      onBulkSelect?.();
+      return;
+    }
+  }, [enabled, onToggleVoice, onStopVoice, isVoiceActive, onCreateTask, onFocusSearch, onDeleteSelected, onToggleComplete, onBulkSelect]);
 
   const handleKeyUp = useCallback((event: KeyboardEvent) => {
     if (!enabled) return;
@@ -77,9 +124,16 @@ export function useKeyboardShortcuts({
 
   return {
     shortcuts: {
+      // Voice shortcuts
       toggle: 'Ctrl/Cmd + Shift + V',
       pushToTalk: 'Space (hold)',
-      stop: 'Escape'
+      stop: 'Escape',
+      // Task shortcuts
+      createTask: 'Ctrl/Cmd + N',
+      focusSearch: 'Ctrl/Cmd + F',
+      deleteSelected: 'Delete/Backspace',
+      toggleComplete: 'Enter',
+      selectAll: 'Ctrl/Cmd + A'
     }
   };
 }

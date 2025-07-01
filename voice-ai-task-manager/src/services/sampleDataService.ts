@@ -41,7 +41,10 @@ export class SampleDataService {
         tags: ['marketing', 'review', 'launch'],
         createdAt: new Date(now.getTime() - 2 * 60 * 60 * 1000),
         updatedAt: new Date(now.getTime() - 2 * 60 * 60 * 1000),
-        extractedFrom: uuidv4()
+        extractedFrom: uuidv4(),
+        timeEntries: [],
+        totalTimeSpent: 0,
+        isActiveTimer: false
       },
       {
         id: uuidv4(),
@@ -54,7 +57,10 @@ export class SampleDataService {
         tags: ['development', 'coordination', 'bugs'],
         createdAt: new Date(now.getTime() - 2 * 60 * 60 * 1000),
         updatedAt: new Date(now.getTime() - 30 * 60 * 1000),
-        extractedFrom: uuidv4()
+        extractedFrom: uuidv4(),
+        timeEntries: [],
+        totalTimeSpent: 0,
+        isActiveTimer: false
       },
       {
         id: uuidv4(),
@@ -66,7 +72,10 @@ export class SampleDataService {
         tags: ['design', 'follow-up', 'mockups'],
         createdAt: new Date(now.getTime() - 4 * 60 * 60 * 1000),
         updatedAt: new Date(now.getTime() - 4 * 60 * 60 * 1000),
-        extractedFrom: uuidv4()
+        extractedFrom: uuidv4(),
+        timeEntries: [],
+        totalTimeSpent: 0,
+        isActiveTimer: false
       },
       {
         id: uuidv4(),
@@ -79,7 +88,10 @@ export class SampleDataService {
         tags: ['meeting', 'retrospective', 'team'],
         createdAt: new Date(now.getTime() - 4 * 60 * 60 * 1000),
         updatedAt: new Date(now.getTime() - 4 * 60 * 60 * 1000),
-        extractedFrom: uuidv4()
+        extractedFrom: uuidv4(),
+        timeEntries: [],
+        totalTimeSpent: 0,
+        isActiveTimer: false
       },
       {
         id: uuidv4(),
@@ -91,7 +103,10 @@ export class SampleDataService {
         tags: ['learning', 'react', 'hooks', 'development'],
         createdAt: yesterday,
         updatedAt: yesterday,
-        extractedFrom: uuidv4()
+        extractedFrom: uuidv4(),
+        timeEntries: [],
+        totalTimeSpent: 0,
+        isActiveTimer: false
       },
       {
         id: uuidv4(),
@@ -103,7 +118,10 @@ export class SampleDataService {
         tags: ['project', 'voice', 'recognition', 'development'],
         createdAt: yesterday,
         updatedAt: yesterday,
-        extractedFrom: uuidv4()
+        extractedFrom: uuidv4(),
+        timeEntries: [],
+        totalTimeSpent: 0,
+        isActiveTimer: false
       },
       {
         id: uuidv4(),
@@ -115,7 +133,10 @@ export class SampleDataService {
         project: 'Administration',
         tags: ['report', 'weekly', 'documentation'],
         createdAt: lastWeek,
-        updatedAt: new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000)
+        updatedAt: new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000),
+        timeEntries: [],
+        totalTimeSpent: 0,
+        isActiveTimer: false
       }
     ];
 
@@ -279,6 +300,23 @@ export class SampleDataService {
             timestamp: new Date(now.getTime() - 4 * 60 * 60 * 1000)
           }
         ]
+      },
+      conversationFlow: {
+        stageHistory: [],
+        currentStage: {
+          stage: 'rapport-building',
+          confidence: 0.8,
+          messageCount: 0,
+          userEnergyLevel: 'medium',
+          topicFocus: 'casual',
+          lastStageChange: new Date()
+        },
+        triggerPhrases: {
+          taskAnalysis: ['that\'s all', 'add to my task list', 'add those to my tasks', 'create those tasks', 'let\'s get to work'],
+          completion: ['thanks', 'thank you', 'that helps', 'sounds good', 'perfect']
+        },
+        silentTasks: [],
+        sessionStartTime: new Date()
       }
     };
 

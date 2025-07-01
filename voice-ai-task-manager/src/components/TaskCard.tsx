@@ -2,6 +2,8 @@ import React from 'react';
 import { CheckCircle2, Circle, Calendar, Flag, Tag, MessageSquare } from 'lucide-react';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
+import { Checkbox } from './ui/checkbox';
+import { TaskTimer } from './TaskTimer';
 import { Task } from '../types';
 import { motion } from 'framer-motion';
 import { formatDistanceToNow, format } from 'date-fns';
@@ -11,8 +13,13 @@ interface TaskCardProps {
   onToggleComplete: (taskId: string) => void;
   onEdit?: (taskId: string, updates: Partial<Task>) => void;
   onDelete?: (taskId: string) => void;
+  onStartTimer?: (taskId: string) => void;
+  onStopTimer?: (taskId: string) => void;
   showProject?: boolean;
   showExtractedFrom?: boolean;
+  isSelected?: boolean;
+  onToggleSelect?: (taskId: string) => void;
+  showSelection?: boolean;
 }
 
 export function TaskCard({
@@ -20,8 +27,13 @@ export function TaskCard({
   onToggleComplete,
   onEdit,
   onDelete,
+  onStartTimer,
+  onStopTimer,
   showProject = true,
-  showExtractedFrom = false
+  showExtractedFrom = false,
+  isSelected = false,
+  onToggleSelect,
+  showSelection = false
 }: TaskCardProps) {
   const isCompleted = task.status === 'completed';
   const isOverdue = task.dueDate && new Date() > task.dueDate && !isCompleted;
@@ -55,6 +67,17 @@ export function TaskCard({
       }`}
     >
       <div className="flex items-start gap-3">
+        {/* Selection Checkbox */}
+        {showSelection && (
+          <div className="flex items-center pt-1">
+            <Checkbox
+              checked={isSelected}
+              onCheckedChange={() => onToggleSelect?.(task.id)}
+              className="h-4 w-4"
+            />
+          </div>
+        )}
+
         {/* Completion Toggle */}
         <Button
           variant="ghost"
@@ -154,6 +177,17 @@ export function TaskCard({
                   </Badge>
                 ))}
               </div>
+            </div>
+          )}
+
+          {/* Timer */}
+          {onStartTimer && onStopTimer && (
+            <div className="mb-2">
+              <TaskTimer
+                task={task}
+                onStartTimer={onStartTimer}
+                onStopTimer={onStopTimer}
+              />
             </div>
           )}
 

@@ -1,8 +1,13 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { VoiceState, UserPreferences } from '../types';
 import { VoiceService } from '../services/voiceService';
+import { VoiceCommandParser, VoiceCommand } from '../services/voiceCommandParser';
 
-export function useVoice(preferences: UserPreferences, onAutoSend?: (transcript: string) => void) {
+export function useVoice(
+  preferences: UserPreferences, 
+  onAutoSend?: (transcript: string) => void,
+  onVoiceCommand?: (command: VoiceCommand) => void
+) {
   const [voiceState, setVoiceState] = useState<VoiceState>({
     isListening: false,
     isProcessing: false,
@@ -12,6 +17,7 @@ export function useVoice(preferences: UserPreferences, onAutoSend?: (transcript:
   });
 
   const voiceServiceRef = useRef<VoiceService | null>(null);
+  const voiceCommandParserRef = useRef<VoiceCommandParser>(new VoiceCommandParser());
   const finalTranscriptRef = useRef('');
   const accumulatedTranscriptRef = useRef('');
   const isSessionActiveRef = useRef(false);
@@ -70,23 +76,47 @@ export function useVoice(preferences: UserPreferences, onAutoSend?: (transcript:
           if (accumulatedTranscriptRef.current.trim()) {
             silenceTimeoutRef.current = setTimeout(() => {
               if (isSessionActiveRef.current && accumulatedTranscriptRef.current.trim()) {
-                console.log('🤖 Auto-sending after silence timeout');
                 const transcriptToSend = accumulatedTranscriptRef.current.trim();
                 
-                // Clear the transcript
-                accumulatedTranscriptRef.current = '';
-                finalTranscriptRef.current = '';
+                // Check if this is a voice command first
+                const command = voiceCommandParserRef.current.parseCommand(transcriptToSend);
                 
-                // Clear UI
-                setVoiceState(prev => ({
-                  ...prev,
-                  transcript: '',
-                  confidence: 0
-                }));
+                if (command.type !== 'none' && command.confidence >= 0.6) {
+                  console.log('🎯 Voice command detected:', command);
+                  
+                  // Clear the transcript
+                  accumulatedTranscriptRef.current = '';
+                  finalTranscriptRef.current = '';
+                  
+                  // Clear UI
+                  setVoiceState(prev => ({
+                    ...prev,
+                    transcript: '',
+                    confidence: 0
+                  }));
 
-                // Trigger auto-send callback
-                if (onAutoSend) {
-                  onAutoSend(transcriptToSend);
+                  // Handle voice command
+                  if (onVoiceCommand) {
+                    onVoiceCommand(command);
+                  }
+                } else {
+                  console.log('🤖 Auto-sending after silence timeout');
+                  
+                  // Clear the transcript
+                  accumulatedTranscriptRef.current = '';
+                  finalTranscriptRef.current = '';
+                  
+                  // Clear UI
+                  setVoiceState(prev => ({
+                    ...prev,
+                    transcript: '',
+                    confidence: 0
+                  }));
+
+                  // Trigger auto-send callback for regular conversation
+                  if (onAutoSend) {
+                    onAutoSend(transcriptToSend);
+                  }
                 }
               }
             }, autoSendDelayMs);
@@ -203,6 +233,18 @@ export function useVoice(preferences: UserPreferences, onAutoSend?: (transcript:
     setVoiceState(prev => ({ ...prev, error: undefined }));
   }, []);
 
+  const parseVoiceCommand = useCallback((text: string) => {
+    return voiceCommandParserRef.current.parseCommand(text);
+  }, []);
+
+  const isQuickCommand = useCallback((text: string) => {
+    return voiceCommandParserRef.current.isQuickCommand(text);
+  }, []);
+
+  const getCommandSuggestions = useCallback(() => {
+    return voiceCommandParserRef.current.getCommandSuggestions();
+  }, []);
+
   // Clean up timeouts on unmount
   useEffect(() => {
     return () => {
@@ -221,6 +263,9 @@ export function useVoice(preferences: UserPreferences, onAutoSend?: (transcript:
     getAvailableVoices,
     isSupported,
     getFinalTranscript,
-    clearError
+    clearError,
+    parseVoiceCommand,
+    isQuickCommand,
+    getCommandSuggestions
   };
 }

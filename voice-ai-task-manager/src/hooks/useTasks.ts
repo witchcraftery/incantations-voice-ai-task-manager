@@ -1,13 +1,17 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Task, Project } from '../types';
+import { Task, Project, TaskTemplate, TimeEntry } from '../types';
 import { StorageService } from '../services/storageService';
+import { AnalyticsService } from '../services/analyticsService';
 
 export function useTasks() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
+  const [templates, setTemplates] = useState<TaskTemplate[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [selectedTaskIds, setSelectedTaskIds] = useState<Set<string>>(new Set());
   
   const storageService = new StorageService();
+  const analyticsService = new AnalyticsService();
 
   useEffect(() => {
     loadData();
@@ -18,9 +22,11 @@ export function useTasks() {
       setIsLoading(true);
       const loadedTasks = storageService.loadTasks();
       const loadedProjects = storageService.loadProjects();
+      const loadedTemplates = storageService.loadTaskTemplates();
       
       setTasks(loadedTasks);
       setProjects(loadedProjects);
+      setTemplates(loadedTemplates);
     } catch (error) {
       console.error('Failed to load data:', error);
     } finally {
@@ -29,11 +35,18 @@ export function useTasks() {
   };
 
   const addTask = useCallback((task: Omit<Task, 'id' | 'createdAt' | 'updatedAt'>) => {
+    // Get time estimation for new task
+    const estimation = analyticsService.estimateTaskTime(task);
+    
     const newTask: Task = {
       ...task,
       id: crypto.randomUUID(),
       createdAt: new Date(),
-      updatedAt: new Date()
+      updatedAt: new Date(),
+      estimatedMinutes: estimation.estimatedMinutes,
+      timeEntries: [],
+      totalTimeSpent: 0,
+      isActiveTimer: false
     };
 
     setTasks(prev => {
@@ -47,11 +60,27 @@ export function useTasks() {
 
   const updateTask = useCallback((taskId: string, updates: Partial<Task>) => {
     setTasks(prev => {
-      const updated = prev.map(task =>
-        task.id === taskId
-          ? { ...task, ...updates, updatedAt: new Date() }
-          : task
-      );
+      const updated = prev.map(task => {
+        if (task.id === taskId) {
+          const updatedTask = { ...task, ...updates, updatedAt: new Date() };
+          
+          // Track timing when status changes
+          if (updates.status && updates.status !== task.status) {
+            const now = new Date();
+            
+            if (updates.status === 'in-progress' && !task.startedAt) {
+              updatedTask.startedAt = now;
+            } else if (updates.status === 'completed' && task.startedAt) {
+              updatedTask.completedAt = now;
+              // Track completion for analytics
+              analyticsService.trackTaskCompletion(updatedTask);
+            }
+          }
+          
+          return updatedTask;
+        }
+        return task;
+      });
       storageService.saveTasks(updated);
       return updated;
     });
@@ -200,6 +229,112 @@ export function useTasks() {
     });
   }, []);
 
+  const bulkDeleteTasks = useCallback((taskIds: string[]) => {
+    setTasks(prev => {
+      const updated = prev.filter(task => !taskIds.includes(task.id));
+      storageService.saveTasks(updated);
+      return updated;
+    });
+    setSelectedTaskIds(new Set());
+  }, []);
+
+  // Selection management
+  const toggleTaskSelection = useCallback((taskId: string) => {
+    setSelectedTaskIds(prev => {
+      const newSelection = new Set(prev);
+      if (newSelection.has(taskId)) {
+        newSelection.delete(taskId);
+      } else {
+        newSelection.add(taskId);
+      }
+      return newSelection;
+    });
+  }, []);
+
+  const selectAllTasks = useCallback(() => {
+    setSelectedTaskIds(new Set(tasks.map(task => task.id)));
+  }, [tasks]);
+
+  const clearSelection = useCallback(() => {
+    setSelectedTaskIds(new Set());
+  }, []);
+
+  const selectTasksByFilter = useCallback((filterFn: (task: Task) => boolean) => {
+    const filteredTaskIds = tasks.filter(filterFn).map(task => task.id);
+    setSelectedTaskIds(new Set(filteredTaskIds));
+  }, [tasks]);
+
+  // Template operations
+  const createTaskFromTemplate = useCallback((template: TaskTemplate) => {
+    const newTask: Task = {
+      id: crypto.randomUUID(),
+      title: template.title,
+      description: template.taskDescription,
+      priority: template.priority,
+      status: 'pending',
+      project: template.project,
+      tags: [...template.tags],
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      timeEntries: [],
+      totalTimeSpent: 0,
+      isActiveTimer: false
+    };
+
+    setTasks(prev => {
+      const updated = [...prev, newTask];
+      storageService.saveTasks(updated);
+      return updated;
+    });
+
+    return newTask;
+  }, []);
+
+  // Timer functions
+  const startTimer = useCallback((taskId: string) => {
+    updateTask(taskId, {
+      isActiveTimer: true,
+      currentSessionStart: new Date()
+    });
+  }, [updateTask]);
+
+  const stopTimer = useCallback((taskId: string) => {
+    setTasks(prev => {
+      const updated = prev.map(task => {
+        if (task.id === taskId && task.isActiveTimer && task.currentSessionStart) {
+          const endTime = new Date();
+          const duration = Math.round((endTime.getTime() - task.currentSessionStart.getTime()) / (1000 * 60));
+          
+          const newTimeEntry: TimeEntry = {
+            id: crypto.randomUUID(),
+            startTime: task.currentSessionStart,
+            endTime,
+            duration
+          };
+
+          const updatedTimeEntries = [...task.timeEntries, newTimeEntry];
+          const totalTimeSpent = updatedTimeEntries.reduce((sum, entry) => sum + entry.duration, 0);
+
+          return {
+            ...task,
+            timeEntries: updatedTimeEntries,
+            totalTimeSpent,
+            isActiveTimer: false,
+            currentSessionStart: undefined,
+            updatedAt: new Date()
+          };
+        }
+        return task;
+      });
+      storageService.saveTasks(updated);
+      return updated;
+    });
+  }, []);
+
+  const getActiveTimers = useCallback(() => {
+    return tasks.filter(task => task.isActiveTimer);
+  }, [tasks]);
+
   const exportTasks = useCallback(() => {
     return {
       tasks,
@@ -208,10 +343,33 @@ export function useTasks() {
     };
   }, [tasks, projects]);
 
+  // Analytics functions
+  const getProductivityPatterns = useCallback(() => {
+    return analyticsService.calculateProductivityPatterns();
+  }, []);
+
+  const getEnergyWindows = useCallback(() => {
+    return analyticsService.detectEnergyWindows();
+  }, []);
+
+  const getTaskRecommendations = useCallback(() => {
+    return analyticsService.calculateTaskOrder(tasks);
+  }, [tasks]);
+
+  const getOptimalTimeSuggestions = useCallback((task: Task) => {
+    return analyticsService.getOptimalTimeSuggestions(task);
+  }, []);
+
+  const estimateTaskTime = useCallback((task: Partial<Task>) => {
+    return analyticsService.estimateTaskTime(task);
+  }, []);
+
   return {
     tasks,
     projects,
+    templates,
     isLoading,
+    selectedTaskIds,
     addTask,
     updateTask,
     deleteTask,
@@ -229,7 +387,23 @@ export function useTasks() {
     getTaskStats,
     getProjectStats,
     bulkUpdateTasks,
+    bulkDeleteTasks,
+    toggleTaskSelection,
+    selectAllTasks,
+    clearSelection,
+    selectTasksByFilter,
+    createTaskFromTemplate,
     exportTasks,
-    loadData
+    loadData,
+    // Timer functions
+    startTimer,
+    stopTimer,
+    getActiveTimers,
+    // Analytics functions
+    getProductivityPatterns,
+    getEnergyWindows,
+    getTaskRecommendations,
+    getOptimalTimeSuggestions,
+    estimateTaskTime
   };
 }

@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Bot, User, Mic } from 'lucide-react';
+import { Send, Bot, User, Mic, Bookmark } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { ScrollArea } from './ui/scroll-area';
@@ -14,6 +14,7 @@ interface ChatInterfaceProps {
   preferences: UserPreferences;
   onSendMessage: (content: string, isVoiceInput?: boolean) => Promise<void>;
   onSpeak: (text: string) => Promise<void>;
+  onBookmarkMessage?: (message: Message) => void;
 }
 
 export function ChatInterface({
@@ -21,7 +22,8 @@ export function ChatInterface({
   isProcessing,
   preferences,
   onSendMessage,
-  onSpeak
+  onSpeak,
+  onBookmarkMessage
 }: ChatInterfaceProps) {
   const [inputValue, setInputValue] = useState('');
   const [isVoiceInputMode, setIsVoiceInputMode] = useState(false);
@@ -141,16 +143,31 @@ export function ChatInterface({
                   <div className="flex items-start justify-between gap-2">
                     <p className="whitespace-pre-wrap">{message.content}</p>
                     
-                    {message.type === 'assistant' && preferences.voiceEnabled && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleMessageSpeak(message.content)}
-                        className="flex-shrink-0 h-6 w-6 p-0 hover:bg-gray-200 dark:hover:bg-gray-700"
-                      >
-                        <Mic className="h-3 w-3" />
-                      </Button>
-                    )}
+                    <div className="flex items-center gap-1 flex-shrink-0">
+                      {message.type === 'assistant' && preferences.voiceEnabled && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleMessageSpeak(message.content)}
+                          className="h-6 w-6 p-0 hover:bg-gray-200 dark:hover:bg-gray-700"
+                          title="Read aloud"
+                        >
+                          <Mic className="h-3 w-3" />
+                        </Button>
+                      )}
+                      
+                      {onBookmarkMessage && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => onBookmarkMessage(message)}
+                          className="h-6 w-6 p-0 hover:bg-gray-200 dark:hover:bg-gray-700"
+                          title="Bookmark this message"
+                        >
+                          <Bookmark className="h-3 w-3" />
+                        </Button>
+                      )}
+                    </div>
                   </div>
 
                   <div className="flex items-center justify-between mt-2">

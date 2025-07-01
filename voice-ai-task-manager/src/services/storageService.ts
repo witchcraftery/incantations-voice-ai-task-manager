@@ -1,4 +1,4 @@
-import { Task, Conversation, Project, UserPreferences, UserMemory } from '../types';
+import { Task, Conversation, Project, UserPreferences, UserMemory, TaskTemplate } from '../types';
 import { SampleDataService } from './sampleDataService';
 
 export class StorageService {
@@ -7,6 +7,7 @@ export class StorageService {
   private readonly PROJECTS_KEY = 'voice_task_manager_projects';
   private readonly PREFERENCES_KEY = 'voice_task_manager_preferences';
   private readonly MEMORY_KEY = 'voice_task_manager_memory';
+  private readonly TEMPLATES_KEY = 'voice_task_manager_templates';
 
   // Tasks
   saveTasks(tasks: Task[]): void {
@@ -32,7 +33,14 @@ export class StorageService {
         ...task,
         createdAt: new Date(task.createdAt),
         updatedAt: new Date(task.updatedAt),
-        dueDate: task.dueDate ? new Date(task.dueDate) : undefined
+        dueDate: task.dueDate ? new Date(task.dueDate) : undefined,
+        startedAt: task.startedAt ? new Date(task.startedAt) : undefined,
+        completedAt: task.completedAt ? new Date(task.completedAt) : undefined,
+        currentSessionStart: task.currentSessionStart ? new Date(task.currentSessionStart) : undefined,
+        // Migrate to new time tracking system
+        timeEntries: task.timeEntries || [],
+        totalTimeSpent: task.totalTimeSpent || 0,
+        isActiveTimer: task.isActiveTimer || false
       }));
     } catch (error) {
       console.error('Failed to load tasks:', error);
@@ -244,8 +252,131 @@ export class StorageService {
         taskCompletionPatterns: {},
         communicationStyle: 'professional',
         feedbackHistory: []
+      },
+      conversationFlow: {
+        stageHistory: [],
+        currentStage: {
+          stage: 'rapport-building',
+          confidence: 0.8,
+          messageCount: 0,
+          userEnergyLevel: 'medium',
+          topicFocus: 'casual',
+          lastStageChange: new Date()
+        },
+        triggerPhrases: {
+          taskAnalysis: ['that\'s all', 'add to my task list', 'add those to my tasks', 'create those tasks', 'let\'s get to work'],
+          completion: ['thanks', 'thank you', 'that helps', 'sounds good', 'perfect']
+        },
+        silentTasks: [],
+        sessionStartTime: new Date()
       }
     };
+  }
+
+  // Task Templates
+  saveTaskTemplates(templates: TaskTemplate[]): void {
+    try {
+      localStorage.setItem(this.TEMPLATES_KEY, JSON.stringify(templates));
+    } catch (error) {
+      console.error('Failed to save task templates:', error);
+    }
+  }
+
+  loadTaskTemplates(): TaskTemplate[] {
+    try {
+      const stored = localStorage.getItem(this.TEMPLATES_KEY);
+      if (!stored) {
+        // Initialize with default templates
+        const defaultTemplates = this.getDefaultTemplates();
+        this.saveTaskTemplates(defaultTemplates);
+        return defaultTemplates;
+      }
+      
+      const templates = JSON.parse(stored);
+      return templates.map((template: any) => ({
+        ...template,
+        createdAt: new Date(template.createdAt),
+        updatedAt: new Date(template.updatedAt)
+      }));
+    } catch (error) {
+      console.error('Failed to load task templates:', error);
+      return this.getDefaultTemplates();
+    }
+  }
+
+  private getDefaultTemplates(): TaskTemplate[] {
+    const now = new Date();
+    return [
+      {
+        id: 'template-1',
+        name: 'Meeting Follow-up',
+        description: 'Task for following up on meeting action items',
+        title: 'Follow up on [Meeting Name]',
+        taskDescription: 'Review meeting notes and complete assigned action items',
+        priority: 'medium' as const,
+        project: 'Meetings',
+        tags: ['meeting', 'follow-up'],
+        estimatedDuration: 30,
+        isDefault: true,
+        createdAt: now,
+        updatedAt: now
+      },
+      {
+        id: 'template-2',
+        name: 'Code Review',
+        description: 'Task for conducting code reviews',
+        title: 'Review PR: [PR Title]',
+        taskDescription: 'Review code changes, provide feedback, and approve if ready',
+        priority: 'high' as const,
+        project: 'Development',
+        tags: ['code-review', 'development'],
+        estimatedDuration: 45,
+        isDefault: true,
+        createdAt: now,
+        updatedAt: now
+      },
+      {
+        id: 'template-3',
+        name: 'Research Task',
+        description: 'General research and investigation task',
+        title: 'Research [Topic]',
+        taskDescription: 'Gather information and analyze findings on the specified topic',
+        priority: 'medium' as const,
+        tags: ['research', 'investigation'],
+        estimatedDuration: 60,
+        isDefault: true,
+        createdAt: now,
+        updatedAt: now
+      },
+      {
+        id: 'template-4',
+        name: 'Bug Fix',
+        description: 'Task for fixing software bugs',
+        title: 'Fix: [Bug Description]',
+        taskDescription: 'Investigate, reproduce, and fix the reported bug',
+        priority: 'high' as const,
+        project: 'Development',
+        tags: ['bug', 'fix', 'development'],
+        estimatedDuration: 90,
+        isDefault: true,
+        createdAt: now,
+        updatedAt: now
+      },
+      {
+        id: 'template-5',
+        name: 'Weekly Planning',
+        description: 'Weekly planning and goal setting',
+        title: 'Weekly Planning - [Week of Date]',
+        taskDescription: 'Review previous week, set priorities, and plan upcoming week',
+        priority: 'medium' as const,
+        project: 'Planning',
+        tags: ['planning', 'weekly', 'goals'],
+        estimatedDuration: 45,
+        isDefault: true,
+        createdAt: now,
+        updatedAt: now
+      }
+    ];
   }
 
   // Utility methods
@@ -256,6 +387,7 @@ export class StorageService {
       localStorage.removeItem(this.PROJECTS_KEY);
       localStorage.removeItem(this.PREFERENCES_KEY);
       localStorage.removeItem(this.MEMORY_KEY);
+      localStorage.removeItem(this.TEMPLATES_KEY);
     } catch (error) {
       console.error('Failed to clear data:', error);
     }
@@ -268,6 +400,7 @@ export class StorageService {
       projects: this.loadProjects(),
       preferences: this.loadPreferences(),
       memory: this.loadUserMemory(),
+      templates: this.loadTaskTemplates(),
       exportDate: new Date().toISOString()
     };
   }
@@ -279,6 +412,7 @@ export class StorageService {
       if (data.projects) this.saveProjects(data.projects);
       if (data.preferences) this.savePreferences(data.preferences);
       if (data.memory) this.saveUserMemory(data.memory);
+      if (data.templates) this.saveTaskTemplates(data.templates);
       return true;
     } catch (error) {
       console.error('Failed to import data:', error);
