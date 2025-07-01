@@ -98,6 +98,7 @@ export interface UserPreferences {
     volume: number;
     useDeepgram: boolean;
     deepgramVoice: string;
+    voice?: string;
     microphoneId?: string;
   };
   aiSettings: {

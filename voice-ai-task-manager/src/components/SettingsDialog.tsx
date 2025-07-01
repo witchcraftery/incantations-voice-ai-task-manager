@@ -315,7 +315,7 @@ export function SettingsDialog({ preferences, onPreferencesChange }: SettingsDia
               </div>
 
               {/* Web Speech API Section */}
-              {!localPreferences.voiceSettings.useKokoro && (
+              {!localPreferences.voiceSettings.useDeepgram && (
                 <div className="space-y-3">
                   <Label htmlFor="web-voice">Browser Voice</Label>
                   <Select
@@ -364,7 +364,7 @@ export function SettingsDialog({ preferences, onPreferencesChange }: SettingsDia
                   />
                 </div>
 
-                {!localPreferences.voiceSettings.useKokoro && (
+                {!localPreferences.voiceSettings.useDeepgram && (
                   <div className="space-y-2">
                     <Label>Pitch: {localPreferences.voiceSettings.pitch}</Label>
                     <Slider
@@ -399,10 +399,10 @@ export function SettingsDialog({ preferences, onPreferencesChange }: SettingsDia
                     // Test celebration notification
                     await voiceService.speak("Hell yeah! Task mastery achieved!", {
                       ...localPreferences.voiceSettings,
-                      voice: localPreferences.voiceSettings.useKokoro 
-                        ? localPreferences.voiceSettings.kokoroVoice 
+                      voice: localPreferences.voiceSettings.useDeepgram 
+                        ? localPreferences.voiceSettings.deepgramVoice 
                         : localPreferences.voiceSettings.voice,
-                      useKokoro: localPreferences.voiceSettings.useKokoro
+                      useDeepgram: localPreferences.voiceSettings.useDeepgram
                     });
                   } catch (error) {
                     console.error('Voice notification test failed:', error);

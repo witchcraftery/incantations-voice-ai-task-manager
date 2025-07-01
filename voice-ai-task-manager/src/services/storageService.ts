@@ -208,6 +208,7 @@ export class StorageService {
         volume: 0.8,
         useDeepgram: true,
         deepgramVoice: 'aura-asteria-en',
+        voice: undefined,
         microphoneId: undefined
       },
       aiSettings: {

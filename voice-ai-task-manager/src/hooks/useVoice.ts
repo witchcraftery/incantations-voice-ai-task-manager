@@ -192,10 +192,10 @@ export function useVoice(
         rate: preferences.voiceSettings.rate,
         pitch: preferences.voiceSettings.pitch,
         volume: preferences.voiceSettings.volume,
-        voice: preferences.voiceSettings.useKokoro 
-          ? preferences.voiceSettings.kokoroVoice 
+        voice: preferences.voiceSettings.useDeepgram 
+          ? preferences.voiceSettings.deepgramVoice 
           : preferences.voiceSettings.voice,
-        useKokoro: preferences.voiceSettings.useKokoro
+        useDeepgram: preferences.voiceSettings.useDeepgram
       });
     } catch (error) {
       console.error('Speech synthesis failed:', error);
