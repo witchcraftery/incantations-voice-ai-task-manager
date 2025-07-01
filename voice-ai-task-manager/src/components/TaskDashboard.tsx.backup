@@ -1,19 +1,30 @@
-import React, { useState, useMemo } from 'react';
-import { Search, Filter, Plus, BarChart3, CheckCircle2, Clock, AlertTriangle } from 'lucide-react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
+import { Search, Filter, Plus, BarChart3, CheckCircle2, Clock, AlertTriangle, MousePointer } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { ScrollArea } from './ui/scroll-area';
 import { TaskCard } from './TaskCard';
-import { Task } from '../types';
+import { TaskBulkActions } from './TaskBulkActions';
+import { TaskTemplateSelector } from './TaskTemplateSelector';
+import { Task, TaskTemplate } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface TaskDashboardProps {
   tasks: Task[];
+  selectedTaskIds: Set<string>;
   onToggleComplete: (taskId: string) => void;
   onEditTask?: (taskId: string, updates: Partial<Task>) => void;
   onDeleteTask?: (taskId: string) => void;
+  onStartTimer?: (taskId: string) => void;
+  onStopTimer?: (taskId: string) => void;
   onCreateTask?: () => void;
+  onCreateTaskFromTemplate?: (template: TaskTemplate) => void;
+  onToggleTaskSelection: (taskId: string) => void;
+  onSelectAllTasks: () => void;
+  onClearSelection: () => void;
+  onBulkUpdateTasks: (taskIds: string[], updates: Partial<Task>) => void;
+  onBulkDeleteTasks: (taskIds: string[]) => void;
 }
 
 type FilterType = 'all' | 'pending' | 'in-progress' | 'completed' | 'overdue';
@@ -21,15 +32,26 @@ type SortType = 'created' | 'updated' | 'due' | 'priority' | 'title';
 
 export function TaskDashboard({
   tasks,
+  selectedTaskIds,
   onToggleComplete,
   onEditTask,
   onDeleteTask,
-  onCreateTask
+  onStartTimer,
+  onStopTimer,
+  onCreateTask,
+  onCreateTaskFromTemplate,
+  onToggleTaskSelection,
+  onSelectAllTasks,
+  onClearSelection,
+  onBulkUpdateTasks,
+  onBulkDeleteTasks
 }: TaskDashboardProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState<FilterType>('all');
   const [sortType, setSortType] = useState<SortType>('created');
   const [selectedProject, setSelectedProject] = useState<string>('all');
+  const [showBulkSelection, setShowBulkSelection] = useState(false);
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   // Get unique projects
   const projects = useMemo(() => {
@@ -80,9 +102,10 @@ export function TaskDashboard({
           if (!a.dueDate) return 1;
           if (!b.dueDate) return -1;
           return a.dueDate.getTime() - b.dueDate.getTime();
-        case 'priority':
+        case 'priority': {
           const priorityOrder = { urgent: 0, high: 1, medium: 2, low: 3 };
           return priorityOrder[a.priority] - priorityOrder[b.priority];
+        }
         case 'updated':
           return b.updatedAt.getTime() - a.updatedAt.getTime();
         case 'created':
@@ -118,6 +141,43 @@ export function TaskDashboard({
       case 'completed': return stats.completed;
       case 'overdue': return stats.overdue;
       default: return 0;
+    }
+  };
+
+  // Keyboard shortcuts handlers
+  const handleFocusSearch = () => {
+    searchInputRef.current?.focus();
+  };
+
+  const handleDeleteSelected = () => {
+    if (selectedTaskIds.size > 0) {
+      const selectedArray = Array.from(selectedTaskIds);
+      if (window.confirm(`Delete ${selectedArray.length} selected task(s)?`)) {
+        onBulkDeleteTasks(selectedArray);
+      }
+    }
+  };
+
+  const handleToggleSelectedComplete = () => {
+    if (selectedTaskIds.size > 0) {
+      const selectedArray = Array.from(selectedTaskIds);
+      onBulkUpdateTasks(selectedArray, { status: 'completed' });
+      onClearSelection();
+    }
+  };
+
+  const handleBulkSelect = () => {
+    if (selectedTaskIds.size === filteredAndSortedTasks.length) {
+      onClearSelection();
+    } else {
+      onSelectAllTasks();
+    }
+  };
+
+  const toggleBulkSelectionMode = () => {
+    setShowBulkSelection(!showBulkSelection);
+    if (showBulkSelection) {
+      onClearSelection();
     }
   };
 
@@ -202,16 +262,18 @@ export function TaskDashboard({
         </div>
 
         {/* Filters and Search */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-            <Input
-              placeholder="Search tasks..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10"
-            />
-          </div>
+        <div className="flex flex-col gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Input
+                ref={searchInputRef}
+                placeholder="Search tasks..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10"
+              />
+            </div>
 
           <Select value={filterType} onValueChange={(value) => setFilterType(value as FilterType)}>
             <SelectTrigger>
@@ -252,8 +314,53 @@ export function TaskDashboard({
               <SelectItem value="title">Sort by Title</SelectItem>
             </SelectContent>
           </Select>
+          </div>
+          
+          {/* Bulk Selection Controls */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Button
+                variant={showBulkSelection ? "default" : "outline"}
+                size="sm"
+                onClick={toggleBulkSelectionMode}
+                className="flex items-center gap-2"
+              >
+                <MousePointer className="h-4 w-4" />
+                {showBulkSelection ? "Exit Selection" : "Bulk Select"}
+              </Button>
+              
+              {showBulkSelection && selectedTaskIds.size > 0 && (
+                <div className="text-sm text-gray-600 dark:text-gray-300">
+                  {selectedTaskIds.size} task{selectedTaskIds.size !== 1 ? 's' : ''} selected
+                </div>
+              )}
+            </div>
+            
+            <div className="flex items-center gap-2">
+              {onCreateTaskFromTemplate && (
+                <TaskTemplateSelector 
+                  onSelectTemplate={onCreateTaskFromTemplate}
+                />
+              )}
+              {onCreateTask && (
+                <Button onClick={onCreateTask} size="sm" className="flex items-center gap-2">
+                  <Plus className="h-4 w-4" />
+                  New Task
+                </Button>
+              )}
+            </div>
+          </div>
         </div>
       </div>
+
+      {/* Bulk Actions */}
+      <TaskBulkActions
+        selectedTaskIds={selectedTaskIds}
+        tasks={tasks}
+        onBulkUpdate={onBulkUpdateTasks}
+        onBulkDelete={onBulkDeleteTasks}
+        onClearSelection={onClearSelection}
+      />
 
       {/* Task List */}
       <ScrollArea className="flex-1 p-4">
@@ -266,8 +373,13 @@ export function TaskDashboard({
                 onToggleComplete={onToggleComplete}
                 onEdit={onEditTask}
                 onDelete={onDeleteTask}
+                onStartTimer={onStartTimer}
+                onStopTimer={onStopTimer}
                 showProject={selectedProject === 'all'}
                 showExtractedFrom={true}
+                showSelection={showBulkSelection}
+                isSelected={selectedTaskIds.has(task.id)}
+                onToggleSelect={onToggleTaskSelection}
               />
             ))}
           </AnimatePresence>

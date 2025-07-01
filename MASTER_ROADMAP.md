@@ -300,10 +300,30 @@ interface ConversationFlow {
 7. ✅ **🚀 PRODUCTION DEPLOYMENT** - All Phase 1 features live and stable
 8. ✅ **🔧 VOICE INTEGRATION FIXES** - Deepgram TTS working consistently, VoiceControls stable
 
+### **⚠️ TEMPORARY UI FIXES (7/1/2025) - NEEDS RESTORATION**
+**CRITICAL:** During UI layout restoration, the following enterprise features were temporarily disabled to resolve immediate deployment issues:
+
+**🔧 TEMPORARILY DISABLED SERVICES:**
+1. **`backgroundAgentService`** - 24/7 task monitoring and proactive assistance
+2. **`voiceNotificationService`** - Advanced voice notification system with custom celebrations  
+3. **`gmailAgentService`** - Real-time email monitoring and task extraction
+4. **`useBackgroundAgent` hook** - Integration layer for background processing
+
+**📋 REQUIRED RESTORATION TASKS:**
+- **Task 1.4.1:** Restore `backgroundAgentService.ts` with task monitoring capabilities
+- **Task 1.4.2:** Restore `voiceNotificationService.ts` with custom voice celebrations
+- **Task 1.4.3:** Restore `gmailAgentService.ts` with email-to-task extraction
+- **Task 1.4.4:** Restore `useBackgroundAgent.ts` hook integration
+- **Task 1.4.5:** Re-enable background agent UI indicators and status display
+- **Task 1.4.6:** Test all enterprise features work correctly with restored UI layout
+
+**🎯 IMPACT:** Core UI and voice functionality restored, but advanced enterprise automation temporarily unavailable.
+
 ### **🎉 PHASE 1 COMPLETE! Next Sprint: Phase 2 Foundation**
 1. **Google Calendar API** setup and authentication (Task 2.1)
 2. **Calendar-task integration** in dashboard sidebar (Task 2.2)
 3. **Meeting intelligence** for automated follow-ups (Task 2.3)
+4. **🔧 RESTORE ENTERPRISE SERVICES** - Reconnect background agent and email monitoring (Task 1.4)
 
 ### **📅 Month 2-3: Phase 3 Email Integration**
 1. **Gmail API** foundation and real-time monitoring

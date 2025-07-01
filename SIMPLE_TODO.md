@@ -91,6 +91,33 @@ The AI now operates in **3 conversation stages** to create natural, rapport-buil
 
 ---
 
+## ⚠️ **URGENT: Enterprise Service Restoration (7/1/2025)**
+
+### **Task 1.4: Restore Temporarily Disabled Enterprise Features**
+- [ ] **Task 1.4.1:** Restore `backgroundAgentService.ts` with 24/7 task monitoring capabilities
+  **NOTES:** Service provides proactive task assistance, deadline monitoring, and productivity insights
+- [ ] **Task 1.4.2:** Restore `voiceNotificationService.ts` with custom voice celebrations  
+  **NOTES:** Advanced voice notification system with personalized celebration messages for task completion
+- [ ] **Task 1.4.3:** Restore `gmailAgentService.ts` with real-time email monitoring and task extraction
+  **NOTES:** Automatically extracts actionable items from incoming emails and creates tasks
+- [ ] **Task 1.4.4:** Restore `useBackgroundAgent.ts` hook integration in VoiceTaskManager
+  **NOTES:** React hook that integrates background agent services with UI state management
+- [ ] **Task 1.4.5:** Re-enable background agent UI indicators and status display in header
+  **NOTES:** Shows "AI Agent active" status with Gmail monitoring indicator badge
+- [ ] **Task 1.4.6:** Test all enterprise features work correctly with restored UI layout
+  **NOTES:** Verify voice notifications, email monitoring, and background agent function properly
+
+**🎯 IMPACT:** These services were temporarily commented out during UI restoration to resolve immediate deployment issues. Core functionality is working but advanced enterprise automation is unavailable until restoration.
+
+**📋 FILES AFFECTED:**
+- `voice-ai-task-manager/src/components/VoiceTaskManager.tsx` (lines 21, 93-97, 205, 323-335)
+- `voice-ai-task-manager/src/hooks/useBackgroundAgent.ts` (needs restoration)
+- `voice-ai-task-manager/src/services/backgroundAgentService.ts` (needs restoration)
+- `voice-ai-task-manager/src/services/voiceNotificationService.ts` (needs restoration)  
+- `voice-ai-task-manager/src/services/gmailAgentService.ts` (needs restoration)
+
+---
+
 ## 📋 **Phase 2: Google Calendar Integration**
 
 ### **Task 2.1: Calendar API Setup**
