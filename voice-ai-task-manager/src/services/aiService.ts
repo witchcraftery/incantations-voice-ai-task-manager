@@ -95,7 +95,7 @@ export class AIService {
       /(.+?)\s+(?:is due|due|deadline)\s+(?:by|on|at|in)\s+(.+?)(?:\.|$|,)/gi
     ];
 
-    let hasTaskIndicator = taskIndicators.some(indicator => 
+    const hasTaskIndicator = taskIndicators.some(indicator => 
       input.toLowerCase().includes(indicator)
     );
 

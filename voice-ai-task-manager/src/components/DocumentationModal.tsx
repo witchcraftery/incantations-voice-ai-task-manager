@@ -108,8 +108,8 @@ export function DocumentationModal() {
         },
         {
           name: "Multiple Voice Engines",
-          description: "Web Speech API + Kokoro TTS for natural responses",
-          example: "Choose from 15+ voices including AI-generated Kokoro voices for premium audio quality"
+          description: "Web Speech API + Deepgram TTS for natural responses",
+          example: "Choose from 15+ voices including premium Deepgram AI voices for high-quality audio"
         }
       ]
     }

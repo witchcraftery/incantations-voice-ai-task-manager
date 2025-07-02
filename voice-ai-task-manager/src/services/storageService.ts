@@ -427,7 +427,7 @@ export class StorageService {
       let used = 0;
       
       // Calculate used space
-      for (let key in localStorage) {
+      for (const key in localStorage) {
         if (localStorage.hasOwnProperty(key)) {
           used += localStorage[key].length + key.length;
         }
