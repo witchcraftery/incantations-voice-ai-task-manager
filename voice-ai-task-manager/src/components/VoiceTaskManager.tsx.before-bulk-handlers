@@ -41,8 +41,10 @@ export function VoiceTaskManager() {
   const [selectedMessageForBookmark, setSelectedMessageForBookmark] = useState<Message | null>(null);
   const [bookmarkToEdit, setBookmarkToEdit] = useState<ConversationBookmark | null>(null);
 
-  // selectedTaskIds is now managed by useTasks hook
+  const [selectedTaskIds, setSelectedTaskIds] = useState<Set<string>>(new Set());
 
+  // Memoize the selectedTaskIds to prevent unnecessary re-renders
+  const memoizedSelectedTaskIds = useMemo(() => selectedTaskIds, [selectedTaskIds]);
 
   // Initialize voice command parser
   const voiceCommandParser = new VoiceCommandParser();
@@ -62,15 +64,15 @@ export function VoiceTaskManager() {
 
   const {
     tasks,
-    selectedTaskIds,
-    onToggleTaskSelection,
-    onSelectAllTasks,
-    onClearSelection,
+    selectedTaskIds: selectedTaskIdsFromHook,
     addTask,
     completeTask,
     reopenTask,
     updateTask,
     deleteTask,
+    toggleTaskSelection,
+    selectAllTasks,
+    clearSelection,
     bulkUpdateTasks,
     bulkDeleteTasks,
     createTaskFromTemplate,
@@ -83,9 +85,6 @@ export function VoiceTaskManager() {
     getEnergyWindows,
     getTaskRecommendations
   } = useTasks();
-
-  // Memoize the selectedTaskIds to prevent unnecessary re-renders
-  const memoizedSelectedTaskIds = useMemo(() => selectedTaskIds, [selectedTaskIds]);
 
   // We'll create the voice service after defining the handler
 
@@ -500,15 +499,15 @@ export function VoiceTaskManager() {
     if (memoizedSelectedTaskIds.size > 0) {
       const selectedArray = Array.from(memoizedSelectedTaskIds);
       bulkUpdateTasks(selectedArray, { status: 'completed' });
-      onClearSelection();
+      clearSelection();
     }
   };
 
   const handleBulkSelect = () => {
     if (memoizedSelectedTaskIds.size === tasks.length) {
-      onClearSelection();
+      clearSelection();
     } else {
-      onSelectAllTasks();
+      selectAllTasks();
     }
   };
 
@@ -775,9 +774,9 @@ export function VoiceTaskManager() {
                   onStopTimer={stopTimer}
                   onCreateTask={handleCreateTask}
                   onCreateTaskFromTemplate={createTaskFromTemplate}
-                  onToggleTaskSelection={onToggleTaskSelection}
-                  onSelectAllTasks={onSelectAllTasks}
-                  onClearSelection={onClearSelection}
+                  onToggleTaskSelection={toggleTaskSelection}
+                  onSelectAllTasks={selectAllTasks}
+                  onClearSelection={clearSelection}
                   onBulkUpdateTasks={bulkUpdateTasks}
                   onBulkDeleteTasks={bulkDeleteTasks}
                 />

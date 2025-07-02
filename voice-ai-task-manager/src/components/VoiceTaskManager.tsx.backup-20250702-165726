@@ -43,6 +43,9 @@ export function VoiceTaskManager() {
 
   // selectedTaskIds is now managed by useTasks hook
 
+  // Memoize the selectedTaskIds to prevent unnecessary re-renders
+  // Memoize the selectedTaskIds to prevent unnecessary re-renders
+  const memoizedSelectedTaskIds = useMemo(() => selectedTaskIds, [selectedTaskIds]);
 
   // Initialize voice command parser
   const voiceCommandParser = new VoiceCommandParser();
@@ -83,9 +86,6 @@ export function VoiceTaskManager() {
     getEnergyWindows,
     getTaskRecommendations
   } = useTasks();
-
-  // Memoize the selectedTaskIds to prevent unnecessary re-renders
-  const memoizedSelectedTaskIds = useMemo(() => selectedTaskIds, [selectedTaskIds]);
 
   // We'll create the voice service after defining the handler
 

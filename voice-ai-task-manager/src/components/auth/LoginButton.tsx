@@ -33,7 +33,7 @@ export const LoginButton: React.FC = () => {
   const initializeGoogleSignIn = () => {
     if (window.google) {
       window.google.accounts.id.initialize({
-        client_id: process.env.NODE_ENV === 'production' 
+        client_id: import.meta.env.MODE === 'production' 
           ? 'your_production_google_client_id' 
           : 'your_dev_google_client_id', // You'll need to get this from Google Cloud Console
         callback: handleCredentialResponse,

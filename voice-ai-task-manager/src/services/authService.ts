@@ -18,7 +18,7 @@ class AuthService {
   private token: string | null = null;
 
   constructor() {
-    this.baseUrl = process.env.NODE_ENV === 'production' 
+    this.baseUrl = import.meta.env.MODE === 'production' 
       ? 'https://api.incantations.witchcraftery.io'
       : 'http://localhost:3001';
     
@@ -36,7 +36,7 @@ class AuthService {
         credentials: 'include',
         body: JSON.stringify({
           credential,
-          clientId: process.env.VITE_GOOGLE_CLIENT_ID
+          clientId: import.meta.env.VITE_GOOGLE_CLIENT_ID
         })
       });
 

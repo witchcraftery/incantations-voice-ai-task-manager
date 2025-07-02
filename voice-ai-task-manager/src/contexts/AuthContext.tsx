@@ -35,7 +35,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const API_BASE = process.env.NODE_ENV === 'production' 
+  const API_BASE = import.meta.env.MODE === 'production' 
     ? 'https://api.incantations.witchcraftery.io'
     : 'http://localhost:3001';
 

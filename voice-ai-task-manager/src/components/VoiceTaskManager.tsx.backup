@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Brain, Settings, Mic, CheckCircle2, MessageSquare, Bookmark, BarChart3 } from 'lucide-react';
 import { Button } from './ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
@@ -41,9 +41,6 @@ export function VoiceTaskManager() {
   const [selectedMessageForBookmark, setSelectedMessageForBookmark] = useState<Message | null>(null);
   const [bookmarkToEdit, setBookmarkToEdit] = useState<ConversationBookmark | null>(null);
 
-  // selectedTaskIds is now managed by useTasks hook
-
-
   // Initialize voice command parser
   const voiceCommandParser = new VoiceCommandParser();
 
@@ -63,14 +60,14 @@ export function VoiceTaskManager() {
   const {
     tasks,
     selectedTaskIds,
-    onToggleTaskSelection,
-    onSelectAllTasks,
-    onClearSelection,
     addTask,
     completeTask,
     reopenTask,
     updateTask,
     deleteTask,
+    toggleTaskSelection,
+    selectAllTasks,
+    clearSelection,
     bulkUpdateTasks,
     bulkDeleteTasks,
     createTaskFromTemplate,
@@ -83,9 +80,6 @@ export function VoiceTaskManager() {
     getEnergyWindows,
     getTaskRecommendations
   } = useTasks();
-
-  // Memoize the selectedTaskIds to prevent unnecessary re-renders
-  const memoizedSelectedTaskIds = useMemo(() => selectedTaskIds, [selectedTaskIds]);
 
   // We'll create the voice service after defining the handler
 
@@ -488,8 +482,8 @@ export function VoiceTaskManager() {
   };
 
   const handleDeleteSelected = () => {
-    if (memoizedSelectedTaskIds.size > 0) {
-      const selectedArray = Array.from(memoizedSelectedTaskIds);
+    if (selectedTaskIds.size > 0) {
+      const selectedArray = Array.from(selectedTaskIds);
       if (window.confirm(`Delete ${selectedArray.length} selected task(s)?`)) {
         bulkDeleteTasks(selectedArray);
       }
@@ -497,18 +491,18 @@ export function VoiceTaskManager() {
   };
 
   const handleToggleSelectedComplete = () => {
-    if (memoizedSelectedTaskIds.size > 0) {
-      const selectedArray = Array.from(memoizedSelectedTaskIds);
+    if (selectedTaskIds.size > 0) {
+      const selectedArray = Array.from(selectedTaskIds);
       bulkUpdateTasks(selectedArray, { status: 'completed' });
-      onClearSelection();
+      clearSelection();
     }
   };
 
   const handleBulkSelect = () => {
-    if (memoizedSelectedTaskIds.size === tasks.length) {
-      onClearSelection();
+    if (selectedTaskIds.size === tasks.length) {
+      clearSelection();
     } else {
-      onSelectAllTasks();
+      selectAllTasks();
     }
   };
 
@@ -767,7 +761,7 @@ export function VoiceTaskManager() {
               <TabsContent value="tasks" className="h-full m-0">
                 <TaskDashboard
                   tasks={tasks}
-                  selectedTaskIds={memoizedSelectedTaskIds}
+                  selectedTaskIds={selectedTaskIds}
                   onToggleComplete={handleToggleComplete}
                   onEditTask={updateTask}
                   onDeleteTask={deleteTask}
@@ -775,9 +769,9 @@ export function VoiceTaskManager() {
                   onStopTimer={stopTimer}
                   onCreateTask={handleCreateTask}
                   onCreateTaskFromTemplate={createTaskFromTemplate}
-                  onToggleTaskSelection={onToggleTaskSelection}
-                  onSelectAllTasks={onSelectAllTasks}
-                  onClearSelection={onClearSelection}
+                  onToggleTaskSelection={toggleTaskSelection}
+                  onSelectAllTasks={selectAllTasks}
+                  onClearSelection={clearSelection}
                   onBulkUpdateTasks={bulkUpdateTasks}
                   onBulkDeleteTasks={bulkDeleteTasks}
                 />

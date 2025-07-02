@@ -5,7 +5,6 @@ import { StorageService } from '../services/storageService';
 export function useTasks() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
-  const [selectedTaskIds, setSelectedTaskIds] = useState<Set<string>>(new Set());
   const [isLoading, setIsLoading] = useState(true);
   
   const storageService = new StorageService();
@@ -74,50 +73,6 @@ export function useTasks() {
     updateTask(taskId, { status: 'pending' });
   }, [updateTask]);
 
-  // Bulk-operation handlers for task selection management
-  const onToggleTaskSelection = useCallback((id: string) => {
-    setSelectedTaskIds(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(id)) {
-        newSet.delete(id);
-      } else {
-        newSet.add(id);
-      }
-      return newSet;
-    });
-  }, []);
-
-  const onSelectAllTasks = useCallback((taskIds?: string[]) => {
-    if (taskIds) {
-      setSelectedTaskIds(new Set(taskIds));
-    } else {
-      setSelectedTaskIds(new Set(tasks.map(task => task.id)));
-    }
-  }, [tasks]);
-
-  const onClearSelection = useCallback(() => {
-    setSelectedTaskIds(new Set());
-  }, []);
-
-  const onBulkUpdateTasks = useCallback((data: Partial<Task>) => {
-    selectedTaskIds.forEach(id => {
-      updateTask(id, data);
-    });
-  }, [selectedTaskIds, updateTask]);
-
-  const onBulkDeleteTasks = useCallback(() => {
-    selectedTaskIds.forEach(id => {
-      deleteTask(id);
-    });
-    onClearSelection();
-  }, [selectedTaskIds, deleteTask, onClearSelection]);
-
-  const toggleTaskSelection = onToggleTaskSelection;
-  const selectAllTasks = onSelectAllTasks;
-  const clearSelection = onClearSelection;
-  const bulkUpdateTasks = onBulkUpdateTasks;
-  const bulkDeleteTasks = onBulkDeleteTasks;
-
   const addProject = useCallback((project: Omit<Project, 'id' | 'createdAt' | 'taskIds'>) => {
     const newProject: Project = {
       ...project,
@@ -152,6 +107,7 @@ export function useTasks() {
       return updated;
     });
 
+    // Remove project reference from tasks
     setTasks(prev => {
       const updated = prev.map(task =>
         task.project === projectId ? { ...task, project: undefined } : task
@@ -232,6 +188,18 @@ export function useTasks() {
     });
   }, [projects, getTasksByProject]);
 
+  const bulkUpdateTasks = useCallback((taskIds: string[], updates: Partial<Task>) => {
+    setTasks(prev => {
+      const updated = prev.map(task =>
+        taskIds.includes(task.id)
+          ? { ...task, ...updates, updatedAt: new Date() }
+          : task
+      );
+      storageService.saveTasks(updated);
+      return updated;
+    });
+  }, []);
+
   const exportTasks = useCallback(() => {
     return {
       tasks,
@@ -240,38 +208,9 @@ export function useTasks() {
     };
   }, [tasks, projects]);
 
-  const startTimer = useCallback((taskId: string) => {
-    console.log('Starting timer for task:', taskId);
-  }, []);
-
-  const stopTimer = useCallback((taskId: string) => {
-    console.log('Stopping timer for task:', taskId);
-  }, []);
-
-  const getActiveTimers = useCallback(() => {
-    return [];
-  }, []);
-
-  const createTaskFromTemplate = useCallback((template: any) => {
-    console.log('Creating task from template:', template);
-  }, []);
-
-  const getProductivityPatterns = useCallback(() => {
-    return [];
-  }, []);
-
-  const getEnergyWindows = useCallback(() => {
-    return [];
-  }, []);
-
-  const getTaskRecommendations = useCallback(() => {
-    return [];
-  }, []);
-
   return {
     tasks,
     projects,
-    selectedTaskIds,
     isLoading,
     addTask,
     updateTask,
@@ -291,22 +230,6 @@ export function useTasks() {
     getProjectStats,
     bulkUpdateTasks,
     exportTasks,
-    loadData,
-    onToggleTaskSelection,
-    onSelectAllTasks,
-    onClearSelection,
-    onBulkUpdateTasks,
-    onBulkDeleteTasks,
-    toggleTaskSelection,
-    selectAllTasks,
-    clearSelection,
-    bulkDeleteTasks,
-    startTimer,
-    stopTimer,
-    getActiveTimers,
-    createTaskFromTemplate,
-    getProductivityPatterns,
-    getEnergyWindows,
-    getTaskRecommendations
+    loadData
   };
 }

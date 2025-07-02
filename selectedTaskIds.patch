@@ -1,0 +1,20 @@
+--- a/voice-ai-task-manager/src/components/VoiceTaskManager.tsx
++++ b/voice-ai-task-manager/src/components/VoiceTaskManager.tsx
+@@ -1,4 +1,4 @@
+-import React, { useState, useEffect, useCallback } from 'react';
++import React, { useState, useEffect, useCallback, useMemo } from 'react';
+ import { Brain, Settings, Mic, CheckCircle2, MessageSquare, Bookmark, BarChart3 } from 'lucide-react';
+ import { Button } from './ui/button';
+ import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
+@@ -39,6 +39,10 @@
+   const [selectedMessageForBookmark, setSelectedMessageForBookmark] = useState<Message | null>(null);
+   const [bookmarkToEdit, setBookmarkToEdit] = useState<ConversationBookmark | null>(null);
+ 
++  const [selectedTaskIds, setSelectedTaskIds] = useState<Set<string>>(new Set());
++
++  // Memoize the selectedTaskIds to prevent unnecessary re-renders
++  const memoizedSelectedTaskIds = useMemo(() => selectedTaskIds, [selectedTaskIds]);
++
+   // Initialize voice command parser
+   const voiceCommandParser = new VoiceCommandParser();
+ 
