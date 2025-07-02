@@ -41,7 +41,7 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-      target: development
+      target: production
     container_name: incantations-backend
     env_file:
       - .env.docker  # ADDED: Load environment from file
@@ -73,7 +73,7 @@ services:
     build:
       context: ./voice-ai-task-manager
       dockerfile: Dockerfile
-      target: development
+      target: production
     container_name: incantations-frontend
     env_file:
       - .env.docker  # ADDED: Load environment from file

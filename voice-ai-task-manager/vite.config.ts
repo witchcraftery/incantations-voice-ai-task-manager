@@ -12,12 +12,13 @@ export default defineConfig({
   server: {
     // Disable HTTPS for development to avoid certificate issues
     https: false,
-    host: true,
+    host: '0.0.0.0',
     port: process.env.FRONTEND_PORT ? parseInt(process.env.FRONTEND_PORT) : 5174,
     allowedHosts: [
       'incantations.witchcraftery.io',
-      'witchcraftery.io', 
-      'localhost'
+      '.witchcraftery.io',  // Allow all subdomains
+      'localhost',
+      '127.0.0.1'
     ]
   },
 })
