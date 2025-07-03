@@ -45,6 +45,7 @@ services:
     container_name: incantations-backend
     env_file:
       - .env.docker  # ADDED: Load environment from file
+      - backend/.env.backend  # Backend-specific overrides
     ports:
       - "3001:3001"
     # REMOVED: Individual environment variables, now using .env.docker
@@ -73,7 +74,7 @@ services:
     build:
       context: ./voice-ai-task-manager
       dockerfile: Dockerfile
-      target: production
+      target: development
     container_name: incantations-frontend
     env_file:
       - .env.docker  # ADDED: Load environment from file
@@ -117,20 +118,6 @@ services:
     command: npm run dev:http
     profiles:
       - http
-
-  # KOKORO SERVICE TEMPORARILY DISABLED DUE TO RESOURCE USAGE
-  # Uncomment when droplet has sufficient resources or after Deepgram integration
-  # kokoro:
-  #   image: ghcr.io/remsky/kokoro-fastapi-cpu:latest
-  #   container_name: incantations-kokoro
-  #   ports:
-  #     - "8880:8880"
-  #   healthcheck:
-  #     test: ["CMD", "curl", "-f", "http://localhost:8880/v1/audio/voices"]
-  #     interval: 30s
-  #     timeout: 10s
-  #     retries: 5
-  #     start_period: 40s
 
 volumes:
   postgres_data:
