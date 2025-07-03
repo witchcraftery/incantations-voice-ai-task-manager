@@ -34,27 +34,27 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
 # Default command for development
 CMD ["npm", "run", "dev"]
 
-# Build stage
-FROM base AS build
-ENV NODE_ENV=production
+# Builder stage - Install everything needed for build including TypeScript
+FROM base AS builder
+ENV NODE_ENV=development
 
-# Install dependencies (including devDependencies for TypeScript)
+# Install ALL dependencies (including devDependencies for TypeScript)
 RUN npm ci
 
 # Copy source code
 COPY . .
 
-# Build the application
+# Build the application (requires TypeScript)
 RUN npm run build
 
-# Production stage with Nginx
+# Production stage with Nginx - Clean and lightweight
 FROM nginx:alpine AS production
 
 # Install security updates
 RUN apk update && apk upgrade && rm -rf /var/cache/apk/*
 
-# Copy built application
-COPY --from=build /app/dist /usr/share/nginx/html
+# Copy built application from builder stage
+COPY --from=builder /app/dist /usr/share/nginx/html
 
 # Copy Nginx configuration
 COPY nginx.conf /etc/nginx/conf.d/default.conf
