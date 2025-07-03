@@ -51,9 +51,9 @@ export class GmailService {
     this.config = {
       scopes: [
         'https://www.googleapis.com/auth/gmail.readonly',
-        'https://www.googleapis.com/auth/gmail.modify'
+        'https://www.googleapis.com/auth/gmail.modify',
       ],
-      ...config
+      ...config,
     };
   }
 
@@ -64,13 +64,15 @@ export class GmailService {
       }
 
       this.gapi = window.gapi;
-      
+
       await this.gapi.load('client:auth2', async () => {
         await this.gapi.client.init({
           apiKey: this.config.apiKey,
           clientId: this.config.clientId,
-          discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/gmail/v1/rest'],
-          scope: this.config.scopes.join(' ')
+          discoveryDocs: [
+            'https://www.googleapis.com/discovery/v1/apis/gmail/v1/rest',
+          ],
+          scope: this.config.scopes.join(' '),
         });
 
         this.isInitialized = true;
@@ -138,7 +140,8 @@ export class GmailService {
       const fullMessages: GmailMessage[] = [];
 
       // Get full message details
-      for (const message of messages.slice(0, 10)) { // Limit to avoid rate limits
+      for (const message of messages.slice(0, 10)) {
+        // Limit to avoid rate limits
         try {
           const fullMessage = await this.gapi.client.gmail.users.messages.get({
             userId: 'me',
@@ -157,7 +160,10 @@ export class GmailService {
     }
   }
 
-  async searchMessages(query: string, maxResults: number = 10): Promise<GmailMessage[]> {
+  async searchMessages(
+    query: string,
+    maxResults: number = 10
+  ): Promise<GmailMessage[]> {
     if (!this.isSignedIn) {
       throw new Error('Not signed in to Gmail');
     }
@@ -202,7 +208,10 @@ export class GmailService {
       const body = this.getMessageBody(message);
 
       // Extract tasks using patterns
-      const extractedTasks = this.extractTasksFromText(body || message.snippet, subject);
+      const extractedTasks = this.extractTasksFromText(
+        body || message.snippet,
+        subject
+      );
 
       extractedTasks.forEach(task => {
         tasks.push({
@@ -211,8 +220,8 @@ export class GmailService {
             messageId: message.id,
             subject,
             sender,
-            date
-          }
+            date,
+          },
         });
       });
 
@@ -228,8 +237,8 @@ export class GmailService {
             messageId: message.id,
             subject,
             sender,
-            date
-          }
+            date,
+          },
         });
       }
     });
@@ -237,9 +246,12 @@ export class GmailService {
     return tasks;
   }
 
-  private extractTasksFromText(text: string, subject: string): Omit<EmailTask, 'sourceEmail'>[] {
+  private extractTasksFromText(
+    text: string,
+    subject: string
+  ): Omit<EmailTask, 'sourceEmail'>[] {
     const tasks: Omit<EmailTask, 'sourceEmail'>[] = [];
-    
+
     // Task extraction patterns
     const patterns = [
       /(?:please|could you|can you|need you to|would you)\s+([^.!?]*)/gi,
@@ -259,7 +271,7 @@ export class GmailService {
             description: `From email: ${subject.substring(0, 50)}...`,
             priority: this.determinePriorityFromText(text),
             dueDate: this.extractDueDateFromEmail(text),
-            tags: this.extractTagsFromEmail(text, subject)
+            tags: this.extractTagsFromEmail(text, subject),
           });
         }
       }
@@ -270,39 +282,64 @@ export class GmailService {
 
   private isActionRequired(subject: string, body: string): boolean {
     const actionWords = [
-      'urgent', 'asap', 'please respond', 'action required', 'deadline',
-      'review', 'approve', 'sign', 'confirm', 'reply', 'rsvp'
+      'urgent',
+      'asap',
+      'please respond',
+      'action required',
+      'deadline',
+      'review',
+      'approve',
+      'sign',
+      'confirm',
+      'reply',
+      'rsvp',
     ];
 
     const text = (subject + ' ' + body).toLowerCase();
     return actionWords.some(word => text.includes(word));
   }
 
-  private determinePriorityFromEmail(subject: string, sender: string): 'low' | 'medium' | 'high' | 'urgent' {
+  private determinePriorityFromEmail(
+    subject: string,
+    sender: string
+  ): 'low' | 'medium' | 'high' | 'urgent' {
     const text = subject.toLowerCase();
-    
-    if (text.includes('urgent') || text.includes('asap') || text.includes('critical')) {
+
+    if (
+      text.includes('urgent') ||
+      text.includes('asap') ||
+      text.includes('critical')
+    ) {
       return 'urgent';
     }
-    
+
     if (text.includes('important') || text.includes('priority')) {
       return 'high';
     }
-    
-    if (sender.includes('boss') || sender.includes('manager') || text.includes('deadline')) {
+
+    if (
+      sender.includes('boss') ||
+      sender.includes('manager') ||
+      text.includes('deadline')
+    ) {
       return 'high';
     }
-    
+
     return 'medium';
   }
 
-  private determinePriorityFromText(text: string): 'low' | 'medium' | 'high' | 'urgent' {
+  private determinePriorityFromText(
+    text: string
+  ): 'low' | 'medium' | 'high' | 'urgent' {
     const lowerText = text.toLowerCase();
-    
-    if (lowerText.includes('urgent') || lowerText.includes('asap')) return 'urgent';
-    if (lowerText.includes('important') || lowerText.includes('priority')) return 'high';
-    if (lowerText.includes('when possible') || lowerText.includes('sometime')) return 'low';
-    
+
+    if (lowerText.includes('urgent') || lowerText.includes('asap'))
+      return 'urgent';
+    if (lowerText.includes('important') || lowerText.includes('priority'))
+      return 'high';
+    if (lowerText.includes('when possible') || lowerText.includes('sometime'))
+      return 'low';
+
     return 'medium';
   }
 
@@ -338,12 +375,12 @@ export class GmailService {
     const fullText = (text + ' ' + subject).toLowerCase();
 
     const tagMap = {
-      'meeting': ['meeting', 'call', 'sync', 'standup'],
-      'review': ['review', 'feedback', 'check'],
-      'urgent': ['urgent', 'asap', 'critical'],
-      'deadline': ['deadline', 'due', 'submit'],
-      'document': ['document', 'file', 'attachment', 'pdf'],
-      'approval': ['approve', 'sign', 'authorize'],
+      meeting: ['meeting', 'call', 'sync', 'standup'],
+      review: ['review', 'feedback', 'check'],
+      urgent: ['urgent', 'asap', 'critical'],
+      deadline: ['deadline', 'due', 'submit'],
+      document: ['document', 'file', 'attachment', 'pdf'],
+      approval: ['approve', 'sign', 'authorize'],
     };
 
     Object.entries(tagMap).forEach(([tag, keywords]) => {
@@ -363,15 +400,22 @@ export class GmailService {
       .replace(/^./, str => str.toUpperCase());
   }
 
-  private getHeader(message: GmailMessage, headerName: string): string | undefined {
-    const header = message.payload.headers.find(h => h.name.toLowerCase() === headerName.toLowerCase());
+  private getHeader(
+    message: GmailMessage,
+    headerName: string
+  ): string | undefined {
+    const header = message.payload.headers.find(
+      h => h.name.toLowerCase() === headerName.toLowerCase()
+    );
     return header?.value;
   }
 
   private getMessageBody(message: GmailMessage): string | undefined {
     // Try to get plain text body
     if (message.payload.body?.data) {
-      return atob(message.payload.body.data.replace(/-/g, '+').replace(/_/g, '/'));
+      return atob(
+        message.payload.body.data.replace(/-/g, '+').replace(/_/g, '/')
+      );
     }
 
     // Check parts for text/plain
@@ -394,7 +438,7 @@ export class GmailService {
     deadlines: GmailMessage[];
   }> {
     const messages = await this.getRecentMessages(50);
-    
+
     const actionRequired = messages.filter(msg => {
       const subject = this.getHeader(msg, 'Subject') || '';
       const body = this.getMessageBody(msg) || msg.snippet;
@@ -403,19 +447,33 @@ export class GmailService {
 
     const newsletters = messages.filter(msg => {
       const sender = this.getHeader(msg, 'From') || '';
-      return sender.includes('noreply') || sender.includes('newsletter') || msg.snippet.includes('unsubscribe');
+      return (
+        sender.includes('noreply') ||
+        sender.includes('newsletter') ||
+        msg.snippet.includes('unsubscribe')
+      );
     });
 
     const meetings = messages.filter(msg => {
       const subject = this.getHeader(msg, 'Subject') || '';
-      return subject.toLowerCase().includes('meeting') || 
-             subject.toLowerCase().includes('call') ||
-             subject.toLowerCase().includes('calendar');
+      return (
+        subject.toLowerCase().includes('meeting') ||
+        subject.toLowerCase().includes('call') ||
+        subject.toLowerCase().includes('calendar')
+      );
     });
 
     const deadlines = messages.filter(msg => {
-      const text = (this.getHeader(msg, 'Subject') + ' ' + msg.snippet).toLowerCase();
-      return text.includes('deadline') || text.includes('due') || text.includes('submit');
+      const text = (
+        this.getHeader(msg, 'Subject') +
+        ' ' +
+        msg.snippet
+      ).toLowerCase();
+      return (
+        text.includes('deadline') ||
+        text.includes('due') ||
+        text.includes('submit')
+      );
     });
 
     return { actionRequired, newsletters, meetings, deadlines };
@@ -432,9 +490,12 @@ export class GmailService {
 
   get userEmail(): string | null {
     if (!this.isSignedIn) return null;
-    
+
     try {
-      const profile = this.gapi.auth2.getAuthInstance().currentUser.get().getBasicProfile();
+      const profile = this.gapi.auth2
+        .getAuthInstance()
+        .currentUser.get()
+        .getBasicProfile();
       return profile.getEmail();
     } catch (error) {
       console.error('Failed to get user email:', error);

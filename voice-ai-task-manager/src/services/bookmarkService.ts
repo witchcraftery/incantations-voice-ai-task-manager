@@ -17,11 +17,11 @@ export class BookmarkService {
     try {
       const stored = localStorage.getItem(this.BOOKMARKS_KEY);
       if (!stored) return [];
-      
+
       const bookmarks = JSON.parse(stored);
       return bookmarks.map((bookmark: any) => ({
         ...bookmark,
-        createdAt: new Date(bookmark.createdAt)
+        createdAt: new Date(bookmark.createdAt),
       }));
     } catch (error) {
       console.error('Failed to load bookmarks:', error);
@@ -45,7 +45,7 @@ export class BookmarkService {
       description,
       createdAt: new Date(),
       tags,
-      isStarred: false
+      isStarred: false,
     };
 
     const bookmarks = this.loadBookmarks();
@@ -56,13 +56,16 @@ export class BookmarkService {
   }
 
   // Update an existing bookmark
-  updateBookmark(bookmarkId: string, updates: Partial<ConversationBookmark>): boolean {
+  updateBookmark(
+    bookmarkId: string,
+    updates: Partial<ConversationBookmark>
+  ): boolean {
     try {
       const bookmarks = this.loadBookmarks();
       const index = bookmarks.findIndex(b => b.id === bookmarkId);
-      
+
       if (index === -1) return false;
-      
+
       bookmarks[index] = { ...bookmarks[index], ...updates };
       this.saveBookmarks(bookmarks);
       return true;
@@ -77,9 +80,9 @@ export class BookmarkService {
     try {
       const bookmarks = this.loadBookmarks();
       const filteredBookmarks = bookmarks.filter(b => b.id !== bookmarkId);
-      
+
       if (filteredBookmarks.length === bookmarks.length) return false;
-      
+
       this.saveBookmarks(filteredBookmarks);
       return true;
     } catch (error) {
@@ -90,7 +93,9 @@ export class BookmarkService {
 
   // Get bookmarks for a specific conversation
   getBookmarksForConversation(conversationId: string): ConversationBookmark[] {
-    return this.loadBookmarks().filter(b => b.conversationId === conversationId);
+    return this.loadBookmarks().filter(
+      b => b.conversationId === conversationId
+    );
   }
 
   // Get all starred bookmarks
@@ -101,10 +106,11 @@ export class BookmarkService {
   // Search bookmarks by title or description
   searchBookmarks(query: string): ConversationBookmark[] {
     const lowerQuery = query.toLowerCase();
-    return this.loadBookmarks().filter(bookmark =>
-      bookmark.title.toLowerCase().includes(lowerQuery) ||
-      bookmark.description?.toLowerCase().includes(lowerQuery) ||
-      bookmark.tags.some(tag => tag.toLowerCase().includes(lowerQuery))
+    return this.loadBookmarks().filter(
+      bookmark =>
+        bookmark.title.toLowerCase().includes(lowerQuery) ||
+        bookmark.description?.toLowerCase().includes(lowerQuery) ||
+        bookmark.tags.some(tag => tag.toLowerCase().includes(lowerQuery))
     );
   }
 
@@ -112,28 +118,33 @@ export class BookmarkService {
   toggleStar(bookmarkId: string): boolean {
     const bookmarks = this.loadBookmarks();
     const bookmark = bookmarks.find(b => b.id === bookmarkId);
-    
+
     if (!bookmark) return false;
-    
+
     return this.updateBookmark(bookmarkId, { isStarred: !bookmark.isStarred });
   }
 
   // Get bookmark context (message and surrounding messages)
   getBookmarkContext(
-    bookmark: ConversationBookmark, 
+    bookmark: ConversationBookmark,
     conversation: Conversation,
     contextSize: number = 2
   ): { messages: Message[]; targetMessage: Message | null } {
-    const messageIndex = conversation.messages.findIndex(m => m.id === bookmark.messageId);
-    
+    const messageIndex = conversation.messages.findIndex(
+      m => m.id === bookmark.messageId
+    );
+
     if (messageIndex === -1) {
       return { messages: [], targetMessage: null };
     }
 
     const targetMessage = conversation.messages[messageIndex];
     const startIndex = Math.max(0, messageIndex - contextSize);
-    const endIndex = Math.min(conversation.messages.length, messageIndex + contextSize + 1);
-    
+    const endIndex = Math.min(
+      conversation.messages.length,
+      messageIndex + contextSize + 1
+    );
+
     const contextMessages = conversation.messages.slice(startIndex, endIndex);
 
     return { messages: contextMessages, targetMessage };
@@ -142,10 +153,13 @@ export class BookmarkService {
   // Auto-generate bookmark title from message content
   generateBookmarkTitle(message: Message, maxLength: number = 50): string {
     const content = message.content.trim();
-    
+
     // Remove common filler words and extract key phrases
     const cleanContent = content
-      .replace(/^(well|so|um|uh|okay|alright|now|let me|i think|i need to|i want to|can you|could you)\s+/i, '')
+      .replace(
+        /^(well|so|um|uh|okay|alright|now|let me|i think|i need to|i want to|can you|could you)\s+/i,
+        ''
+      )
       .replace(/\s+/g, ' ');
 
     if (cleanContent.length <= maxLength) {
@@ -161,7 +175,7 @@ export class BookmarkService {
     // Truncate at word boundary
     const words = cleanContent.split(' ');
     let title = '';
-    
+
     for (const word of words) {
       if ((title + ' ' + word).length > maxLength) {
         break;
@@ -176,17 +190,17 @@ export class BookmarkService {
   extractBookmarkTags(message: Message): string[] {
     const content = message.content.toLowerCase();
     const tags: string[] = [];
-    
+
     // Common topic patterns
     const topicPatterns = {
-      'task': /\b(task|todo|need to|have to|remind|deadline)\b/,
-      'project': /\b(project|work on|working on|development)\b/,
-      'meeting': /\b(meeting|call|discuss|presentation)\b/,
-      'planning': /\b(plan|schedule|organize|strategy)\b/,
-      'idea': /\b(idea|thought|concept|brainstorm)\b/,
-      'question': /\b(question|ask|wonder|clarify)\b/,
-      'decision': /\b(decide|decision|choose|option)\b/,
-      'priority': /\b(urgent|important|priority|critical)\b/
+      task: /\b(task|todo|need to|have to|remind|deadline)\b/,
+      project: /\b(project|work on|working on|development)\b/,
+      meeting: /\b(meeting|call|discuss|presentation)\b/,
+      planning: /\b(plan|schedule|organize|strategy)\b/,
+      idea: /\b(idea|thought|concept|brainstorm)\b/,
+      question: /\b(question|ask|wonder|clarify)\b/,
+      decision: /\b(decide|decision|choose|option)\b/,
+      priority: /\b(urgent|important|priority|critical)\b/,
     };
 
     Object.entries(topicPatterns).forEach(([tag, pattern]) => {
@@ -220,18 +234,19 @@ export class BookmarkService {
     const bookmarks = this.loadBookmarks();
     const now = new Date();
     const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-    
+
     const byConversation: Record<string, number> = {};
     let starred = 0;
     let recentCount = 0;
 
     bookmarks.forEach(bookmark => {
       // Count by conversation
-      byConversation[bookmark.conversationId] = (byConversation[bookmark.conversationId] || 0) + 1;
-      
+      byConversation[bookmark.conversationId] =
+        (byConversation[bookmark.conversationId] || 0) + 1;
+
       // Count starred
       if (bookmark.isStarred) starred++;
-      
+
       // Count recent
       if (bookmark.createdAt >= weekAgo) recentCount++;
     });
@@ -240,7 +255,7 @@ export class BookmarkService {
       total: bookmarks.length,
       starred,
       byConversation,
-      recentCount
+      recentCount,
     };
   }
 
@@ -248,7 +263,7 @@ export class BookmarkService {
   exportBookmarks(): any {
     return {
       bookmarks: this.loadBookmarks(),
-      exportDate: new Date().toISOString()
+      exportDate: new Date().toISOString(),
     };
   }
 
@@ -258,7 +273,7 @@ export class BookmarkService {
       if (data.bookmarks && Array.isArray(data.bookmarks)) {
         const bookmarks = data.bookmarks.map((bookmark: any) => ({
           ...bookmark,
-          createdAt: new Date(bookmark.createdAt)
+          createdAt: new Date(bookmark.createdAt),
         }));
         this.saveBookmarks(bookmarks);
         return true;

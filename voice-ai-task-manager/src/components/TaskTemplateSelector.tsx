@@ -2,10 +2,22 @@ import React, { useState, useEffect } from 'react';
 import { FileText, Plus, Clock, Tag, Flag, Search } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from './ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from './ui/dialog';
 import { ScrollArea } from './ui/scroll-area';
 import { Badge } from './ui/badge';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from './ui/card';
 import { TaskTemplate, Task } from '../types';
 import { StorageService } from '../services/storageService';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -15,7 +27,10 @@ interface TaskTemplateSelectorProps {
   trigger?: React.ReactNode;
 }
 
-export function TaskTemplateSelector({ onSelectTemplate, trigger }: TaskTemplateSelectorProps) {
+export function TaskTemplateSelector({
+  onSelectTemplate,
+  trigger,
+}: TaskTemplateSelectorProps) {
   const [templates, setTemplates] = useState<TaskTemplate[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [open, setOpen] = useState(false);
@@ -32,10 +47,13 @@ export function TaskTemplateSelector({ onSelectTemplate, trigger }: TaskTemplate
     setTemplates(loadedTemplates);
   };
 
-  const filteredTemplates = templates.filter(template =>
-    template.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    template.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    template.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()))
+  const filteredTemplates = templates.filter(
+    template =>
+      template.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      template.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      template.tags.some(tag =>
+        tag.toLowerCase().includes(searchQuery.toLowerCase())
+      )
   );
 
   const handleSelectTemplate = (template: TaskTemplate) => {
@@ -44,7 +62,9 @@ export function TaskTemplateSelector({ onSelectTemplate, trigger }: TaskTemplate
     setSearchQuery('');
   };
 
-  const createTaskFromTemplate = (template: TaskTemplate): Omit<Task, 'id' | 'createdAt' | 'updatedAt'> => {
+  const createTaskFromTemplate = (
+    template: TaskTemplate
+  ): Omit<Task, 'id' | 'createdAt' | 'updatedAt'> => {
     return {
       title: template.title,
       description: template.taskDescription,
@@ -55,16 +75,20 @@ export function TaskTemplateSelector({ onSelectTemplate, trigger }: TaskTemplate
       dueDate: undefined,
       timeEntries: [],
       totalTimeSpent: 0,
-      isActiveTimer: false
+      isActiveTimer: false,
     };
   };
 
   const getPriorityColor = (priority: TaskTemplate['priority']) => {
     switch (priority) {
-      case 'low': return 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300';
-      case 'medium': return 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300';
-      case 'high': return 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300';
-      case 'urgent': return 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300';
+      case 'low':
+        return 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300';
+      case 'medium':
+        return 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300';
+      case 'high':
+        return 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300';
+      case 'urgent':
+        return 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300';
     }
   };
 
@@ -72,7 +96,11 @@ export function TaskTemplateSelector({ onSelectTemplate, trigger }: TaskTemplate
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         {trigger || (
-          <Button variant="outline" size="sm" className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            className="flex items-center gap-2"
+          >
             <FileText className="h-4 w-4" />
             Templates
           </Button>
@@ -85,7 +113,7 @@ export function TaskTemplateSelector({ onSelectTemplate, trigger }: TaskTemplate
             Task Templates
           </DialogTitle>
         </DialogHeader>
-        
+
         <div className="space-y-4">
           {/* Search */}
           <div className="relative">
@@ -93,7 +121,7 @@ export function TaskTemplateSelector({ onSelectTemplate, trigger }: TaskTemplate
             <Input
               placeholder="Search templates..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={e => setSearchQuery(e.target.value)}
               className="pl-10"
             />
           </div>
@@ -102,7 +130,7 @@ export function TaskTemplateSelector({ onSelectTemplate, trigger }: TaskTemplate
           <ScrollArea className="h-96">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pr-4">
               <AnimatePresence mode="popLayout">
-                {filteredTemplates.map((template) => (
+                {filteredTemplates.map(template => (
                   <motion.div
                     key={template.id}
                     layout
@@ -112,7 +140,7 @@ export function TaskTemplateSelector({ onSelectTemplate, trigger }: TaskTemplate
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                   >
-                    <Card 
+                    <Card
                       className="cursor-pointer transition-all duration-200 hover:shadow-md border-2 hover:border-blue-200 dark:hover:border-blue-800"
                       onClick={() => handleSelectTemplate(template)}
                     >
@@ -128,13 +156,15 @@ export function TaskTemplateSelector({ onSelectTemplate, trigger }: TaskTemplate
                               </CardDescription>
                             )}
                           </div>
-                          <Badge className={`ml-2 ${getPriorityColor(template.priority)}`}>
+                          <Badge
+                            className={`ml-2 ${getPriorityColor(template.priority)}`}
+                          >
                             <Flag className="h-3 w-3 mr-1" />
                             {template.priority}
                           </Badge>
                         </div>
                       </CardHeader>
-                      
+
                       <CardContent className="pt-0">
                         <div className="space-y-3">
                           {/* Template Title Preview */}
@@ -169,10 +199,10 @@ export function TaskTemplateSelector({ onSelectTemplate, trigger }: TaskTemplate
                           {/* Tags */}
                           {template.tags.length > 0 && (
                             <div className="flex flex-wrap gap-1">
-                              {template.tags.slice(0, 3).map((tag) => (
-                                <Badge 
-                                  key={tag} 
-                                  variant="secondary" 
+                              {template.tags.slice(0, 3).map(tag => (
+                                <Badge
+                                  key={tag}
+                                  variant="secondary"
                                   className="text-xs px-2 py-0.5"
                                 >
                                   <Tag className="h-2.5 w-2.5 mr-1" />
@@ -180,7 +210,10 @@ export function TaskTemplateSelector({ onSelectTemplate, trigger }: TaskTemplate
                                 </Badge>
                               ))}
                               {template.tags.length > 3 && (
-                                <Badge variant="secondary" className="text-xs px-2 py-0.5">
+                                <Badge
+                                  variant="secondary"
+                                  className="text-xs px-2 py-0.5"
+                                >
                                   +{template.tags.length - 3}
                                 </Badge>
                               )}
@@ -196,7 +229,9 @@ export function TaskTemplateSelector({ onSelectTemplate, trigger }: TaskTemplate
 
             {filteredTemplates.length === 0 && (
               <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-                {searchQuery ? 'No templates match your search.' : 'No templates available.'}
+                {searchQuery
+                  ? 'No templates match your search.'
+                  : 'No templates available.'}
               </div>
             )}
           </ScrollArea>

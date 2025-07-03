@@ -1,24 +1,35 @@
 import React, { useState, useMemo } from 'react';
-import { 
-  Bookmark, 
-  Star, 
-  Search, 
-  Filter, 
-  MessageSquare, 
-  Clock, 
+import {
+  Bookmark,
+  Star,
+  Search,
+  Filter,
+  MessageSquare,
+  Clock,
   Tag,
   MoreHorizontal,
   Edit2,
   Trash2,
-  ExternalLink
+  ExternalLink,
 } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Badge } from './ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { ScrollArea } from './ui/scroll-area';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from './ui/dropdown-menu';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from './ui/select';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from './ui/dropdown-menu';
 import { ConversationBookmark, Conversation } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -42,12 +53,13 @@ export function BookmarkPanel({
   onEditBookmark,
   onDeleteBookmark,
   onToggleStar,
-  isVisible
+  isVisible,
 }: BookmarkPanelProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState<FilterType>('all');
   const [sortType, setSortType] = useState<SortType>('created');
-  const [selectedConversationId, setSelectedConversationId] = useState<string>('all');
+  const [selectedConversationId, setSelectedConversationId] =
+    useState<string>('all');
 
   // Filter and sort bookmarks
   const filteredAndSortedBookmarks = useMemo(() => {
@@ -56,10 +68,11 @@ export function BookmarkPanel({
     // Apply search filter
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(bookmark =>
-        bookmark.title.toLowerCase().includes(query) ||
-        bookmark.description?.toLowerCase().includes(query) ||
-        bookmark.tags.some(tag => tag.toLowerCase().includes(query))
+      filtered = filtered.filter(
+        bookmark =>
+          bookmark.title.toLowerCase().includes(query) ||
+          bookmark.description?.toLowerCase().includes(query) ||
+          bookmark.tags.some(tag => tag.toLowerCase().includes(query))
       );
     }
 
@@ -74,7 +87,9 @@ export function BookmarkPanel({
         break;
       case 'conversation':
         if (selectedConversationId !== 'all') {
-          filtered = filtered.filter(bookmark => bookmark.conversationId === selectedConversationId);
+          filtered = filtered.filter(
+            bookmark => bookmark.conversationId === selectedConversationId
+          );
         }
         break;
     }
@@ -85,8 +100,10 @@ export function BookmarkPanel({
         case 'title':
           return a.title.localeCompare(b.title);
         case 'conversation':
-          const convA = conversations.find(c => c.id === a.conversationId)?.title || '';
-          const convB = conversations.find(c => c.id === b.conversationId)?.title || '';
+          const convA =
+            conversations.find(c => c.id === a.conversationId)?.title || '';
+          const convB =
+            conversations.find(c => c.id === b.conversationId)?.title || '';
           return convA.localeCompare(convB);
         case 'created':
         default:
@@ -95,10 +112,20 @@ export function BookmarkPanel({
     });
 
     return filtered;
-  }, [bookmarks, searchQuery, filterType, sortType, selectedConversationId, conversations]);
+  }, [
+    bookmarks,
+    searchQuery,
+    filterType,
+    sortType,
+    selectedConversationId,
+    conversations,
+  ]);
 
   const getConversationTitle = (conversationId: string) => {
-    return conversations.find(c => c.id === conversationId)?.title || 'Unknown Conversation';
+    return (
+      conversations.find(c => c.id === conversationId)?.title ||
+      'Unknown Conversation'
+    );
   };
 
   const formatDate = (date: Date) => {
@@ -107,7 +134,10 @@ export function BookmarkPanel({
     const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
 
     if (diffDays === 0) {
-      return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      return date.toLocaleTimeString([], {
+        hour: '2-digit',
+        minute: '2-digit',
+      });
     } else if (diffDays === 1) {
       return 'Yesterday';
     } else if (diffDays < 7) {
@@ -122,7 +152,7 @@ export function BookmarkPanel({
     const starred = bookmarks.filter(b => b.isStarred).length;
     const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
     const recent = bookmarks.filter(b => b.createdAt >= weekAgo).length;
-    
+
     return { total, starred, recent };
   }, [bookmarks]);
 
@@ -152,14 +182,17 @@ export function BookmarkPanel({
           <Input
             placeholder="Search bookmarks..."
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={e => setSearchQuery(e.target.value)}
             className="pl-10"
           />
         </div>
 
         {/* Filters */}
         <div className="flex gap-2 mb-3">
-          <Select value={filterType} onValueChange={(value) => setFilterType(value as FilterType)}>
+          <Select
+            value={filterType}
+            onValueChange={value => setFilterType(value as FilterType)}
+          >
             <SelectTrigger className="flex-1">
               <SelectValue />
             </SelectTrigger>
@@ -171,7 +204,10 @@ export function BookmarkPanel({
             </SelectContent>
           </Select>
 
-          <Select value={sortType} onValueChange={(value) => setSortType(value as SortType)}>
+          <Select
+            value={sortType}
+            onValueChange={value => setSortType(value as SortType)}
+          >
             <SelectTrigger className="flex-1">
               <SelectValue />
             </SelectTrigger>
@@ -185,13 +221,16 @@ export function BookmarkPanel({
 
         {/* Conversation filter */}
         {filterType === 'conversation' && (
-          <Select value={selectedConversationId} onValueChange={setSelectedConversationId}>
+          <Select
+            value={selectedConversationId}
+            onValueChange={setSelectedConversationId}
+          >
             <SelectTrigger>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Conversations</SelectItem>
-              {conversations.map((conversation) => (
+              {conversations.map(conversation => (
                 <SelectItem key={conversation.id} value={conversation.id}>
                   {conversation.title}
                 </SelectItem>
@@ -205,7 +244,7 @@ export function BookmarkPanel({
       <ScrollArea className="flex-1">
         <div className="p-4 space-y-3">
           <AnimatePresence mode="popLayout">
-            {filteredAndSortedBookmarks.map((bookmark) => (
+            {filteredAndSortedBookmarks.map(bookmark => (
               <motion.div
                 key={bookmark.id}
                 layout
@@ -229,40 +268,40 @@ export function BookmarkPanel({
                           </span>
                         </div>
                       </div>
-                      
+
                       <div className="flex items-center gap-1 ml-2">
                         <Button
                           variant="ghost"
                           size="sm"
                           className="h-6 w-6 p-0"
-                          onClick={(e) => {
+                          onClick={e => {
                             e.stopPropagation();
                             onToggleStar(bookmark.id);
                           }}
                         >
-                          <Star 
+                          <Star
                             className={`h-3 w-3 ${
-                              bookmark.isStarred 
-                                ? 'fill-yellow-400 text-yellow-400' 
+                              bookmark.isStarred
+                                ? 'fill-yellow-400 text-yellow-400'
                                 : 'text-gray-400'
                             }`}
                           />
                         </Button>
-                        
+
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <Button
                               variant="ghost"
                               size="sm"
                               className="h-6 w-6 p-0"
-                              onClick={(e) => e.stopPropagation()}
+                              onClick={e => e.stopPropagation()}
                             >
                               <MoreHorizontal className="h-3 w-3" />
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
                             <DropdownMenuItem
-                              onClick={(e) => {
+                              onClick={e => {
                                 e.stopPropagation();
                                 onNavigateToBookmark(bookmark);
                               }}
@@ -271,7 +310,7 @@ export function BookmarkPanel({
                               Go to Message
                             </DropdownMenuItem>
                             <DropdownMenuItem
-                              onClick={(e) => {
+                              onClick={e => {
                                 e.stopPropagation();
                                 onEditBookmark(bookmark);
                               }}
@@ -280,7 +319,7 @@ export function BookmarkPanel({
                               Edit
                             </DropdownMenuItem>
                             <DropdownMenuItem
-                              onClick={(e) => {
+                              onClick={e => {
                                 e.stopPropagation();
                                 onDeleteBookmark(bookmark.id);
                               }}
@@ -294,7 +333,7 @@ export function BookmarkPanel({
                       </div>
                     </div>
                   </CardHeader>
-                  
+
                   {(bookmark.description || bookmark.tags.length > 0) && (
                     <CardContent className="pt-0">
                       {bookmark.description && (
@@ -302,23 +341,30 @@ export function BookmarkPanel({
                           {bookmark.description}
                         </p>
                       )}
-                      
+
                       {bookmark.tags.length > 0 && (
                         <div className="flex flex-wrap gap-1 mb-2">
-                          {bookmark.tags.slice(0, 3).map((tag) => (
-                            <Badge key={tag} variant="secondary" className="text-xs px-1 py-0">
+                          {bookmark.tags.slice(0, 3).map(tag => (
+                            <Badge
+                              key={tag}
+                              variant="secondary"
+                              className="text-xs px-1 py-0"
+                            >
                               <Tag className="h-2 w-2 mr-1" />
                               {tag}
                             </Badge>
                           ))}
                           {bookmark.tags.length > 3 && (
-                            <Badge variant="secondary" className="text-xs px-1 py-0">
+                            <Badge
+                              variant="secondary"
+                              className="text-xs px-1 py-0"
+                            >
                               +{bookmark.tags.length - 3}
                             </Badge>
                           )}
                         </div>
                       )}
-                      
+
                       <div className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
                         <Clock className="h-3 w-3" />
                         {formatDate(bookmark.createdAt)}

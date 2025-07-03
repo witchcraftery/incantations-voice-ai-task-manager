@@ -1,6 +1,13 @@
 import { useState, useEffect, useCallback } from 'react';
-import { GoogleCalendarService, CalendarEvent } from '../services/googleCalendarService';
-import { GmailService, GmailMessage, EmailTask } from '../services/gmailService';
+import {
+  GoogleCalendarService,
+  CalendarEvent,
+} from '../services/googleCalendarService';
+import {
+  GmailService,
+  GmailMessage,
+  EmailTask,
+} from '../services/gmailService';
 import { Task } from '../types';
 
 interface GoogleConfig {
@@ -27,35 +34,42 @@ interface GoogleIntegrationState {
 }
 
 export function useGoogleIntegration(config: GoogleConfig) {
-  const [calendarService] = useState(() => new GoogleCalendarService({
-    clientId: config.clientId,
-    apiKey: config.apiKey,
-    discoveryDoc: 'https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest',
-    scopes: ['https://www.googleapis.com/auth/calendar.readonly']
-  }));
+  const [calendarService] = useState(
+    () =>
+      new GoogleCalendarService({
+        clientId: config.clientId,
+        apiKey: config.apiKey,
+        discoveryDoc:
+          'https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest',
+        scopes: ['https://www.googleapis.com/auth/calendar.readonly'],
+      })
+  );
 
-  const [gmailService] = useState(() => new GmailService({
-    clientId: config.clientId,
-    apiKey: config.apiKey,
-    scopes: [
-      'https://www.googleapis.com/auth/gmail.readonly',
-      'https://www.googleapis.com/auth/gmail.modify'
-    ]
-  }));
+  const [gmailService] = useState(
+    () =>
+      new GmailService({
+        clientId: config.clientId,
+        apiKey: config.apiKey,
+        scopes: [
+          'https://www.googleapis.com/auth/gmail.readonly',
+          'https://www.googleapis.com/auth/gmail.modify',
+        ],
+      })
+  );
 
   const [state, setState] = useState<GoogleIntegrationState>({
     calendar: {
       connected: false,
       events: [],
       todaysEvents: [],
-      loading: false
+      loading: false,
     },
     gmail: {
       connected: false,
       messages: [],
       emailTasks: [],
-      loading: false
-    }
+      loading: false,
+    },
   });
 
   // Initialize services
@@ -69,7 +83,7 @@ export function useGoogleIntegration(config: GoogleConfig) {
         if (calendarInitialized && calendarService.signedIn) {
           setState(prev => ({
             ...prev,
-            calendar: { ...prev.calendar, connected: true }
+            calendar: { ...prev.calendar, connected: true },
           }));
           loadCalendarData();
         }
@@ -79,7 +93,7 @@ export function useGoogleIntegration(config: GoogleConfig) {
         if (gmailInitialized && gmailService.signedIn) {
           setState(prev => ({
             ...prev,
-            gmail: { ...prev.gmail, connected: true }
+            gmail: { ...prev.gmail, connected: true },
           }));
           loadGmailData();
         }
@@ -96,20 +110,20 @@ export function useGoogleIntegration(config: GoogleConfig) {
 
     setState(prev => ({
       ...prev,
-      calendar: { ...prev.calendar, loading: true, error: undefined }
+      calendar: { ...prev.calendar, loading: true, error: undefined },
     }));
 
     try {
       const success = await calendarService.signIn();
-      
+
       setState(prev => ({
         ...prev,
         calendar: {
           ...prev.calendar,
           connected: success,
           loading: false,
-          error: success ? undefined : 'Failed to connect to Google Calendar'
-        }
+          error: success ? undefined : 'Failed to connect to Google Calendar',
+        },
       }));
 
       if (success) {
@@ -124,8 +138,8 @@ export function useGoogleIntegration(config: GoogleConfig) {
           ...prev.calendar,
           connected: false,
           loading: false,
-          error: error instanceof Error ? error.message : 'Unknown error'
-        }
+          error: error instanceof Error ? error.message : 'Unknown error',
+        },
       }));
       return false;
     }
@@ -136,20 +150,20 @@ export function useGoogleIntegration(config: GoogleConfig) {
 
     setState(prev => ({
       ...prev,
-      gmail: { ...prev.gmail, loading: true, error: undefined }
+      gmail: { ...prev.gmail, loading: true, error: undefined },
     }));
 
     try {
       const success = await gmailService.signIn();
-      
+
       setState(prev => ({
         ...prev,
         gmail: {
           ...prev.gmail,
           connected: success,
           loading: false,
-          error: success ? undefined : 'Failed to connect to Gmail'
-        }
+          error: success ? undefined : 'Failed to connect to Gmail',
+        },
       }));
 
       if (success) {
@@ -164,8 +178,8 @@ export function useGoogleIntegration(config: GoogleConfig) {
           ...prev.gmail,
           connected: false,
           loading: false,
-          error: error instanceof Error ? error.message : 'Unknown error'
-        }
+          error: error instanceof Error ? error.message : 'Unknown error',
+        },
       }));
       return false;
     }
@@ -176,14 +190,14 @@ export function useGoogleIntegration(config: GoogleConfig) {
 
     setState(prev => ({
       ...prev,
-      calendar: { ...prev.calendar, loading: true }
+      calendar: { ...prev.calendar, loading: true },
     }));
 
     try {
       // Get today's events and upcoming events
       const [todaysEvents, upcomingEvents] = await Promise.all([
         calendarService.getTodaysEvents(),
-        calendarService.getUpcomingEvents(7)
+        calendarService.getUpcomingEvents(7),
       ]);
 
       setState(prev => ({
@@ -193,8 +207,8 @@ export function useGoogleIntegration(config: GoogleConfig) {
           events: upcomingEvents,
           todaysEvents,
           loading: false,
-          error: undefined
-        }
+          error: undefined,
+        },
       }));
     } catch (error) {
       setState(prev => ({
@@ -202,8 +216,11 @@ export function useGoogleIntegration(config: GoogleConfig) {
         calendar: {
           ...prev.calendar,
           loading: false,
-          error: error instanceof Error ? error.message : 'Failed to load calendar data'
-        }
+          error:
+            error instanceof Error
+              ? error.message
+              : 'Failed to load calendar data',
+        },
       }));
     }
   }, [state.calendar.connected]);
@@ -213,7 +230,7 @@ export function useGoogleIntegration(config: GoogleConfig) {
 
     setState(prev => ({
       ...prev,
-      gmail: { ...prev.gmail, loading: true }
+      gmail: { ...prev.gmail, loading: true },
     }));
 
     try {
@@ -227,8 +244,8 @@ export function useGoogleIntegration(config: GoogleConfig) {
           messages,
           emailTasks,
           loading: false,
-          error: undefined
-        }
+          error: undefined,
+        },
       }));
     } catch (error) {
       setState(prev => ({
@@ -236,8 +253,11 @@ export function useGoogleIntegration(config: GoogleConfig) {
         gmail: {
           ...prev.gmail,
           loading: false,
-          error: error instanceof Error ? error.message : 'Failed to load Gmail data'
-        }
+          error:
+            error instanceof Error
+              ? error.message
+              : 'Failed to load Gmail data',
+        },
       }));
     }
   }, [state.gmail.connected]);
@@ -251,8 +271,8 @@ export function useGoogleIntegration(config: GoogleConfig) {
         events: [],
         todaysEvents: [],
         loading: false,
-        error: undefined
-      }
+        error: undefined,
+      },
     }));
   }, []);
 
@@ -265,8 +285,8 @@ export function useGoogleIntegration(config: GoogleConfig) {
         messages: [],
         emailTasks: [],
         loading: false,
-        error: undefined
-      }
+        error: undefined,
+      },
     }));
   }, []);
 
@@ -276,8 +296,10 @@ export function useGoogleIntegration(config: GoogleConfig) {
       return [];
     }
 
-    const extractedTasks = calendarService.extractTasksFromEvents(state.calendar.events);
-    
+    const extractedTasks = calendarService.extractTasksFromEvents(
+      state.calendar.events
+    );
+
     return extractedTasks.map(task => ({
       id: `cal-${Date.now()}-${Math.random()}`,
       title: task.title,
@@ -289,7 +311,7 @@ export function useGoogleIntegration(config: GoogleConfig) {
       project: task.project,
       createdAt: new Date(),
       updatedAt: new Date(),
-      extractedFrom: 'google-calendar'
+      extractedFrom: 'google-calendar',
     }));
   }, [state.calendar.connected, state.calendar.events]);
 
@@ -310,21 +332,24 @@ export function useGoogleIntegration(config: GoogleConfig) {
       project: 'Email Tasks',
       createdAt: new Date(),
       updatedAt: new Date(),
-      extractedFrom: 'gmail'
+      extractedFrom: 'gmail',
     }));
   }, [state.gmail.connected, state.gmail.emailTasks]);
 
   // Check for conflicts between tasks and calendar events
-  const checkTaskConflicts = useCallback(async (taskDueDate: Date) => {
-    if (!state.calendar.connected) return [];
-    
-    try {
-      return await calendarService.checkForConflicts(taskDueDate);
-    } catch (error) {
-      console.error('Failed to check for conflicts:', error);
-      return [];
-    }
-  }, [state.calendar.connected]);
+  const checkTaskConflicts = useCallback(
+    async (taskDueDate: Date) => {
+      if (!state.calendar.connected) return [];
+
+      try {
+        return await calendarService.checkForConflicts(taskDueDate);
+      } catch (error) {
+        console.error('Failed to check for conflicts:', error);
+        return [];
+      }
+    },
+    [state.calendar.connected]
+  );
 
   // Refresh data
   const refreshCalendarData = useCallback(() => {
@@ -348,48 +373,48 @@ export function useGoogleIntegration(config: GoogleConfig) {
   const getSummary = useCallback(() => {
     const calendarTasks = getCalendarTasks();
     const emailTasks = getEmailTasks();
-    
+
     return {
       calendar: {
         connected: state.calendar.connected,
         eventsToday: state.calendar.todaysEvents.length,
         eventsWeek: state.calendar.events.length,
-        extractedTasks: calendarTasks.length
+        extractedTasks: calendarTasks.length,
       },
       gmail: {
         connected: state.gmail.connected,
         unreadMessages: state.gmail.messages.length,
-        extractedTasks: emailTasks.length
+        extractedTasks: emailTasks.length,
       },
-      totalExtractedTasks: calendarTasks.length + emailTasks.length
+      totalExtractedTasks: calendarTasks.length + emailTasks.length,
     };
   }, [state, getCalendarTasks, getEmailTasks]);
 
   return {
     // State
     state,
-    
+
     // Connection methods
     connectCalendar,
     connectGmail,
     disconnectCalendar,
     disconnectGmail,
-    
+
     // Data methods
     refreshCalendarData,
     refreshGmailData,
     refreshAllData,
-    
+
     // Task extraction
     getCalendarTasks,
     getEmailTasks,
     checkTaskConflicts,
-    
+
     // Utilities
     getSummary,
-    
+
     // Services (for advanced usage)
     calendarService,
-    gmailService
+    gmailService,
   };
 }

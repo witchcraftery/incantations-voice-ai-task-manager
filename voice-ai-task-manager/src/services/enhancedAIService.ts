@@ -1,4 +1,10 @@
-import { Task, Message, AIResponse, UserMemory, UserPreferences } from '../types';
+import {
+  Task,
+  Message,
+  AIResponse,
+  UserMemory,
+  UserPreferences,
+} from '../types';
 import { AIService } from './aiService';
 import { OpenRouterService, OpenRouterConfig } from './openRouterService';
 
@@ -10,8 +16,11 @@ export class EnhancedAIService {
   constructor(preferences: UserPreferences, userMemory: UserMemory) {
     this.preferences = preferences;
     this.simulationService = new AIService(userMemory);
-    
-    if (this.preferences.aiSettings.useOpenRouter && this.preferences.aiSettings.openRouterApiKey) {
+
+    if (
+      this.preferences.aiSettings.useOpenRouter &&
+      this.preferences.aiSettings.openRouterApiKey
+    ) {
       this.initializeOpenRouter();
     }
   }
@@ -28,7 +37,7 @@ export class EnhancedAIService {
       selectedModel: this.preferences.aiSettings.selectedModel,
       temperature: this.preferences.aiSettings.temperature,
       maxTokens: this.preferences.aiSettings.maxTokens,
-      systemPrompt: this.preferences.aiSettings.systemPrompt
+      systemPrompt: this.preferences.aiSettings.systemPrompt,
     };
 
     this.openRouterService = new OpenRouterService(config);
@@ -40,41 +49,48 @@ export class EnhancedAIService {
     userMemory: UserMemory
   ): Promise<AIResponse> {
     // Use OpenRouter if enabled and configured
-    if (this.preferences.aiSettings.useOpenRouter && 
-        this.openRouterService && 
-        this.preferences.aiSettings.selectedModel !== 'simulation') {
-      
+    if (
+      this.preferences.aiSettings.useOpenRouter &&
+      this.openRouterService &&
+      this.preferences.aiSettings.selectedModel !== 'simulation'
+    ) {
       try {
         const response = await this.openRouterService.processMessage(
-          userInput, 
-          conversationHistory, 
+          userInput,
+          conversationHistory,
           userMemory
         );
-        
+
         // Add enhancement metadata
         response.metadata = {
           ...response.metadata,
           service: 'openrouter',
           model: this.preferences.aiSettings.selectedModel,
-          enhanced: true
+          enhanced: true,
         };
-        
+
         return response;
       } catch (error) {
-        console.error('OpenRouter service failed, falling back to simulation:', error);
+        console.error(
+          'OpenRouter service failed, falling back to simulation:',
+          error
+        );
         // Fall back to simulation service
       }
     }
 
     // Use simulation service as default/fallback
-    const response = await this.simulationService.processMessage(userInput, conversationHistory);
+    const response = await this.simulationService.processMessage(
+      userInput,
+      conversationHistory
+    );
     response.metadata = {
       ...response.metadata,
       service: 'simulation',
       model: 'local-simulation',
-      enhanced: false
+      enhanced: false,
     };
-    
+
     return response;
   }
 
@@ -86,7 +102,7 @@ export class EnhancedAIService {
         console.error('Failed to fetch OpenRouter models:', error);
       }
     }
-    
+
     return [
       {
         id: 'simulation',
@@ -95,38 +111,45 @@ export class EnhancedAIService {
         pricing: { prompt: 0, completion: 0 },
         context_length: 4000,
         architecture: { modality: 'text', tokenizer: 'local' },
-        top_provider: { is_moderated: false }
-      }
+        top_provider: { is_moderated: false },
+      },
     ];
   }
 
-  async testConnection(): Promise<{ success: boolean; service: string; error?: string }> {
+  async testConnection(): Promise<{
+    success: boolean;
+    service: string;
+    error?: string;
+  }> {
     if (this.preferences.aiSettings.useOpenRouter && this.openRouterService) {
       try {
         const success = await this.openRouterService.testConnection();
-        return { 
-          success, 
+        return {
+          success,
           service: 'openrouter',
-          error: success ? undefined : 'Failed to connect to OpenRouter API' 
+          error: success ? undefined : 'Failed to connect to OpenRouter API',
         };
       } catch (error) {
-        return { 
-          success: false, 
-          service: 'openrouter', 
-          error: error instanceof Error ? error.message : 'Unknown error' 
+        return {
+          success: false,
+          service: 'openrouter',
+          error: error instanceof Error ? error.message : 'Unknown error',
         };
       }
     }
-    
+
     // Simulation service is always available
     return { success: true, service: 'simulation' };
   }
 
   updatePreferences(newPreferences: UserPreferences): void {
     this.preferences = newPreferences;
-    
+
     // Reinitialize OpenRouter if settings changed
-    if (this.preferences.aiSettings.useOpenRouter && this.preferences.aiSettings.openRouterApiKey) {
+    if (
+      this.preferences.aiSettings.useOpenRouter &&
+      this.preferences.aiSettings.openRouterApiKey
+    ) {
       this.initializeOpenRouter();
     } else {
       this.openRouterService = null;
@@ -134,10 +157,10 @@ export class EnhancedAIService {
   }
 
   getCurrentService(): 'simulation' | 'openrouter' {
-    return (this.preferences.aiSettings.useOpenRouter && 
-            this.openRouterService && 
-            this.preferences.aiSettings.selectedModel !== 'simulation') 
-      ? 'openrouter' 
+    return this.preferences.aiSettings.useOpenRouter &&
+      this.openRouterService &&
+      this.preferences.aiSettings.selectedModel !== 'simulation'
+      ? 'openrouter'
       : 'simulation';
   }
 
@@ -150,11 +173,12 @@ export class EnhancedAIService {
     const current = this.getCurrentService();
     return {
       current,
-      model: current === 'openrouter' 
-        ? this.preferences.aiSettings.selectedModel 
-        : 'local-simulation',
+      model:
+        current === 'openrouter'
+          ? this.preferences.aiSettings.selectedModel
+          : 'local-simulation',
       enhanced: current === 'openrouter',
-      connected: this.openRouterService !== null
+      connected: this.openRouterService !== null,
     };
   }
 }

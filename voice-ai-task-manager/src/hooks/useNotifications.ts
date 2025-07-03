@@ -8,7 +8,7 @@ interface UseNotificationsOptions {
 }
 
 export function useNotifications(
-  tasks: Task[], 
+  tasks: Task[],
   options: UseNotificationsOptions = { enabled: true, checkInterval: 60000 }
 ) {
   const lastCheckRef = useRef<Date>(new Date());
@@ -22,7 +22,7 @@ export function useNotifications(
     const checkTasks = () => {
       const now = new Date();
       const oneHourFromNow = new Date(now.getTime() + 60 * 60 * 1000);
-      
+
       tasks.forEach(task => {
         if (task.status === 'completed' || task.status === 'cancelled') {
           // Remove from notified set if task is done
@@ -36,17 +36,26 @@ export function useNotifications(
         const taskKey = `${task.id}-${task.dueDate}`;
 
         // Check for overdue tasks
-        if (dueDate < now && !notifiedTasksRef.current.has(`overdue-${taskKey}`)) {
+        if (
+          dueDate < now &&
+          !notifiedTasksRef.current.has(`overdue-${taskKey}`)
+        ) {
           notificationService.notifyTaskOverdue(task.title);
           notifiedTasksRef.current.add(`overdue-${taskKey}`);
         }
-        
+
         // Check for tasks due within an hour
-        else if (dueDate <= oneHourFromNow && dueDate > now && 
-                 !notifiedTasksRef.current.has(`due-${taskKey}`)) {
-          const minutesUntilDue = Math.floor((dueDate.getTime() - now.getTime()) / (1000 * 60));
-          const timeText = minutesUntilDue <= 60 ? `in ${minutesUntilDue} minutes` : 'soon';
-          
+        else if (
+          dueDate <= oneHourFromNow &&
+          dueDate > now &&
+          !notifiedTasksRef.current.has(`due-${taskKey}`)
+        ) {
+          const minutesUntilDue = Math.floor(
+            (dueDate.getTime() - now.getTime()) / (1000 * 60)
+          );
+          const timeText =
+            minutesUntilDue <= 60 ? `in ${minutesUntilDue} minutes` : 'soon';
+
           notificationService.notifyTaskDue(task.title, timeText);
           notifiedTasksRef.current.add(`due-${taskKey}`);
         }
@@ -72,9 +81,10 @@ export function useNotifications(
   // Function to send daily agenda notification
   const sendDailyAgenda = async () => {
     const todayTasks = tasks.filter(task => {
-      if (task.status === 'completed' || task.status === 'cancelled') return false;
+      if (task.status === 'completed' || task.status === 'cancelled')
+        return false;
       if (!task.dueDate) return false;
-      
+
       const today = new Date();
       const taskDate = new Date(task.dueDate);
       return taskDate.toDateString() === today.toDateString();

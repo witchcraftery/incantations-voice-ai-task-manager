@@ -1,7 +1,20 @@
 import { Task } from '../types';
 
 export interface VoiceCommand {
-  type: 'quick_task' | 'mark_complete' | 'change_priority' | 'search_tasks' | 'start_timer' | 'show_agenda' | 'edit_title' | 'edit_description' | 'edit_project' | 'edit_tags' | 'edit_due_date' | 'edit_status' | 'none';
+  type:
+    | 'quick_task'
+    | 'mark_complete'
+    | 'change_priority'
+    | 'search_tasks'
+    | 'start_timer'
+    | 'show_agenda'
+    | 'edit_title'
+    | 'edit_description'
+    | 'edit_project'
+    | 'edit_tags'
+    | 'edit_due_date'
+    | 'edit_status'
+    | 'none';
   action: string;
   parameters: Record<string, any>;
   confidence: number;
@@ -23,7 +36,13 @@ export interface TaskUpdateResult {
 
 export interface TaskEditResult {
   taskIdentifier: string;
-  editType: 'title' | 'description' | 'project' | 'tags' | 'due_date' | 'status';
+  editType:
+    | 'title'
+    | 'description'
+    | 'project'
+    | 'tags'
+    | 'due_date'
+    | 'status';
   newValue: any;
   originalValue?: any;
   action?: 'add' | 'remove' | 'set';
@@ -36,21 +55,21 @@ export class VoiceCommandParser {
     QUICK_TASK: [
       /^(?:quick task|create task|new task|add task)[\s:]+(.+)$/i,
       /^(?:task)[\s:]+(.+)$/i,
-      /^(?:remember to|remind me to)[\s:]+(.+)$/i
+      /^(?:remember to|remind me to)[\s:]+(.+)$/i,
     ],
-    
+
     // Mark tasks complete
     MARK_COMPLETE: [
       /^(?:mark complete|complete|done|finished)[\s:]+(.+)$/i,
       /^(?:check off|tick off)[\s:]+(.+)$/i,
-      /^(.+)\s+(?:is done|is complete|is finished)$/i
+      /^(.+)\s+(?:is done|is complete|is finished)$/i,
     ],
-    
+
     // Change priority
     CHANGE_PRIORITY: [
       /^(?:set priority|priority|make)[\s:]+(.+?)\s+(?:to\s+)?(urgent|high|medium|low)$/i,
       /^(?:urgent|high|medium|low)\s+priority[\s:]+(.+)$/i,
-      /^(.+?)\s+(?:is|should be)\s+(urgent|high|medium|low)\s+priority$/i
+      /^(.+?)\s+(?:is|should be)\s+(urgent|high|medium|low)\s+priority$/i,
     ],
 
     // Edit task title
@@ -58,21 +77,21 @@ export class VoiceCommandParser {
       /^(?:change|update|edit|rename)[\s]+(?:the\s+)?title[\s]+(?:of\s+)?(.+?)[\s]+(?:to|into)[\s]+(.+)$/i,
       /^rename[\s]+(.+?)[\s]+(?:to|as)[\s]+(.+)$/i,
       /^call[\s]+(.+?)[\s]+(.+)$/i,
-      /^(?:change|update)[\s]+(.+?)[\s]+(?:to|into)[\s]+(.+)$/i
+      /^(?:change|update)[\s]+(.+?)[\s]+(?:to|into)[\s]+(.+)$/i,
     ],
 
     // Edit task description
     EDIT_DESCRIPTION: [
       /^(?:change|update|edit)[\s]+(?:the\s+)?description[\s]+(?:of\s+)?(.+?)[\s]+(?:to|into)[\s]+(.+)$/i,
       /^(?:set|add)[\s]+description[\s]+(?:for\s+)?(.+?)[\s]+(?:to|as)[\s]+(.+)$/i,
-      /^describe[\s]+(.+?)[\s]+as[\s]+(.+)$/i
+      /^describe[\s]+(.+?)[\s]+as[\s]+(.+)$/i,
     ],
 
     // Edit task project
     EDIT_PROJECT: [
       /^(?:move|assign|put)[\s]+(.+?)[\s]+(?:to|in|under)[\s]+(?:the\s+)?(.+?)[\s]+project$/i,
       /^(?:change|update)[\s]+(?:the\s+)?project[\s]+(?:of\s+)?(.+?)[\s]+(?:to|from.+to)[\s]+(.+)$/i,
-      /^(.+?)[\s]+(?:belongs to|is part of)[\s]+(.+)$/i
+      /^(.+?)[\s]+(?:belongs to|is part of)[\s]+(.+)$/i,
     ],
 
     // Edit task status
@@ -80,14 +99,14 @@ export class VoiceCommandParser {
       /^(?:mark|set|change)[\s]+(.+?)[\s]+(?:as|to)[\s]+(pending|in-progress|completed|cancelled)$/i,
       /^(.+?)[\s]+(?:is now|should be)[\s]+(pending|in-progress|completed|cancelled)$/i,
       /^(?:start working on|begin)[\s]+(.+)$/i,
-      /^(?:pause|stop working on)[\s]+(.+)$/i
+      /^(?:pause|stop working on)[\s]+(.+)$/i,
     ],
 
     // Edit task tags
     EDIT_TAGS: [
       /^(?:add|tag|label)[\s]+(.+?)[\s]+(?:with|as)[\s]+(.+)$/i,
       /^(?:remove|untag)[\s]+(.+?)[\s]+(?:from|tag|label)[\s]+(.+)$/i,
-      /^(?:set|change)[\s]+(?:the\s+)?tags[\s]+(?:of\s+)?(.+?)[\s]+(?:to|as)[\s]+(.+)$/i
+      /^(?:set|change)[\s]+(?:the\s+)?tags[\s]+(?:of\s+)?(.+?)[\s]+(?:to|as)[\s]+(.+)$/i,
     ],
 
     // Edit due date
@@ -95,38 +114,38 @@ export class VoiceCommandParser {
       /^(?:set|change)[\s]+(?:the\s+)?due date[\s]+(?:of\s+)?(.+?)[\s]+(?:to|for)[\s]+(.+)$/i,
       /^(.+?)[\s]+(?:is due|due)[\s]+(.+)$/i,
       /^(?:schedule|plan)[\s]+(.+?)[\s]+(?:for|on)[\s]+(.+)$/i,
-      /^(.+?)[\s]+(?:needs to be done|should be finished)[\s]+(?:by|on)[\s]+(.+)$/i
+      /^(.+?)[\s]+(?:needs to be done|should be finished)[\s]+(?:by|on)[\s]+(.+)$/i,
     ],
-    
+
     // Search tasks
     SEARCH_TASKS: [
       /^(?:search|find|show|list)[\s:]+(?:tasks?\s+)?(.+)$/i,
-      /^(?:what tasks|which tasks)[\s:]+(.+)$/i
+      /^(?:what tasks|which tasks)[\s:]+(.+)$/i,
     ],
-    
+
     // Timer/focus commands
     START_TIMER: [
       /^(?:start timer|timer|focus)[\s:]+(?:for\s+)?(\d+)\s*(?:minutes?|mins?|hours?|hrs?)?(?:\s+for\s+(.+))?$/i,
-      /^(?:pomodoro|work session)(?:\s+for\s+(.+))?$/i
+      /^(?:pomodoro|work session)(?:\s+for\s+(.+))?$/i,
     ],
-    
+
     // Show agenda
     SHOW_AGENDA: [
       /^(?:show|what's|what is)\s+(?:my\s+)?(?:agenda|schedule|today|tasks for today)$/i,
-      /^(?:daily agenda|today's tasks)$/i
-    ]
+      /^(?:daily agenda|today's tasks)$/i,
+    ],
   };
 
   private readonly PRIORITY_KEYWORDS = {
     urgent: ['urgent', 'critical', 'asap', 'immediately'],
     high: ['high', 'important', 'priority', 'soon'],
     medium: ['medium', 'normal', 'regular'],
-    low: ['low', 'later', 'sometime', 'eventually']
+    low: ['low', 'later', 'sometime', 'eventually'],
   };
 
   parseCommand(text: string): VoiceCommand {
     const cleanText = text.trim().toLowerCase();
-    
+
     // Check each command pattern
     for (const [commandType, patterns] of Object.entries(this.QUICK_COMMANDS)) {
       for (const pattern of patterns) {
@@ -142,62 +161,74 @@ export class VoiceCommandParser {
       action: 'no_command_detected',
       parameters: {},
       confidence: 0,
-      originalText: text
+      originalText: text,
     };
   }
 
-  private buildCommand(commandType: string, match: RegExpMatchArray, originalText: string): VoiceCommand {
+  private buildCommand(
+    commandType: string,
+    match: RegExpMatchArray,
+    originalText: string
+  ): VoiceCommand {
     const confidence = this.calculateConfidence(match, originalText);
-    
+
     switch (commandType) {
       case 'QUICK_TASK':
         return this.buildQuickTaskCommand(match, originalText, confidence);
-      
+
       case 'MARK_COMPLETE':
         return this.buildMarkCompleteCommand(match, originalText, confidence);
-      
+
       case 'CHANGE_PRIORITY':
         return this.buildChangePriorityCommand(match, originalText, confidence);
-      
+
       case 'SEARCH_TASKS':
         return this.buildSearchCommand(match, originalText, confidence);
-      
+
       case 'START_TIMER':
         return this.buildTimerCommand(match, originalText, confidence);
-      
+
       case 'SHOW_AGENDA':
         return this.buildAgendaCommand(match, originalText, confidence);
-      
+
       case 'EDIT_TITLE':
         return this.buildEditTitleCommand(match, originalText, confidence);
-      
+
       case 'EDIT_DESCRIPTION':
-        return this.buildEditDescriptionCommand(match, originalText, confidence);
-      
+        return this.buildEditDescriptionCommand(
+          match,
+          originalText,
+          confidence
+        );
+
       case 'EDIT_PROJECT':
         return this.buildEditProjectCommand(match, originalText, confidence);
-      
+
       case 'EDIT_STATUS':
         return this.buildEditStatusCommand(match, originalText, confidence);
-      
+
       case 'EDIT_TAGS':
         return this.buildEditTagsCommand(match, originalText, confidence);
-      
+
       case 'EDIT_DUE_DATE':
         return this.buildEditDueDateCommand(match, originalText, confidence);
-      
+
       default:
         return {
           type: 'none',
           action: 'unknown_command',
           parameters: {},
           confidence: 0,
-          originalText
+          originalText,
         };
     }
   }
 
-  private buildQuickTaskCommand(match: RegExpMatchArray, originalText: string, confidence: number): VoiceCommand {
+  private buildQuickTaskCommand(
+    match: RegExpMatchArray,
+    originalText: string,
+    confidence: number
+  ): VoiceCommand {
     const taskText = match[1]?.trim() || '';
     const priority = this.detectPriority(originalText);
     const project = this.detectProject(originalText);
@@ -211,14 +242,18 @@ export class VoiceCommandParser {
         priority,
         project,
         tags,
-        description: taskText
+        description: taskText,
       } as QuickTaskResult,
       confidence,
-      originalText
+      originalText,
     };
   }
 
-  private buildMarkCompleteCommand(match: RegExpMatchArray, originalText: string, confidence: number): VoiceCommand {
+  private buildMarkCompleteCommand(
+    match: RegExpMatchArray,
+    originalText: string,
+    confidence: number
+  ): VoiceCommand {
     const taskIdentifier = match[1]?.trim() || '';
 
     return {
@@ -227,14 +262,18 @@ export class VoiceCommandParser {
       parameters: {
         taskIdentifier,
         updateType: 'complete',
-        newValue: 'completed'
+        newValue: 'completed',
       } as TaskUpdateResult,
       confidence,
-      originalText
+      originalText,
     };
   }
 
-  private buildChangePriorityCommand(match: RegExpMatchArray, originalText: string, confidence: number): VoiceCommand {
+  private buildChangePriorityCommand(
+    match: RegExpMatchArray,
+    originalText: string,
+    confidence: number
+  ): VoiceCommand {
     let taskIdentifier = '';
     let priority = 'medium';
 
@@ -243,7 +282,12 @@ export class VoiceCommandParser {
       // Pattern: "set priority [task] to [priority]" or "[priority] priority [task]"
       taskIdentifier = match[1]?.trim() || '';
       priority = match[2]?.toLowerCase() || 'medium';
-    } else if (match[1] && this.PRIORITY_KEYWORDS[match[1].toLowerCase() as keyof typeof this.PRIORITY_KEYWORDS]) {
+    } else if (
+      match[1] &&
+      this.PRIORITY_KEYWORDS[
+        match[1].toLowerCase() as keyof typeof this.PRIORITY_KEYWORDS
+      ]
+    ) {
       // Pattern: "[task] is [priority] priority"
       priority = match[1]?.toLowerCase() || 'medium';
       taskIdentifier = match[2]?.trim() || '';
@@ -255,14 +299,18 @@ export class VoiceCommandParser {
       parameters: {
         taskIdentifier,
         updateType: 'priority',
-        newValue: priority
+        newValue: priority,
       } as TaskUpdateResult,
       confidence,
-      originalText
+      originalText,
     };
   }
 
-  private buildSearchCommand(match: RegExpMatchArray, originalText: string, confidence: number): VoiceCommand {
+  private buildSearchCommand(
+    match: RegExpMatchArray,
+    originalText: string,
+    confidence: number
+  ): VoiceCommand {
     const searchQuery = match[1]?.trim() || '';
 
     return {
@@ -270,14 +318,18 @@ export class VoiceCommandParser {
       action: 'search_tasks',
       parameters: {
         query: searchQuery,
-        filters: this.extractSearchFilters(originalText)
+        filters: this.extractSearchFilters(originalText),
       },
       confidence,
-      originalText
+      originalText,
     };
   }
 
-  private buildTimerCommand(match: RegExpMatchArray, originalText: string, confidence: number): VoiceCommand {
+  private buildTimerCommand(
+    match: RegExpMatchArray,
+    originalText: string,
+    confidence: number
+  ): VoiceCommand {
     let duration = 25; // Default pomodoro
     let taskContext = '';
 
@@ -295,27 +347,35 @@ export class VoiceCommandParser {
       parameters: {
         duration,
         taskContext,
-        type: duration === 25 ? 'pomodoro' : 'custom'
+        type: duration === 25 ? 'pomodoro' : 'custom',
       },
       confidence,
-      originalText
+      originalText,
     };
   }
 
-  private buildAgendaCommand(match: RegExpMatchArray, originalText: string, confidence: number): VoiceCommand {
+  private buildAgendaCommand(
+    match: RegExpMatchArray,
+    originalText: string,
+    confidence: number
+  ): VoiceCommand {
     return {
       type: 'show_agenda',
       action: 'show_daily_agenda',
       parameters: {
         timeframe: this.detectTimeframe(originalText),
-        includeCompleted: false
+        includeCompleted: false,
       },
       confidence,
-      originalText
+      originalText,
     };
   }
 
-  private buildEditTitleCommand(match: RegExpMatchArray, originalText: string, confidence: number): VoiceCommand {
+  private buildEditTitleCommand(
+    match: RegExpMatchArray,
+    originalText: string,
+    confidence: number
+  ): VoiceCommand {
     let taskIdentifier = '';
     let newTitle = '';
 
@@ -336,14 +396,18 @@ export class VoiceCommandParser {
       parameters: {
         taskIdentifier,
         editType: 'title',
-        newValue: this.cleanTaskTitle(newTitle)
+        newValue: this.cleanTaskTitle(newTitle),
       } as TaskEditResult,
       confidence,
-      originalText
+      originalText,
     };
   }
 
-  private buildEditDescriptionCommand(match: RegExpMatchArray, originalText: string, confidence: number): VoiceCommand {
+  private buildEditDescriptionCommand(
+    match: RegExpMatchArray,
+    originalText: string,
+    confidence: number
+  ): VoiceCommand {
     const taskIdentifier = match[1]?.trim() || '';
     const newDescription = match[2]?.trim() || '';
 
@@ -353,14 +417,18 @@ export class VoiceCommandParser {
       parameters: {
         taskIdentifier,
         editType: 'description',
-        newValue: newDescription
+        newValue: newDescription,
       } as TaskEditResult,
       confidence,
-      originalText
+      originalText,
     };
   }
 
-  private buildEditProjectCommand(match: RegExpMatchArray, originalText: string, confidence: number): VoiceCommand {
+  private buildEditProjectCommand(
+    match: RegExpMatchArray,
+    originalText: string,
+    confidence: number
+  ): VoiceCommand {
     const taskIdentifier = match[1]?.trim() || '';
     const newProject = match[2]?.trim() || '';
 
@@ -370,14 +438,18 @@ export class VoiceCommandParser {
       parameters: {
         taskIdentifier,
         editType: 'project',
-        newValue: newProject
+        newValue: newProject,
       } as TaskEditResult,
       confidence,
-      originalText
+      originalText,
     };
   }
 
-  private buildEditStatusCommand(match: RegExpMatchArray, originalText: string, confidence: number): VoiceCommand {
+  private buildEditStatusCommand(
+    match: RegExpMatchArray,
+    originalText: string,
+    confidence: number
+  ): VoiceCommand {
     let taskIdentifier = '';
     let newStatus = '';
 
@@ -385,11 +457,17 @@ export class VoiceCommandParser {
       // Pattern: "mark [task] as [status]"
       taskIdentifier = match[1]?.trim() || '';
       newStatus = match[2]?.trim() || '';
-    } else if (originalText.toLowerCase().includes('start working on') || originalText.toLowerCase().includes('begin')) {
+    } else if (
+      originalText.toLowerCase().includes('start working on') ||
+      originalText.toLowerCase().includes('begin')
+    ) {
       // Pattern: "start working on [task]"
       taskIdentifier = match[1]?.trim() || '';
       newStatus = 'in-progress';
-    } else if (originalText.toLowerCase().includes('pause') || originalText.toLowerCase().includes('stop working on')) {
+    } else if (
+      originalText.toLowerCase().includes('pause') ||
+      originalText.toLowerCase().includes('stop working on')
+    ) {
       // Pattern: "pause [task]"
       taskIdentifier = match[1]?.trim() || '';
       newStatus = 'pending';
@@ -401,20 +479,29 @@ export class VoiceCommandParser {
       parameters: {
         taskIdentifier,
         editType: 'status',
-        newValue: newStatus
+        newValue: newStatus,
       } as TaskEditResult,
       confidence,
-      originalText
+      originalText,
     };
   }
 
-  private buildEditTagsCommand(match: RegExpMatchArray, originalText: string, confidence: number): VoiceCommand {
+  private buildEditTagsCommand(
+    match: RegExpMatchArray,
+    originalText: string,
+    confidence: number
+  ): VoiceCommand {
     const taskIdentifier = match[1]?.trim() || '';
     const tagInput = match[2]?.trim() || '';
-    
+
     // Determine if adding or removing tags
-    const isRemoving = originalText.toLowerCase().includes('remove') || originalText.toLowerCase().includes('untag');
-    const tags = tagInput.split(/[,\s]+/).map(tag => tag.trim().toLowerCase()).filter(tag => tag.length > 0);
+    const isRemoving =
+      originalText.toLowerCase().includes('remove') ||
+      originalText.toLowerCase().includes('untag');
+    const tags = tagInput
+      .split(/[,\s]+/)
+      .map(tag => tag.trim().toLowerCase())
+      .filter(tag => tag.length > 0);
 
     return {
       type: 'edit_tags',
@@ -423,17 +510,21 @@ export class VoiceCommandParser {
         taskIdentifier,
         editType: 'tags',
         newValue: tags,
-        action: isRemoving ? 'remove' : 'add'
+        action: isRemoving ? 'remove' : 'add',
       } as TaskEditResult,
       confidence,
-      originalText
+      originalText,
     };
   }
 
-  private buildEditDueDateCommand(match: RegExpMatchArray, originalText: string, confidence: number): VoiceCommand {
+  private buildEditDueDateCommand(
+    match: RegExpMatchArray,
+    originalText: string,
+    confidence: number
+  ): VoiceCommand {
     const taskIdentifier = match[1]?.trim() || '';
     const dueDateText = match[2]?.trim() || '';
-    
+
     const dueDate = this.parseDueDate(dueDateText);
 
     return {
@@ -443,44 +534,57 @@ export class VoiceCommandParser {
         taskIdentifier,
         editType: 'due_date',
         newValue: dueDate,
-        dueDateText
+        dueDateText,
       } as TaskEditResult,
       confidence,
-      originalText
+      originalText,
     };
   }
 
-  private calculateConfidence(match: RegExpMatchArray, originalText: string): number {
+  private calculateConfidence(
+    match: RegExpMatchArray,
+    originalText: string
+  ): number {
     let confidence = 0.8; // Base confidence for pattern match
 
     // Increase confidence for exact keyword matches
-    const exactKeywords = ['quick task', 'mark complete', 'done', 'priority', 'search', 'timer', 'agenda'];
-    const hasExactKeyword = exactKeywords.some(keyword => 
+    const exactKeywords = [
+      'quick task',
+      'mark complete',
+      'done',
+      'priority',
+      'search',
+      'timer',
+      'agenda',
+    ];
+    const hasExactKeyword = exactKeywords.some(keyword =>
       originalText.toLowerCase().includes(keyword)
     );
-    
+
     if (hasExactKeyword) confidence += 0.1;
 
     // Decrease confidence for very short or unclear matches
     const capturedText = match[1]?.trim() || '';
     if (capturedText.length < 3) confidence -= 0.3;
-    if (originalText.includes('um') || originalText.includes('uh')) confidence -= 0.1;
+    if (originalText.includes('um') || originalText.includes('uh'))
+      confidence -= 0.1;
 
     // Increase confidence for structured input
-    if (originalText.includes(':') || originalText.includes(' to ')) confidence += 0.1;
+    if (originalText.includes(':') || originalText.includes(' to '))
+      confidence += 0.1;
 
     return Math.max(0.1, Math.min(1.0, confidence));
   }
 
   private detectPriority(text: string): Task['priority'] {
     const lowerText = text.toLowerCase();
-    
+
     for (const [priority, keywords] of Object.entries(this.PRIORITY_KEYWORDS)) {
       if (keywords.some(keyword => lowerText.includes(keyword))) {
         return priority as Task['priority'];
       }
     }
-    
+
     return 'medium';
   }
 
@@ -488,7 +592,7 @@ export class VoiceCommandParser {
     const projectPatterns = [
       /(?:for|on|in)\s+(?:the\s+)?([A-Z][a-zA-Z\s]+?)\s+project/i,
       /(?:project\s+)([A-Z][a-zA-Z\s]+)/i,
-      /@([a-zA-Z\s]+)/i // @ProjectName syntax
+      /@([a-zA-Z\s]+)/i, // @ProjectName syntax
     ];
 
     for (const pattern of projectPatterns) {
@@ -505,7 +609,7 @@ export class VoiceCommandParser {
     const tags: string[] = [];
     const tagPatterns = [
       /#(\w+)/g, // Hashtags
-      /\b(meeting|call|email|research|review|development|design|testing|documentation|urgent|important)\b/gi
+      /\b(meeting|call|email|research|review|development|design|testing|documentation|urgent|important)\b/gi,
     ];
 
     tagPatterns.forEach(pattern => {
@@ -520,15 +624,15 @@ export class VoiceCommandParser {
 
   private extractSearchFilters(text: string): Record<string, any> {
     const filters: Record<string, any> = {};
-    
+
     // Project filter
     const project = this.detectProject(text);
     if (project) filters.project = project;
-    
+
     // Priority filter
     const priority = this.detectPriority(text);
     if (priority !== 'medium') filters.priority = priority;
-    
+
     // Status filter
     if (text.includes('completed') || text.includes('done')) {
       filters.status = 'completed';
@@ -537,13 +641,13 @@ export class VoiceCommandParser {
     } else if (text.includes('in progress') || text.includes('working on')) {
       filters.status = 'in-progress';
     }
-    
+
     // Date filter
     if (text.includes('today')) filters.dueDate = 'today';
     if (text.includes('tomorrow')) filters.dueDate = 'tomorrow';
     if (text.includes('this week')) filters.dueDate = 'this_week';
     if (text.includes('overdue')) filters.dueDate = 'overdue';
-    
+
     return filters;
   }
 
@@ -561,39 +665,75 @@ export class VoiceCommandParser {
       .replace(/\s+/g, ' ') // Normalize whitespace
       .trim()
       .split('')
-      .map((char, index) => index === 0 ? char.toUpperCase() : char)
+      .map((char, index) => (index === 0 ? char.toUpperCase() : char))
       .join('');
   }
 
   private parseDueDate(dueDateText: string): Date | null {
     const cleanText = dueDateText.toLowerCase().trim();
     const now = new Date();
-    
+
     // Handle relative dates
     if (cleanText.includes('today')) {
-      return new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
+      return new Date(
+        now.getFullYear(),
+        now.getMonth(),
+        now.getDate(),
+        23,
+        59,
+        59
+      );
     }
-    
+
     if (cleanText.includes('tomorrow')) {
       const tomorrow = new Date(now);
       tomorrow.setDate(tomorrow.getDate() + 1);
-      return new Date(tomorrow.getFullYear(), tomorrow.getMonth(), tomorrow.getDate(), 23, 59, 59);
+      return new Date(
+        tomorrow.getFullYear(),
+        tomorrow.getMonth(),
+        tomorrow.getDate(),
+        23,
+        59,
+        59
+      );
     }
-    
+
     if (cleanText.includes('next week')) {
       const nextWeek = new Date(now);
       nextWeek.setDate(nextWeek.getDate() + 7);
-      return new Date(nextWeek.getFullYear(), nextWeek.getMonth(), nextWeek.getDate(), 23, 59, 59);
+      return new Date(
+        nextWeek.getFullYear(),
+        nextWeek.getMonth(),
+        nextWeek.getDate(),
+        23,
+        59,
+        59
+      );
     }
-    
+
     if (cleanText.includes('this week') || cleanText.includes('end of week')) {
       const endOfWeek = new Date(now);
       endOfWeek.setDate(endOfWeek.getDate() + (5 - endOfWeek.getDay())); // Friday
-      return new Date(endOfWeek.getFullYear(), endOfWeek.getMonth(), endOfWeek.getDate(), 23, 59, 59);
+      return new Date(
+        endOfWeek.getFullYear(),
+        endOfWeek.getMonth(),
+        endOfWeek.getDate(),
+        23,
+        59,
+        59
+      );
     }
-    
+
     // Handle day names (this week)
-    const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+    const dayNames = [
+      'sunday',
+      'monday',
+      'tuesday',
+      'wednesday',
+      'thursday',
+      'friday',
+      'saturday',
+    ];
     for (let i = 0; i < dayNames.length; i++) {
       if (cleanText.includes(dayNames[i])) {
         const targetDay = new Date(now);
@@ -605,10 +745,17 @@ export class VoiceCommandParser {
         } else {
           targetDay.setDate(targetDay.getDate() + daysUntilTarget);
         }
-        return new Date(targetDay.getFullYear(), targetDay.getMonth(), targetDay.getDate(), 23, 59, 59);
+        return new Date(
+          targetDay.getFullYear(),
+          targetDay.getMonth(),
+          targetDay.getDate(),
+          23,
+          59,
+          59
+        );
       }
     }
-    
+
     // Try to parse as a date string
     try {
       const parsed = new Date(dueDateText);
@@ -618,7 +765,7 @@ export class VoiceCommandParser {
     } catch (error) {
       // Ignore parsing errors
     }
-    
+
     return null;
   }
 
@@ -626,55 +773,58 @@ export class VoiceCommandParser {
   public findTasksByIdentifier(tasks: Task[], identifier: string): Task[] {
     const cleanIdentifier = identifier.toLowerCase().trim();
     const matches: { task: Task; score: number }[] = [];
-    
+
     for (const task of tasks) {
       const score = this.calculateTaskMatchScore(task, cleanIdentifier);
-      if (score > 0.3) { // Minimum threshold for matching
+      if (score > 0.3) {
+        // Minimum threshold for matching
         matches.push({ task, score });
       }
     }
-    
+
     // Sort by score (highest first) and return tasks
-    return matches
-      .sort((a, b) => b.score - a.score)
-      .map(match => match.task);
+    return matches.sort((a, b) => b.score - a.score).map(match => match.task);
   }
-  
+
   private calculateTaskMatchScore(task: Task, identifier: string): number {
     let score = 0;
     const taskTitle = task.title.toLowerCase();
     const taskDescription = (task.description || '').toLowerCase();
     const taskProject = (task.project || '').toLowerCase();
-    
+
     // Exact substring match in title (highest priority)
     if (taskTitle.includes(identifier)) {
       score += 1.0;
     }
-    
+
     // Word matches in title
     const identifierWords = identifier.split(/\s+/);
     const titleWords = taskTitle.split(/\s+/);
-    const matchingWords = identifierWords.filter(word => 
-      titleWords.some(titleWord => titleWord.includes(word) || word.includes(titleWord))
+    const matchingWords = identifierWords.filter(word =>
+      titleWords.some(
+        titleWord => titleWord.includes(word) || word.includes(titleWord)
+      )
     );
     score += (matchingWords.length / identifierWords.length) * 0.8;
-    
+
     // Partial matches in description
     if (taskDescription.includes(identifier)) {
       score += 0.4;
     }
-    
+
     // Project name match
     if (taskProject.includes(identifier)) {
       score += 0.6;
     }
-    
+
     // Tag matches
-    const matchingTags = task.tags.filter(tag => 
-      tag.toLowerCase().includes(identifier) || identifier.includes(tag.toLowerCase())
+    const matchingTags = task.tags.filter(
+      tag =>
+        tag.toLowerCase().includes(identifier) ||
+        identifier.includes(tag.toLowerCase())
     );
     score += (matchingTags.length / Math.max(task.tags.length, 1)) * 0.3;
-    
+
     return Math.min(score, 1.0); // Cap at 1.0
   }
 
@@ -697,7 +847,7 @@ export class VoiceCommandParser {
       "Try: 'Add urgent tag to the bug fix task'",
       "Try: 'Search: tasks due today'",
       "Try: 'Timer: 25 minutes for coding'",
-      "Try: 'Show agenda'"
+      "Try: 'Show agenda'",
     ];
   }
 }

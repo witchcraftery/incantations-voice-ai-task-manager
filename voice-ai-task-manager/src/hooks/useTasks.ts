@@ -8,8 +8,10 @@ export function useTasks() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [templates, setTemplates] = useState<TaskTemplate[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [selectedTaskIds, setSelectedTaskIds] = useState<Set<string>>(new Set());
-  
+  const [selectedTaskIds, setSelectedTaskIds] = useState<Set<string>>(
+    new Set()
+  );
+
   const storageService = new StorageService();
   const analyticsService = new AnalyticsService();
 
@@ -23,7 +25,7 @@ export function useTasks() {
       const loadedTasks = storageService.loadTasks();
       const loadedProjects = storageService.loadProjects();
       const loadedTemplates = storageService.loadTaskTemplates();
-      
+
       setTasks(loadedTasks);
       setProjects(loadedProjects);
       setTemplates(loadedTemplates);
@@ -34,40 +36,43 @@ export function useTasks() {
     }
   };
 
-  const addTask = useCallback((task: Omit<Task, 'id' | 'createdAt' | 'updatedAt'>) => {
-    // Get time estimation for new task
-    const estimation = analyticsService.estimateTaskTime(task);
-    
-    const newTask: Task = {
-      ...task,
-      id: crypto.randomUUID(),
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      estimatedMinutes: estimation.estimatedMinutes,
-      timeEntries: [],
-      totalTimeSpent: 0,
-      isActiveTimer: false
-    };
+  const addTask = useCallback(
+    (task: Omit<Task, 'id' | 'createdAt' | 'updatedAt'>) => {
+      // Get time estimation for new task
+      const estimation = analyticsService.estimateTaskTime(task);
 
-    setTasks(prev => {
-      const updated = [...prev, newTask];
-      storageService.saveTasks(updated);
-      return updated;
-    });
+      const newTask: Task = {
+        ...task,
+        id: crypto.randomUUID(),
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        estimatedMinutes: estimation.estimatedMinutes,
+        timeEntries: [],
+        totalTimeSpent: 0,
+        isActiveTimer: false,
+      };
 
-    return newTask;
-  }, []);
+      setTasks(prev => {
+        const updated = [...prev, newTask];
+        storageService.saveTasks(updated);
+        return updated;
+      });
+
+      return newTask;
+    },
+    []
+  );
 
   const updateTask = useCallback((taskId: string, updates: Partial<Task>) => {
     setTasks(prev => {
       const updated = prev.map(task => {
         if (task.id === taskId) {
           const updatedTask = { ...task, ...updates, updatedAt: new Date() };
-          
+
           // Track timing when status changes
           if (updates.status && updates.status !== task.status) {
             const now = new Date();
-            
+
             if (updates.status === 'in-progress' && !task.startedAt) {
               updatedTask.startedAt = now;
             } else if (updates.status === 'completed' && task.startedAt) {
@@ -76,7 +81,7 @@ export function useTasks() {
               analyticsService.trackTaskCompletion(updatedTask);
             }
           }
-          
+
           return updatedTask;
         }
         return task;
@@ -94,40 +99,52 @@ export function useTasks() {
     });
   }, []);
 
-  const completeTask = useCallback((taskId: string) => {
-    updateTask(taskId, { status: 'completed' });
-  }, [updateTask]);
+  const completeTask = useCallback(
+    (taskId: string) => {
+      updateTask(taskId, { status: 'completed' });
+    },
+    [updateTask]
+  );
 
-  const reopenTask = useCallback((taskId: string) => {
-    updateTask(taskId, { status: 'pending' });
-  }, [updateTask]);
+  const reopenTask = useCallback(
+    (taskId: string) => {
+      updateTask(taskId, { status: 'pending' });
+    },
+    [updateTask]
+  );
 
-  const addProject = useCallback((project: Omit<Project, 'id' | 'createdAt' | 'taskIds'>) => {
-    const newProject: Project = {
-      ...project,
-      id: crypto.randomUUID(),
-      createdAt: new Date(),
-      taskIds: []
-    };
+  const addProject = useCallback(
+    (project: Omit<Project, 'id' | 'createdAt' | 'taskIds'>) => {
+      const newProject: Project = {
+        ...project,
+        id: crypto.randomUUID(),
+        createdAt: new Date(),
+        taskIds: [],
+      };
 
-    setProjects(prev => {
-      const updated = [...prev, newProject];
-      storageService.saveProjects(updated);
-      return updated;
-    });
+      setProjects(prev => {
+        const updated = [...prev, newProject];
+        storageService.saveProjects(updated);
+        return updated;
+      });
 
-    return newProject;
-  }, []);
+      return newProject;
+    },
+    []
+  );
 
-  const updateProject = useCallback((projectId: string, updates: Partial<Project>) => {
-    setProjects(prev => {
-      const updated = prev.map(project =>
-        project.id === projectId ? { ...project, ...updates } : project
-      );
-      storageService.saveProjects(updated);
-      return updated;
-    });
-  }, []);
+  const updateProject = useCallback(
+    (projectId: string, updates: Partial<Project>) => {
+      setProjects(prev => {
+        const updated = prev.map(project =>
+          project.id === projectId ? { ...project, ...updates } : project
+        );
+        storageService.saveProjects(updated);
+        return updated;
+      });
+    },
+    []
+  );
 
   const deleteProject = useCallback((projectId: string) => {
     setProjects(prev => {
@@ -146,27 +163,39 @@ export function useTasks() {
     });
   }, []);
 
-  const getTasksByProject = useCallback((projectName?: string) => {
-    return tasks.filter(task => task.project === projectName);
-  }, [tasks]);
+  const getTasksByProject = useCallback(
+    (projectName?: string) => {
+      return tasks.filter(task => task.project === projectName);
+    },
+    [tasks]
+  );
 
-  const getTasksByStatus = useCallback((status: Task['status']) => {
-    return tasks.filter(task => task.status === status);
-  }, [tasks]);
+  const getTasksByStatus = useCallback(
+    (status: Task['status']) => {
+      return tasks.filter(task => task.status === status);
+    },
+    [tasks]
+  );
 
-  const getTasksByPriority = useCallback((priority: Task['priority']) => {
-    return tasks.filter(task => task.priority === priority);
-  }, [tasks]);
+  const getTasksByPriority = useCallback(
+    (priority: Task['priority']) => {
+      return tasks.filter(task => task.priority === priority);
+    },
+    [tasks]
+  );
 
-  const getUpcomingTasks = useCallback((days = 7) => {
-    const now = new Date();
-    const futureDate = new Date(now.getTime() + days * 24 * 60 * 60 * 1000);
-    
-    return tasks.filter(task => {
-      if (!task.dueDate) return false;
-      return task.dueDate >= now && task.dueDate <= futureDate;
-    });
-  }, [tasks]);
+  const getUpcomingTasks = useCallback(
+    (days = 7) => {
+      const now = new Date();
+      const futureDate = new Date(now.getTime() + days * 24 * 60 * 60 * 1000);
+
+      return tasks.filter(task => {
+        if (!task.dueDate) return false;
+        return task.dueDate >= now && task.dueDate <= futureDate;
+      });
+    },
+    [tasks]
+  );
 
   const getOverdueTasks = useCallback(() => {
     const now = new Date();
@@ -176,58 +205,69 @@ export function useTasks() {
     });
   }, [tasks]);
 
-  const searchTasks = useCallback((query: string) => {
-    const lowerQuery = query.toLowerCase();
-    return tasks.filter(task =>
-      task.title.toLowerCase().includes(lowerQuery) ||
-      task.description?.toLowerCase().includes(lowerQuery) ||
-      task.tags.some(tag => tag.toLowerCase().includes(lowerQuery))
-    );
-  }, [tasks]);
+  const searchTasks = useCallback(
+    (query: string) => {
+      const lowerQuery = query.toLowerCase();
+      return tasks.filter(
+        task =>
+          task.title.toLowerCase().includes(lowerQuery) ||
+          task.description?.toLowerCase().includes(lowerQuery) ||
+          task.tags.some(tag => tag.toLowerCase().includes(lowerQuery))
+      );
+    },
+    [tasks]
+  );
 
   const getTaskStats = useCallback(() => {
     const total = tasks.length;
     const completed = tasks.filter(task => task.status === 'completed').length;
     const pending = tasks.filter(task => task.status === 'pending').length;
-    const inProgress = tasks.filter(task => task.status === 'in-progress').length;
+    const inProgress = tasks.filter(
+      task => task.status === 'in-progress'
+    ).length;
     const overdue = getOverdueTasks().length;
-    
+
     return {
       total,
       completed,
       pending,
       inProgress,
       overdue,
-      completionRate: total > 0 ? (completed / total) * 100 : 0
+      completionRate: total > 0 ? (completed / total) * 100 : 0,
     };
   }, [tasks, getOverdueTasks]);
 
   const getProjectStats = useCallback(() => {
     return projects.map(project => {
       const projectTasks = getTasksByProject(project.name);
-      const completed = projectTasks.filter(task => task.status === 'completed').length;
+      const completed = projectTasks.filter(
+        task => task.status === 'completed'
+      ).length;
       const total = projectTasks.length;
-      
+
       return {
         ...project,
         taskCount: total,
         completedCount: completed,
-        completionRate: total > 0 ? (completed / total) * 100 : 0
+        completionRate: total > 0 ? (completed / total) * 100 : 0,
       };
     });
   }, [projects, getTasksByProject]);
 
-  const bulkUpdateTasks = useCallback((taskIds: string[], updates: Partial<Task>) => {
-    setTasks(prev => {
-      const updated = prev.map(task =>
-        taskIds.includes(task.id)
-          ? { ...task, ...updates, updatedAt: new Date() }
-          : task
-      );
-      storageService.saveTasks(updated);
-      return updated;
-    });
-  }, []);
+  const bulkUpdateTasks = useCallback(
+    (taskIds: string[], updates: Partial<Task>) => {
+      setTasks(prev => {
+        const updated = prev.map(task =>
+          taskIds.includes(task.id)
+            ? { ...task, ...updates, updatedAt: new Date() }
+            : task
+        );
+        storageService.saveTasks(updated);
+        return updated;
+      });
+    },
+    []
+  );
 
   const bulkDeleteTasks = useCallback((taskIds: string[]) => {
     setTasks(prev => {
@@ -259,10 +299,13 @@ export function useTasks() {
     setSelectedTaskIds(new Set());
   }, []);
 
-  const selectTasksByFilter = useCallback((filterFn: (task: Task) => boolean) => {
-    const filteredTaskIds = tasks.filter(filterFn).map(task => task.id);
-    setSelectedTaskIds(new Set(filteredTaskIds));
-  }, [tasks]);
+  const selectTasksByFilter = useCallback(
+    (filterFn: (task: Task) => boolean) => {
+      const filteredTaskIds = tasks.filter(filterFn).map(task => task.id);
+      setSelectedTaskIds(new Set(filteredTaskIds));
+    },
+    [tasks]
+  );
 
   // Template operations
   const createTaskFromTemplate = useCallback((template: TaskTemplate) => {
@@ -278,7 +321,7 @@ export function useTasks() {
       updatedAt: new Date(),
       timeEntries: [],
       totalTimeSpent: 0,
-      isActiveTimer: false
+      isActiveTimer: false,
     };
 
     setTasks(prev => {
@@ -291,29 +334,42 @@ export function useTasks() {
   }, []);
 
   // Timer functions
-  const startTimer = useCallback((taskId: string) => {
-    updateTask(taskId, {
-      isActiveTimer: true,
-      currentSessionStart: new Date()
-    });
-  }, [updateTask]);
+  const startTimer = useCallback(
+    (taskId: string) => {
+      updateTask(taskId, {
+        isActiveTimer: true,
+        currentSessionStart: new Date(),
+      });
+    },
+    [updateTask]
+  );
 
   const stopTimer = useCallback((taskId: string) => {
     setTasks(prev => {
       const updated = prev.map(task => {
-        if (task.id === taskId && task.isActiveTimer && task.currentSessionStart) {
+        if (
+          task.id === taskId &&
+          task.isActiveTimer &&
+          task.currentSessionStart
+        ) {
           const endTime = new Date();
-          const duration = Math.round((endTime.getTime() - task.currentSessionStart.getTime()) / (1000 * 60));
-          
+          const duration = Math.round(
+            (endTime.getTime() - task.currentSessionStart.getTime()) /
+              (1000 * 60)
+          );
+
           const newTimeEntry: TimeEntry = {
             id: crypto.randomUUID(),
             startTime: task.currentSessionStart,
             endTime,
-            duration
+            duration,
           };
 
           const updatedTimeEntries = [...task.timeEntries, newTimeEntry];
-          const totalTimeSpent = updatedTimeEntries.reduce((sum, entry) => sum + entry.duration, 0);
+          const totalTimeSpent = updatedTimeEntries.reduce(
+            (sum, entry) => sum + entry.duration,
+            0
+          );
 
           return {
             ...task,
@@ -321,7 +377,7 @@ export function useTasks() {
             totalTimeSpent,
             isActiveTimer: false,
             currentSessionStart: undefined,
-            updatedAt: new Date()
+            updatedAt: new Date(),
           };
         }
         return task;
@@ -339,7 +395,7 @@ export function useTasks() {
     return {
       tasks,
       projects,
-      exportDate: new Date().toISOString()
+      exportDate: new Date().toISOString(),
     };
   }, [tasks, projects]);
 
@@ -404,6 +460,6 @@ export function useTasks() {
     getEnergyWindows,
     getTaskRecommendations,
     getOptimalTimeSuggestions,
-    estimateTaskTime
+    estimateTaskTime,
   };
 }

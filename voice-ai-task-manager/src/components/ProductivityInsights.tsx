@@ -1,6 +1,12 @@
 import React from 'react';
 import { BarChart3, Clock, Zap, TrendingUp, Target, Brain } from 'lucide-react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from './ui/card';
 import { Badge } from './ui/badge';
 import { Progress } from './ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
@@ -14,11 +20,11 @@ interface ProductivityInsightsProps {
   tasks: Task[];
 }
 
-export function ProductivityInsights({ 
-  patterns, 
-  energyWindows, 
-  recommendations, 
-  tasks 
+export function ProductivityInsights({
+  patterns,
+  energyWindows,
+  recommendations,
+  tasks,
 }: ProductivityInsightsProps) {
   const highEnergyWindows = energyWindows.filter(w => w.energyLevel === 'high');
   const lowEnergyWindows = energyWindows.filter(w => w.energyLevel === 'low');
@@ -26,16 +32,22 @@ export function ProductivityInsights({
   const getBestProductivityHours = () => {
     return patterns
       .filter(p => p.taskCount > 0)
-      .sort((a, b) => (b.completionRate * (1 / Math.max(b.avgCompletionTime, 1))) - 
-                     (a.completionRate * (1 / Math.max(a.avgCompletionTime, 1))))
+      .sort(
+        (a, b) =>
+          b.completionRate * (1 / Math.max(b.avgCompletionTime, 1)) -
+          a.completionRate * (1 / Math.max(a.avgCompletionTime, 1))
+      )
       .slice(0, 3);
   };
 
   const getWorstProductivityHours = () => {
     return patterns
       .filter(p => p.taskCount > 0)
-      .sort((a, b) => (a.completionRate * (1 / Math.max(a.avgCompletionTime, 1))) - 
-                     (b.completionRate * (1 / Math.max(b.avgCompletionTime, 1))))
+      .sort(
+        (a, b) =>
+          a.completionRate * (1 / Math.max(a.avgCompletionTime, 1)) -
+          b.completionRate * (1 / Math.max(b.avgCompletionTime, 1))
+      )
       .slice(0, 3);
   };
 
@@ -54,7 +66,9 @@ export function ProductivityInsights({
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="energy">Energy Patterns</TabsTrigger>
           <TabsTrigger value="productivity">Productivity Hours</TabsTrigger>
-          <TabsTrigger value="recommendations">Task Recommendations</TabsTrigger>
+          <TabsTrigger value="recommendations">
+            Task Recommendations
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="energy" className="space-y-4">
@@ -73,12 +87,15 @@ export function ProductivityInsights({
                 {highEnergyWindows.length > 0 ? (
                   <div className="space-y-3">
                     {highEnergyWindows.map((window, index) => (
-                      <div key={index} className="flex items-center justify-between">
+                      <div
+                        key={index}
+                        className="flex items-center justify-between"
+                      >
                         <span className="font-medium">
                           {getHourRange(window.startHour, window.endHour)}
                         </span>
-                        <Badge 
-                          variant="secondary" 
+                        <Badge
+                          variant="secondary"
                           className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
                         >
                           {Math.round(window.confidence * 100)}% confidence
@@ -108,12 +125,15 @@ export function ProductivityInsights({
                 {lowEnergyWindows.length > 0 ? (
                   <div className="space-y-3">
                     {lowEnergyWindows.map((window, index) => (
-                      <div key={index} className="flex items-center justify-between">
+                      <div
+                        key={index}
+                        className="flex items-center justify-between"
+                      >
                         <span className="font-medium">
                           {getHourRange(window.startHour, window.endHour)}
                         </span>
-                        <Badge 
-                          variant="secondary" 
+                        <Badge
+                          variant="secondary"
                           className="bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200"
                         >
                           {Math.round(window.confidence * 100)}% confidence
@@ -159,12 +179,18 @@ export function ProductivityInsights({
                         <div className="space-y-1">
                           <div className="flex justify-between text-sm">
                             <span>Completion Rate</span>
-                            <span>{Math.round(pattern.completionRate * 100)}%</span>
+                            <span>
+                              {Math.round(pattern.completionRate * 100)}%
+                            </span>
                           </div>
-                          <Progress value={pattern.completionRate * 100} className="h-2" />
+                          <Progress
+                            value={pattern.completionRate * 100}
+                            className="h-2"
+                          />
                         </div>
                         <div className="text-sm text-gray-600 dark:text-gray-400">
-                          Avg completion time: {Math.round(pattern.avgCompletionTime)}m
+                          Avg completion time:{' '}
+                          {Math.round(pattern.avgCompletionTime)}m
                         </div>
                       </div>
                     ))}
@@ -203,12 +229,18 @@ export function ProductivityInsights({
                         <div className="space-y-1">
                           <div className="flex justify-between text-sm">
                             <span>Completion Rate</span>
-                            <span>{Math.round(pattern.completionRate * 100)}%</span>
+                            <span>
+                              {Math.round(pattern.completionRate * 100)}%
+                            </span>
                           </div>
-                          <Progress value={pattern.completionRate * 100} className="h-2" />
+                          <Progress
+                            value={pattern.completionRate * 100}
+                            className="h-2"
+                          />
                         </div>
                         <div className="text-sm text-gray-600 dark:text-gray-400">
-                          Avg completion time: {Math.round(pattern.avgCompletionTime)}m
+                          Avg completion time:{' '}
+                          {Math.round(pattern.avgCompletionTime)}m
                         </div>
                       </div>
                     ))}
@@ -231,7 +263,8 @@ export function ProductivityInsights({
                 Smart Task Recommendations
               </CardTitle>
               <CardDescription>
-                AI-recommended task order based on priority, deadlines, and your energy patterns
+                AI-recommended task order based on priority, deadlines, and your
+                energy patterns
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -242,7 +275,10 @@ export function ProductivityInsights({
                     if (!task) return null;
 
                     return (
-                      <div key={rec.taskId} className="border rounded-lg p-4 space-y-2">
+                      <div
+                        key={rec.taskId}
+                        className="border rounded-lg p-4 space-y-2"
+                      >
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2">
                             <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
@@ -250,13 +286,15 @@ export function ProductivityInsights({
                             </Badge>
                             <span className="font-medium">{task.title}</span>
                           </div>
-                          <Badge variant="outline">
-                            Score: {rec.score}
-                          </Badge>
+                          <Badge variant="outline">Score: {rec.score}</Badge>
                         </div>
                         <div className="flex flex-wrap gap-1">
                           {rec.reasons.map((reason, i) => (
-                            <Badge key={i} variant="secondary" className="text-xs">
+                            <Badge
+                              key={i}
+                              variant="secondary"
+                              className="text-xs"
+                            >
                               {reason}
                             </Badge>
                           ))}

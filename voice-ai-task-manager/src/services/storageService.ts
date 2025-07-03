@@ -1,4 +1,11 @@
-import { Task, Conversation, Project, UserPreferences, UserMemory, TaskTemplate } from '../types';
+import {
+  Task,
+  Conversation,
+  Project,
+  UserPreferences,
+  UserMemory,
+  TaskTemplate,
+} from '../types';
 import { SampleDataService } from './sampleDataService';
 
 export class StorageService {
@@ -27,7 +34,7 @@ export class StorageService {
         this.saveTasks(sampleData.tasks);
         return sampleData.tasks;
       }
-      
+
       const tasks = JSON.parse(stored);
       return tasks.map((task: any) => ({
         ...task,
@@ -36,11 +43,13 @@ export class StorageService {
         dueDate: task.dueDate ? new Date(task.dueDate) : undefined,
         startedAt: task.startedAt ? new Date(task.startedAt) : undefined,
         completedAt: task.completedAt ? new Date(task.completedAt) : undefined,
-        currentSessionStart: task.currentSessionStart ? new Date(task.currentSessionStart) : undefined,
+        currentSessionStart: task.currentSessionStart
+          ? new Date(task.currentSessionStart)
+          : undefined,
         // Migrate to new time tracking system
         timeEntries: task.timeEntries || [],
         totalTimeSpent: task.totalTimeSpent || 0,
-        isActiveTimer: task.isActiveTimer || false
+        isActiveTimer: task.isActiveTimer || false,
       }));
     } catch (error) {
       console.error('Failed to load tasks:', error);
@@ -51,7 +60,10 @@ export class StorageService {
   // Conversations
   saveConversations(conversations: Conversation[]): void {
     try {
-      localStorage.setItem(this.CONVERSATIONS_KEY, JSON.stringify(conversations));
+      localStorage.setItem(
+        this.CONVERSATIONS_KEY,
+        JSON.stringify(conversations)
+      );
     } catch (error) {
       console.error('Failed to save conversations:', error);
     }
@@ -66,7 +78,7 @@ export class StorageService {
         this.saveConversations(sampleData.conversations);
         return sampleData.conversations;
       }
-      
+
       const conversations = JSON.parse(stored);
       return conversations.map((conv: any) => ({
         ...conv,
@@ -74,8 +86,8 @@ export class StorageService {
         updatedAt: new Date(conv.updatedAt),
         messages: conv.messages.map((msg: any) => ({
           ...msg,
-          timestamp: new Date(msg.timestamp)
-        }))
+          timestamp: new Date(msg.timestamp),
+        })),
       }));
     } catch (error) {
       console.error('Failed to load conversations:', error);
@@ -101,11 +113,11 @@ export class StorageService {
         this.saveProjects(sampleData.projects);
         return sampleData.projects;
       }
-      
+
       const projects = JSON.parse(stored);
       return projects.map((project: any) => ({
         ...project,
-        createdAt: new Date(project.createdAt)
+        createdAt: new Date(project.createdAt),
       }));
     } catch (error) {
       console.error('Failed to load projects:', error);
@@ -126,30 +138,30 @@ export class StorageService {
     try {
       const stored = localStorage.getItem(this.PREFERENCES_KEY);
       if (!stored) return this.getDefaultPreferences();
-      
+
       const defaultPrefs = this.getDefaultPreferences();
       const storedPrefs = JSON.parse(stored);
-      
+
       // Deep merge to ensure all nested properties are preserved
       return {
         ...defaultPrefs,
         ...storedPrefs,
         aiSettings: {
           ...defaultPrefs.aiSettings,
-          ...storedPrefs.aiSettings
+          ...storedPrefs.aiSettings,
         },
         voiceSettings: {
           ...defaultPrefs.voiceSettings,
-          ...storedPrefs.voiceSettings
+          ...storedPrefs.voiceSettings,
         },
         notificationSettings: {
           ...defaultPrefs.notificationSettings,
-          ...storedPrefs.notificationSettings
+          ...storedPrefs.notificationSettings,
         },
         googleIntegration: {
           ...defaultPrefs.googleIntegration,
-          ...storedPrefs.googleIntegration
-        }
+          ...storedPrefs.googleIntegration,
+        },
       };
     } catch (error) {
       console.error('Failed to load preferences:', error);
@@ -175,7 +187,7 @@ export class StorageService {
         this.saveUserMemory(sampleData.userMemory);
         return sampleData.userMemory;
       }
-      
+
       const memory = JSON.parse(stored);
       return {
         ...this.getDefaultMemory(),
@@ -183,11 +195,12 @@ export class StorageService {
         learningData: {
           ...this.getDefaultMemory().learningData,
           ...memory.learningData,
-          feedbackHistory: memory.learningData?.feedbackHistory?.map((item: any) => ({
-            ...item,
-            timestamp: new Date(item.timestamp)
-          })) || []
-        }
+          feedbackHistory:
+            memory.learningData?.feedbackHistory?.map((item: any) => ({
+              ...item,
+              timestamp: new Date(item.timestamp),
+            })) || [],
+        },
       };
     } catch (error) {
       console.error('Failed to load user memory:', error);
@@ -209,7 +222,7 @@ export class StorageService {
         useDeepgram: true,
         deepgramVoice: 'aura-asteria-en',
         voice: undefined,
-        microphoneId: undefined
+        microphoneId: undefined,
       },
       aiSettings: {
         responseStyle: 'friendly',
@@ -219,21 +232,21 @@ export class StorageService {
         openRouterApiKey: '',
         selectedModel: 'simulation',
         temperature: 0.7,
-        maxTokens: 1000
+        maxTokens: 1000,
       },
       notificationSettings: {
         enabled: false,
         dailyAgenda: true,
         taskReminders: true,
         celebrateCompletions: true,
-        smartSuggestions: true
+        smartSuggestions: true,
       },
       googleIntegration: {
         enabled: false,
         calendarEnabled: true,
         gmailEnabled: true,
-        autoExtractTasks: true
-      }
+        autoExtractTasks: true,
+      },
     };
   }
 
@@ -242,17 +255,17 @@ export class StorageService {
       workPatterns: {
         preferredWorkingHours: ['9:00', '17:00'],
         commonProjects: ['Personal', 'Work', 'Learning'],
-        frequentTasks: []
+        frequentTasks: [],
       },
       contextualInfo: {
         currentProjects: [],
         recentTopics: [],
-        preferences: {}
+        preferences: {},
       },
       learningData: {
         taskCompletionPatterns: {},
         communicationStyle: 'professional',
-        feedbackHistory: []
+        feedbackHistory: [],
       },
       conversationFlow: {
         stageHistory: [],
@@ -262,15 +275,27 @@ export class StorageService {
           messageCount: 0,
           userEnergyLevel: 'medium',
           topicFocus: 'casual',
-          lastStageChange: new Date()
+          lastStageChange: new Date(),
         },
         triggerPhrases: {
-          taskAnalysis: ['that\'s all', 'add to my task list', 'add those to my tasks', 'create those tasks', 'let\'s get to work'],
-          completion: ['thanks', 'thank you', 'that helps', 'sounds good', 'perfect']
+          taskAnalysis: [
+            "that's all",
+            'add to my task list',
+            'add those to my tasks',
+            'create those tasks',
+            "let's get to work",
+          ],
+          completion: [
+            'thanks',
+            'thank you',
+            'that helps',
+            'sounds good',
+            'perfect',
+          ],
         },
         silentTasks: [],
-        sessionStartTime: new Date()
-      }
+        sessionStartTime: new Date(),
+      },
     };
   }
 
@@ -292,12 +317,12 @@ export class StorageService {
         this.saveTaskTemplates(defaultTemplates);
         return defaultTemplates;
       }
-      
+
       const templates = JSON.parse(stored);
       return templates.map((template: any) => ({
         ...template,
         createdAt: new Date(template.createdAt),
-        updatedAt: new Date(template.updatedAt)
+        updatedAt: new Date(template.updatedAt),
       }));
     } catch (error) {
       console.error('Failed to load task templates:', error);
@@ -313,41 +338,44 @@ export class StorageService {
         name: 'Meeting Follow-up',
         description: 'Task for following up on meeting action items',
         title: 'Follow up on [Meeting Name]',
-        taskDescription: 'Review meeting notes and complete assigned action items',
+        taskDescription:
+          'Review meeting notes and complete assigned action items',
         priority: 'medium' as const,
         project: 'Meetings',
         tags: ['meeting', 'follow-up'],
         estimatedDuration: 30,
         isDefault: true,
         createdAt: now,
-        updatedAt: now
+        updatedAt: now,
       },
       {
         id: 'template-2',
         name: 'Code Review',
         description: 'Task for conducting code reviews',
         title: 'Review PR: [PR Title]',
-        taskDescription: 'Review code changes, provide feedback, and approve if ready',
+        taskDescription:
+          'Review code changes, provide feedback, and approve if ready',
         priority: 'high' as const,
         project: 'Development',
         tags: ['code-review', 'development'],
         estimatedDuration: 45,
         isDefault: true,
         createdAt: now,
-        updatedAt: now
+        updatedAt: now,
       },
       {
         id: 'template-3',
         name: 'Research Task',
         description: 'General research and investigation task',
         title: 'Research [Topic]',
-        taskDescription: 'Gather information and analyze findings on the specified topic',
+        taskDescription:
+          'Gather information and analyze findings on the specified topic',
         priority: 'medium' as const,
         tags: ['research', 'investigation'],
         estimatedDuration: 60,
         isDefault: true,
         createdAt: now,
-        updatedAt: now
+        updatedAt: now,
       },
       {
         id: 'template-4',
@@ -361,22 +389,23 @@ export class StorageService {
         estimatedDuration: 90,
         isDefault: true,
         createdAt: now,
-        updatedAt: now
+        updatedAt: now,
       },
       {
         id: 'template-5',
         name: 'Weekly Planning',
         description: 'Weekly planning and goal setting',
         title: 'Weekly Planning - [Week of Date]',
-        taskDescription: 'Review previous week, set priorities, and plan upcoming week',
+        taskDescription:
+          'Review previous week, set priorities, and plan upcoming week',
         priority: 'medium' as const,
         project: 'Planning',
         tags: ['planning', 'weekly', 'goals'],
         estimatedDuration: 45,
         isDefault: true,
         createdAt: now,
-        updatedAt: now
-      }
+        updatedAt: now,
+      },
     ];
   }
 
@@ -402,7 +431,7 @@ export class StorageService {
       preferences: this.loadPreferences(),
       memory: this.loadUserMemory(),
       templates: this.loadTaskTemplates(),
-      exportDate: new Date().toISOString()
+      exportDate: new Date().toISOString(),
     };
   }
 
@@ -425,7 +454,7 @@ export class StorageService {
     try {
       const testKey = 'storage_test';
       let used = 0;
-      
+
       // Calculate used space
       for (const key in localStorage) {
         if (localStorage.hasOwnProperty(key)) {

@@ -34,7 +34,10 @@ export class GmailAgentService {
   }
 
   async startMonitoring(): Promise<boolean> {
-    if (!this.preferences.googleIntegration?.enabled || !this.preferences.googleIntegration?.gmailEnabled) {
+    if (
+      !this.preferences.googleIntegration?.enabled ||
+      !this.preferences.googleIntegration?.gmailEnabled
+    ) {
       console.log('📧 Gmail integration not enabled');
       return false;
     }
@@ -45,9 +48,12 @@ export class GmailAgentService {
     console.log('📧 GmailAgentService: Started monitoring emails');
 
     // Placeholder monitoring - would implement actual Gmail API integration
-    this.intervalId = setInterval(() => {
-      this.checkForNewEmails();
-    }, 5 * 60 * 1000); // Check every 5 minutes
+    this.intervalId = setInterval(
+      () => {
+        this.checkForNewEmails();
+      },
+      5 * 60 * 1000
+    ); // Check every 5 minutes
 
     return true;
   }
@@ -65,7 +71,7 @@ export class GmailAgentService {
 
   async manualEmailCheck(): Promise<EmailAnalysis[]> {
     console.log('📧 GmailAgentService: Manual email check triggered');
-    
+
     // Placeholder - would implement actual Gmail API call
     const mockAnalyses: EmailAnalysis[] = [
       {
@@ -75,29 +81,37 @@ export class GmailAgentService {
         extractedTasks: [
           {
             title: 'Review project proposal',
-            description: 'Review and provide feedback on the new project proposal by end of week',
-            priority: 'high'
-          }
+            description:
+              'Review and provide feedback on the new project proposal by end of week',
+            priority: 'high',
+          },
         ],
         subject: 'Project Proposal Review Needed',
         sender: 'colleague@company.com',
-        timestamp: new Date()
-      }
+        timestamp: new Date(),
+      },
     ];
 
     return mockAnalyses;
   }
 
-  async getEmailTasks(): Promise<Array<{ title: string; description: string; priority: string; dueDate?: Date }>> {
+  async getEmailTasks(): Promise<
+    Array<{
+      title: string;
+      description: string;
+      priority: string;
+      dueDate?: Date;
+    }>
+  > {
     console.log('📧 GmailAgentService: Getting email tasks');
-    
+
     // Placeholder - would extract tasks from recent emails
     return [
       {
         title: 'Follow up on client meeting',
         description: 'Send follow-up email with meeting notes and next steps',
-        priority: 'medium'
-      }
+        priority: 'medium',
+      },
     ];
   }
 
@@ -106,7 +120,7 @@ export class GmailAgentService {
 
     // Placeholder for actual email checking logic
     console.log('📧 Checking for new emails...');
-    
+
     // Simulate occasional email analysis
     if (Math.random() > 0.9) {
       const mockAnalysis: EmailAnalysis = {
@@ -116,7 +130,7 @@ export class GmailAgentService {
         extractedTasks: [],
         subject: 'Mock Email Analysis',
         sender: 'test@example.com',
-        timestamp: new Date()
+        timestamp: new Date(),
       };
 
       if (this.emailAnalysisCallback) {

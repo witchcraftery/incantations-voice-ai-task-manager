@@ -1,5 +1,12 @@
 import React from 'react';
-import { CheckCircle2, Circle, Calendar, Flag, Tag, MessageSquare } from 'lucide-react';
+import {
+  CheckCircle2,
+  Circle,
+  Calendar,
+  Flag,
+  Tag,
+  MessageSquare,
+} from 'lucide-react';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import { Checkbox } from './ui/checkbox';
@@ -33,7 +40,7 @@ export function TaskCard({
   showExtractedFrom = false,
   isSelected = false,
   onToggleSelect,
-  showSelection = false
+  showSelection = false,
 }: TaskCardProps) {
   const isCompleted = task.status === 'completed';
   const isOverdue = task.dueDate && new Date() > task.dueDate && !isCompleted;
@@ -42,14 +49,16 @@ export function TaskCard({
     low: 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300',
     medium: 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300',
     high: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300',
-    urgent: 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300'
+    urgent: 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300',
   };
 
   const statusColors = {
     pending: 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300',
-    'in-progress': 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300',
-    completed: 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300',
-    cancelled: 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300'
+    'in-progress':
+      'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300',
+    completed:
+      'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300',
+    cancelled: 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300',
   };
 
   return (
@@ -62,8 +71,8 @@ export function TaskCard({
         isCompleted
           ? 'bg-gray-50 dark:bg-gray-900 border-gray-200 dark:border-gray-800'
           : isOverdue
-          ? 'bg-red-50 dark:bg-red-950 border-red-200 dark:border-red-800'
-          : 'bg-white dark:bg-gray-950 border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700'
+            ? 'bg-red-50 dark:bg-red-950 border-red-200 dark:border-red-800'
+            : 'bg-white dark:bg-gray-950 border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700'
       }`}
     >
       <div className="flex items-start gap-3">
@@ -105,7 +114,7 @@ export function TaskCard({
             >
               {task.title}
             </h3>
-            
+
             <div className="flex items-center gap-1 flex-shrink-0">
               <Badge className={`text-xs ${priorityColors[task.priority]}`}>
                 <Flag className="h-3 w-3 mr-1" />
@@ -136,7 +145,9 @@ export function TaskCard({
 
             {/* Due Date */}
             {task.dueDate && (
-              <div className={`flex items-center gap-1 ${isOverdue ? 'text-red-600 dark:text-red-400' : ''}`}>
+              <div
+                className={`flex items-center gap-1 ${isOverdue ? 'text-red-600 dark:text-red-400' : ''}`}
+              >
                 <Calendar className="h-3 w-3" />
                 <span>
                   {isOverdue ? 'Overdue: ' : 'Due: '}
@@ -167,7 +178,7 @@ export function TaskCard({
             <div className="flex items-center gap-1 mb-2">
               <Tag className="h-3 w-3 text-gray-400" />
               <div className="flex flex-wrap gap-1">
-                {task.tags.map((tag) => (
+                {task.tags.map(tag => (
                   <Badge
                     key={tag}
                     variant="outline"
@@ -196,7 +207,8 @@ export function TaskCard({
             Created {formatDistanceToNow(task.createdAt, { addSuffix: true })}
             {task.updatedAt.getTime() !== task.createdAt.getTime() && (
               <span className="ml-2">
-                • Updated {formatDistanceToNow(task.updatedAt, { addSuffix: true })}
+                • Updated{' '}
+                {formatDistanceToNow(task.updatedAt, { addSuffix: true })}
               </span>
             )}
           </div>

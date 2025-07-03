@@ -33,9 +33,10 @@ export const LoginButton: React.FC = () => {
   const initializeGoogleSignIn = () => {
     if (window.google) {
       window.google.accounts.id.initialize({
-        client_id: process.env.NODE_ENV === 'production' 
-          ? 'your_production_google_client_id' 
-          : 'your_dev_google_client_id', // You'll need to get this from Google Cloud Console
+        client_id:
+          process.env.NODE_ENV === 'production'
+            ? 'your_production_google_client_id'
+            : 'your_dev_google_client_id', // You'll need to get this from Google Cloud Console
         callback: handleCredentialResponse,
         auto_select: false,
         cancel_on_tap_outside: true,
@@ -67,7 +68,7 @@ export const LoginButton: React.FC = () => {
   }
 
   return (
-    <Button 
+    <Button
       onClick={handleSignIn}
       disabled={!googleLoaded}
       className="w-full bg-white text-gray-900 border hover:bg-gray-50"

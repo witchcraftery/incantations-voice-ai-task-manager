@@ -18,12 +18,16 @@ export class BackgroundAgentService {
     this.notificationCallback = callback;
   }
 
-  start(options: { enabled: boolean; checkInterval: number; aggressiveness: string }) {
+  start(options: {
+    enabled: boolean;
+    checkInterval: number;
+    aggressiveness: string;
+  }) {
     if (this.isRunning) return;
-    
+
     this.isRunning = true;
     console.log('🤖 BackgroundAgentService: Started monitoring');
-    
+
     // Placeholder implementation - would contain actual background monitoring logic
     this.intervalId = setInterval(() => {
       // This is where background analysis would happen
@@ -33,7 +37,7 @@ export class BackgroundAgentService {
 
   stop() {
     if (!this.isRunning) return;
-    
+
     this.isRunning = false;
     if (this.intervalId) {
       clearInterval(this.intervalId);
@@ -45,12 +49,12 @@ export class BackgroundAgentService {
   async performBackgroundAnalysis() {
     // Placeholder for background analysis logic
     console.log('🤖 BackgroundAgentService: Performing background analysis');
-    
+
     // Example notification - in real implementation this would analyze user behavior
     if (this.notificationCallback && Math.random() > 0.8) {
       this.notificationCallback(
-        "Consider taking a break and reviewing your priorities",
-        "suggestion"
+        'Consider taking a break and reviewing your priorities',
+        'suggestion'
       );
     }
   }

@@ -23,7 +23,9 @@ export function TaskTimer({ task, onStartTimer, onStopTimer }: TaskTimerProps) {
 
     const updateTime = () => {
       const now = new Date();
-      const sessionTime = Math.floor((now.getTime() - task.currentSessionStart!.getTime()) / (1000 * 60));
+      const sessionTime = Math.floor(
+        (now.getTime() - task.currentSessionStart!.getTime()) / (1000 * 60)
+      );
       setCurrentSessionTime(sessionTime);
     };
 
@@ -48,7 +50,7 @@ export function TaskTimer({ task, onStartTimer, onStopTimer }: TaskTimerProps) {
   return (
     <div className="flex items-center gap-2">
       <Button
-        variant={task.isActiveTimer ? "destructive" : "outline"}
+        variant={task.isActiveTimer ? 'destructive' : 'outline'}
         size="sm"
         onClick={handleToggleTimer}
         className="flex items-center gap-1 h-8"
@@ -73,7 +75,10 @@ export function TaskTimer({ task, onStartTimer, onStopTimer }: TaskTimerProps) {
             {formatDuration(totalDisplayTime)}
           </Badge>
           {task.isActiveTimer && (
-            <Badge variant="default" className="text-xs bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200">
+            <Badge
+              variant="default"
+              className="text-xs bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
+            >
               ACTIVE
             </Badge>
           )}

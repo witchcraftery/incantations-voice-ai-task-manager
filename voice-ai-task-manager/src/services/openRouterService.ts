@@ -40,7 +40,7 @@ export class OpenRouterService {
   constructor(config: OpenRouterConfig) {
     this.config = {
       baseUrl: 'https://openrouter.ai/api/v1',
-      ...config
+      ...config,
     };
   }
 
@@ -48,7 +48,7 @@ export class OpenRouterService {
     try {
       const response = await fetch(`${this.config.baseUrl}/models`, {
         headers: {
-          'Authorization': `Bearer ${this.config.apiKey}`,
+          Authorization: `Bearer ${this.config.apiKey}`,
           'Content-Type': 'application/json',
         },
       });
@@ -59,23 +59,32 @@ export class OpenRouterService {
 
       const data = await response.json();
       this.availableModels = data.data || [];
-      
+
       // Filter and sort for task management relevant models
       return this.availableModels
-        .filter(model => 
-          model.architecture.modality === 'text' && 
-          model.context_length >= 4000 // Minimum context for task management
+        .filter(
+          model =>
+            model.architecture.modality === 'text' &&
+            model.context_length >= 4000 // Minimum context for task management
         )
         .sort((a, b) => {
           // Prioritize models good for task management
           const taskModels = [
-            'anthropic/claude-3', 'openai/gpt-4', 'openai/gpt-3.5',
-            'meta-llama/llama-3', 'google/gemini', 'cohere/command'
+            'anthropic/claude-3',
+            'openai/gpt-4',
+            'openai/gpt-3.5',
+            'meta-llama/llama-3',
+            'google/gemini',
+            'cohere/command',
           ];
-          
-          const aScore = taskModels.some(prefix => a.id.includes(prefix)) ? 1 : 0;
-          const bScore = taskModels.some(prefix => b.id.includes(prefix)) ? 1 : 0;
-          
+
+          const aScore = taskModels.some(prefix => a.id.includes(prefix))
+            ? 1
+            : 0;
+          const bScore = taskModels.some(prefix => b.id.includes(prefix))
+            ? 1
+            : 0;
+
           if (aScore !== bScore) return bScore - aScore;
           return a.name.localeCompare(b.name);
         });
@@ -91,18 +100,22 @@ export class OpenRouterService {
     userMemory: UserMemory
   ): Promise<AIResponse> {
     const startTime = Date.now();
-    
+
     try {
       const systemPrompt = this.buildSystemPrompt(userMemory);
-      const messages = this.buildMessages(systemPrompt, conversationHistory, userInput);
+      const messages = this.buildMessages(
+        systemPrompt,
+        conversationHistory,
+        userInput
+      );
 
       const response = await fetch(`${this.config.baseUrl}/chat/completions`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${this.config.apiKey}`,
+          Authorization: `Bearer ${this.config.apiKey}`,
           'Content-Type': 'application/json',
           'HTTP-Referer': window.location.origin,
-          'X-Title': 'Incantations AI Task Manager'
+          'X-Title': 'Incantations AI Task Manager',
         },
         body: JSON.stringify({
           model: this.config.selectedModel,
@@ -118,7 +131,9 @@ export class OpenRouterService {
       }
 
       const data = await response.json();
-      const aiMessage = data.choices[0]?.message?.content || 'I apologize, but I encountered an error processing your request.';
+      const aiMessage =
+        data.choices[0]?.message?.content ||
+        'I apologize, but I encountered an error processing your request.';
 
       // Extract tasks from the response
       const extractedTasks = this.extractTasks(userInput, aiMessage);
@@ -136,30 +151,33 @@ export class OpenRouterService {
           processingTime,
           intent,
           model: this.config.selectedModel,
-          tokensUsed: data.usage?.total_tokens || 0
-        }
+          tokensUsed: data.usage?.total_tokens || 0,
+        },
       };
-
     } catch (error) {
       console.error('OpenRouter processing error:', error);
-      
+
       return {
-        message: "I'm having trouble connecting to the AI service right now. Please try again in a moment.",
+        message:
+          "I'm having trouble connecting to the AI service right now. Please try again in a moment.",
         extractedTasks: [],
-        suggestions: ['Check your internet connection', 'Try again in a few moments'],
+        suggestions: [
+          'Check your internet connection',
+          'Try again in a few moments',
+        ],
         metadata: {
           confidence: 0,
           processingTime: Date.now() - startTime,
           intent: 'error',
-          error: error instanceof Error ? error.message : 'Unknown error'
-        }
+          error: error instanceof Error ? error.message : 'Unknown error',
+        },
       };
     }
   }
 
   private buildSystemPrompt(userMemory: UserMemory): string {
     const customPrompt = this.config.systemPrompt;
-    
+
     const basePrompt = `You are an intelligent task management assistant. Your primary role is to help users organize their work and life through natural conversation.
 
 CORE RESPONSIBILITIES:
@@ -183,15 +201,19 @@ RESPONSE STYLE: Be encouraging, practical, and focused on helping them achieve t
 
     return customPrompt ? `${customPrompt}\n\n${basePrompt}` : basePrompt;
   }
-  private buildMessages(systemPrompt: string, history: Message[], newInput: string) {
+  private buildMessages(
+    systemPrompt: string,
+    history: Message[],
+    newInput: string
+  ) {
     const messages = [{ role: 'system', content: systemPrompt }];
-    
+
     // Add recent conversation history (last 10 messages)
     const recentHistory = history.slice(-10);
     recentHistory.forEach(msg => {
       messages.push({
         role: msg.type === 'user' ? 'user' : 'assistant',
-        content: msg.content
+        content: msg.content,
       });
     });
 
@@ -203,7 +225,7 @@ RESPONSE STYLE: Be encouraging, practical, and focused on helping them achieve t
 
   private extractTasks(userInput: string, aiResponse: string): Partial<Task>[] {
     const tasks: Partial<Task>[] = [];
-    
+
     // Enhanced task extraction patterns
     const taskPatterns = [
       /(?:i need to|have to|should|must|want to|plan to)\s+([^.!?]+)/gi,
@@ -224,7 +246,7 @@ RESPONSE STYLE: Be encouraging, practical, and focused on helping them achieve t
             status: 'pending',
             tags: this.extractTags(userInput),
             createdAt: new Date(),
-            updatedAt: new Date()
+            updatedAt: new Date(),
           });
         }
       }
@@ -241,25 +263,40 @@ RESPONSE STYLE: Be encouraging, practical, and focused on helping them achieve t
       .replace(/^./, str => str.toUpperCase()); // Capitalize first letter
   }
 
-  private determinePriority(input: string): 'low' | 'medium' | 'high' | 'urgent' {
-    const urgentWords = ['urgent', 'asap', 'immediately', 'critical', 'emergency'];
+  private determinePriority(
+    input: string
+  ): 'low' | 'medium' | 'high' | 'urgent' {
+    const urgentWords = [
+      'urgent',
+      'asap',
+      'immediately',
+      'critical',
+      'emergency',
+    ];
     const highWords = ['important', 'priority', 'deadline', 'soon'];
     const lowWords = ['sometime', 'eventually', 'when possible', 'maybe'];
 
     const lowerInput = input.toLowerCase();
-    
+
     if (urgentWords.some(word => lowerInput.includes(word))) return 'urgent';
     if (highWords.some(word => lowerInput.includes(word))) return 'high';
     if (lowWords.some(word => lowerInput.includes(word))) return 'low';
-    
+
     return 'medium';
   }
 
   private extractTags(input: string): string[] {
     const tags: string[] = [];
-    
+
     // Common project tags
-    const projectWords = ['work', 'personal', 'health', 'learning', 'finance', 'home'];
+    const projectWords = [
+      'work',
+      'personal',
+      'health',
+      'learning',
+      'finance',
+      'home',
+    ];
     projectWords.forEach(word => {
       if (input.toLowerCase().includes(word)) {
         tags.push(word);
@@ -271,18 +308,18 @@ RESPONSE STYLE: Be encouraging, practical, and focused on helping them achieve t
 
   private generateSuggestions(userInput: string): string[] {
     const suggestions = [
-      "Break this down into smaller tasks",
-      "Set a specific deadline for better focus",
-      "Consider the priority level of this task"
+      'Break this down into smaller tasks',
+      'Set a specific deadline for better focus',
+      'Consider the priority level of this task',
     ];
 
     // Add contextual suggestions based on input
     if (userInput.toLowerCase().includes('meeting')) {
       suggestions.push("Don't forget to send calendar invites");
     }
-    
+
     if (userInput.toLowerCase().includes('email')) {
-      suggestions.push("Draft the email first to save time");
+      suggestions.push('Draft the email first to save time');
     }
 
     return suggestions.slice(0, 3);
@@ -290,12 +327,16 @@ RESPONSE STYLE: Be encouraging, practical, and focused on helping them achieve t
 
   private detectIntent(input: string): string {
     const lowerInput = input.toLowerCase();
-    
-    if (lowerInput.includes('schedule') || lowerInput.includes('plan')) return 'scheduling';
-    if (lowerInput.includes('remind') || lowerInput.includes('remember')) return 'reminder';
-    if (lowerInput.includes('complete') || lowerInput.includes('done')) return 'completion';
-    if (lowerInput.includes('help') || lowerInput.includes('how')) return 'help_request';
-    
+
+    if (lowerInput.includes('schedule') || lowerInput.includes('plan'))
+      return 'scheduling';
+    if (lowerInput.includes('remind') || lowerInput.includes('remember'))
+      return 'reminder';
+    if (lowerInput.includes('complete') || lowerInput.includes('done'))
+      return 'completion';
+    if (lowerInput.includes('help') || lowerInput.includes('how'))
+      return 'help_request';
+
     return 'task_creation';
   }
 
@@ -304,7 +345,7 @@ RESPONSE STYLE: Be encouraging, practical, and focused on helping them achieve t
     const baseConfidence = 0.7;
     const taskBonus = Math.min(tasks.length * 0.1, 0.3);
     const lengthPenalty = input.length < 10 ? -0.2 : 0;
-    
+
     return Math.max(0, Math.min(1, baseConfidence + taskBonus + lengthPenalty));
   }
 
@@ -323,7 +364,7 @@ RESPONSE STYLE: Be encouraging, practical, and focused on helping them achieve t
     try {
       const response = await fetch(`${this.config.baseUrl}/models`, {
         headers: {
-          'Authorization': `Bearer ${this.config.apiKey}`,
+          Authorization: `Bearer ${this.config.apiKey}`,
           'Content-Type': 'application/json',
         },
       });

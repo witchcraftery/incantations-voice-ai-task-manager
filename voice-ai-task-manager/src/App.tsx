@@ -1,7 +1,7 @@
-import { VoiceTaskManager } from './components/VoiceTaskManager'
-import { ThemeProvider } from './components/ThemeProvider'
-import { AuthProvider } from './contexts/AuthContext'
-import './App.css'
+import { VoiceTaskManager } from './components/VoiceTaskManager';
+import { ThemeProvider } from './components/ThemeProvider';
+import { AuthProvider } from './contexts/AuthContext';
+import './App.css';
 
 function App() {
   return (
@@ -10,7 +10,7 @@ function App() {
         <VoiceTaskManager />
       </AuthProvider>
     </ThemeProvider>
-  )
+  );
 }
 
-export default App
+export default App;

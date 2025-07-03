@@ -1,4 +1,10 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  ReactNode,
+} from 'react';
 
 interface User {
   id: string;
@@ -35,9 +41,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const API_BASE = process.env.NODE_ENV === 'production' 
-    ? 'https://api.incantations.witchcraftery.io'
-    : 'http://localhost:3001';
+  const API_BASE =
+    process.env.NODE_ENV === 'production'
+      ? 'https://api.incantations.witchcraftery.io'
+      : 'http://localhost:3001';
 
   useEffect(() => {
     checkAuthStatus();
@@ -63,7 +70,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const login = async (credential: string, clientId: string) => {
     try {
       setLoading(true);
-      
+
       const response = await fetch(`${API_BASE}/api/auth/google`, {
         method: 'POST',
         headers: {
@@ -79,7 +86,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       const data = await response.json();
       setUser(data.user);
-      
+
       // Auto-sync localStorage preferences on first login
       const localPrefs = localStorage.getItem('incantations-preferences');
       if (localPrefs) {
@@ -90,7 +97,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           console.warn('Failed to sync local preferences:', error);
         }
       }
-      
     } catch (error) {
       console.error('Login error:', error);
       throw error;
@@ -114,25 +120,25 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const getPreferences = async (): Promise<any> => {
     if (!user) return {};
-    
+
     try {
       const response = await fetch(`${API_BASE}/api/user/preferences`, {
         credentials: 'include',
       });
-      
+
       if (response.ok) {
         return await response.json();
       }
     } catch (error) {
       console.error('Failed to get preferences:', error);
     }
-    
+
     return {};
   };
 
   const updatePreferences = async (preferences: any) => {
     if (!user) return;
-    
+
     try {
       await fetch(`${API_BASE}/api/user/preferences`, {
         method: 'PUT',
@@ -150,7 +156,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const syncPreferences = async (localPreferences: any) => {
     if (!user) return localPreferences;
-    
+
     try {
       const response = await fetch(`${API_BASE}/api/user/preferences/sync`, {
         method: 'POST',
@@ -160,7 +166,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         credentials: 'include',
         body: JSON.stringify({ localPreferences }),
       });
-      
+
       if (response.ok) {
         const data = await response.json();
         return data.preferences;
@@ -168,7 +174,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     } catch (error) {
       console.error('Failed to sync preferences:', error);
     }
-    
+
     return localPreferences;
   };
 
@@ -182,9 +188,5 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     getPreferences,
   };
 
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

@@ -1,22 +1,28 @@
 import React, { useState } from 'react';
-import { 
-  BookOpen, 
-  X, 
-  Mic, 
-  Brain, 
-  Bell, 
-  Mail, 
-  Calendar, 
-  Zap, 
-  MessageSquare, 
+import {
+  BookOpen,
+  X,
+  Mic,
+  Brain,
+  Bell,
+  Mail,
+  Calendar,
+  Zap,
+  MessageSquare,
   CheckCircle,
   Keyboard,
   Globe,
   Settings,
-  Users
+  Users,
 } from 'lucide-react';
 import { Button } from './ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from './ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from './ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { Badge } from './ui/badge';
 import { motion } from 'framer-motion';
@@ -27,92 +33,108 @@ export function DocumentationModal() {
   const features = {
     voice: {
       icon: Mic,
-      title: "Voice-First Experience",
-      description: "Natural conversation with your AI assistant",
+      title: 'Voice-First Experience',
+      description: 'Natural conversation with your AI assistant',
       capabilities: [
         {
-          name: "Auto-Send Conversations",
-          description: "Speak naturally, pause 2.5 seconds, message auto-sends",
-          example: "Say: 'I need to finish the quarterly report and schedule a team meeting' → Pause → AI responds → Continue talking"
+          name: 'Auto-Send Conversations',
+          description: 'Speak naturally, pause 2.5 seconds, message auto-sends',
+          example:
+            "Say: 'I need to finish the quarterly report and schedule a team meeting' → Pause → AI responds → Continue talking",
         },
         {
-          name: "Keyboard Shortcuts", 
-          description: "Lightning-fast voice control without touching mouse",
-          example: "Ctrl+Shift+V (toggle) • Space (push-to-talk) • Escape (stop)"
+          name: 'Keyboard Shortcuts',
+          description: 'Lightning-fast voice control without touching mouse',
+          example:
+            'Ctrl+Shift+V (toggle) • Space (push-to-talk) • Escape (stop)',
         },
         {
-          name: "Network Recovery",
-          description: "Seamless auto-restart on connection issues",
-          example: "Long conversations continue uninterrupted even with network hiccups"
-        }
-      ]
+          name: 'Network Recovery',
+          description: 'Seamless auto-restart on connection issues',
+          example:
+            'Long conversations continue uninterrupted even with network hiccups',
+        },
+      ],
     },
     ai: {
       icon: Brain,
-      title: "Intelligent Task Processing",
-      description: "Advanced AI that understands context and extracts actionable items",
+      title: 'Intelligent Task Processing',
+      description:
+        'Advanced AI that understands context and extracts actionable items',
       capabilities: [
         {
-          name: "Multi-Model Support",
-          description: "Choose from Claude, GPT-4, Llama, Gemini, or local simulation",
-          example: "Switch to Claude for creative tasks, GPT-4 for analysis, or local mode for privacy"
+          name: 'Multi-Model Support',
+          description:
+            'Choose from Claude, GPT-4, Llama, Gemini, or local simulation',
+          example:
+            'Switch to Claude for creative tasks, GPT-4 for analysis, or local mode for privacy',
         },
         {
-          name: "Context Awareness",
-          description: "Remembers conversation history and builds on previous discussions",
-          example: "You: 'Working on website' → Later: 'Need design help' → AI: 'For your website project, I can help with...'"
+          name: 'Context Awareness',
+          description:
+            'Remembers conversation history and builds on previous discussions',
+          example:
+            "You: 'Working on website' → Later: 'Need design help' → AI: 'For your website project, I can help with...'",
         },
         {
-          name: "Smart Task Extraction",
-          description: "Automatically identifies tasks, deadlines, priorities, and dependencies",
-          example: "From: 'I need to review the Johnson proposal by Friday and get Sarah's feedback' → Creates task with deadline and stakeholder"
-        }
-      ]
+          name: 'Smart Task Extraction',
+          description:
+            'Automatically identifies tasks, deadlines, priorities, and dependencies',
+          example:
+            "From: 'I need to review the Johnson proposal by Friday and get Sarah's feedback' → Creates task with deadline and stakeholder",
+        },
+      ],
     },
     notifications: {
       icon: Bell,
-      title: "Proactive Notifications",
-      description: "Smart alerts that keep you on track",
+      title: 'Proactive Notifications',
+      description: 'Smart alerts that keep you on track',
       capabilities: [
         {
-          name: "Daily Agenda",
-          description: "AI-optimized task ordering delivered at 9 AM",
-          example: "Good morning! Today's focus: 3 high-priority tasks, 2 quick wins, and prep for the 2 PM client call"
+          name: 'Daily Agenda',
+          description: 'AI-optimized task ordering delivered at 9 AM',
+          example:
+            "Good morning! Today's focus: 3 high-priority tasks, 2 quick wins, and prep for the 2 PM client call",
         },
         {
-          name: "Pattern-Based Suggestions",
-          description: "Learns your habits and suggests optimal timing",
-          example: "You usually tackle creative work Tuesday mornings - should I protect that time for the design project?"
+          name: 'Pattern-Based Suggestions',
+          description: 'Learns your habits and suggests optimal timing',
+          example:
+            'You usually tackle creative work Tuesday mornings - should I protect that time for the design project?',
         },
         {
-          name: "Achievement Celebrations",
-          description: "Voice notifications for completed tasks",
-          example: "Hell yeah! You crushed that quarterly report! 🎉"
-        }
-      ]
+          name: 'Achievement Celebrations',
+          description: 'Voice notifications for completed tasks',
+          example: 'Hell yeah! You crushed that quarterly report! 🎉',
+        },
+      ],
     },
     integrations: {
       icon: Globe,
-      title: "Connected Productivity",
-      description: "Seamless integration with your existing tools",
+      title: 'Connected Productivity',
+      description: 'Seamless integration with your existing tools',
       capabilities: [
         {
-          name: "Gmail Integration",
-          description: "Monitors inbox and extracts actionable items from emails",
-          example: "New email from client with project feedback → Auto-creates 'Review client feedback' task with email link"
+          name: 'Gmail Integration',
+          description:
+            'Monitors inbox and extracts actionable items from emails',
+          example:
+            "New email from client with project feedback → Auto-creates 'Review client feedback' task with email link",
         },
         {
-          name: "Google Calendar",
-          description: "Syncs with calendar events and suggests preparation",
-          example: "Upcoming meeting about Project Alpha in 30 minutes → 'Need me to pull up the latest project docs?'"
+          name: 'Google Calendar',
+          description: 'Syncs with calendar events and suggests preparation',
+          example:
+            "Upcoming meeting about Project Alpha in 30 minutes → 'Need me to pull up the latest project docs?'",
         },
         {
-          name: "Multiple Voice Engines",
-          description: "Web Speech API + Deepgram TTS for natural responses",
-          example: "Choose from 15+ voices including premium Deepgram AI voices for high-quality audio"
-        }
-      ]
-    }
+          name: 'Multiple Voice Engines',
+          description: 'Web Speech API + Deepgram TTS for natural responses',
+          example:
+            'Choose from 15+ voices including premium Deepgram AI voices for high-quality audio',
+        },
+      ],
+    },
   };
 
   const FeatureCard = ({ feature, icon: Icon }) => (
@@ -123,10 +145,12 @@ export function DocumentationModal() {
         </div>
         <div>
           <h3 className="font-semibold text-lg">{feature.title}</h3>
-          <p className="text-sm text-gray-600 dark:text-gray-400">{feature.description}</p>
+          <p className="text-sm text-gray-600 dark:text-gray-400">
+            {feature.description}
+          </p>
         </div>
       </div>
-      
+
       <div className="space-y-4">
         {feature.capabilities.map((capability, idx) => (
           <motion.div
@@ -137,10 +161,16 @@ export function DocumentationModal() {
             className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 bg-gray-50 dark:bg-gray-800"
           >
             <div className="flex items-start justify-between mb-2">
-              <h4 className="font-medium text-gray-900 dark:text-gray-100">{capability.name}</h4>
-              <Badge variant="outline" className="text-xs">Feature</Badge>
+              <h4 className="font-medium text-gray-900 dark:text-gray-100">
+                {capability.name}
+              </h4>
+              <Badge variant="outline" className="text-xs">
+                Feature
+              </Badge>
             </div>
-            <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">{capability.description}</p>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+              {capability.description}
+            </p>
             <div className="bg-blue-50 dark:bg-blue-950 border-l-4 border-blue-400 dark:border-blue-600 p-3 rounded">
               <p className="text-sm text-blue-800 dark:text-blue-200">
                 <strong>Example:</strong> {capability.example}
@@ -160,7 +190,7 @@ export function DocumentationModal() {
           Documentation
         </Button>
       </DialogTrigger>
-      
+
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-3 text-xl">
@@ -193,12 +223,15 @@ export function DocumentationModal() {
                 >
                   <Brain className="h-10 w-10 text-white" />
                 </motion.div>
-                
+
                 <div>
-                  <h2 className="text-2xl font-bold mb-2">The Future of Task Management</h2>
+                  <h2 className="text-2xl font-bold mb-2">
+                    The Future of Task Management
+                  </h2>
                   <p className="text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-                    Transform overwhelming complexity into clear, achievable progress through natural conversation 
-                    with an AI that thinks like your perfect productivity partner.
+                    Transform overwhelming complexity into clear, achievable
+                    progress through natural conversation with an AI that thinks
+                    like your perfect productivity partner.
                   </p>
                 </div>
               </div>
@@ -210,8 +243,9 @@ export function DocumentationModal() {
                     Voice-First Design
                   </h3>
                   <p className="text-sm text-gray-600 dark:text-gray-400">
-                    Speak naturally about your work. No rigid commands or button mashing - just conversation 
-                    that flows like talking to a thinking partner who never forgets.
+                    Speak naturally about your work. No rigid commands or button
+                    mashing - just conversation that flows like talking to a
+                    thinking partner who never forgets.
                   </p>
                 </div>
 
@@ -221,8 +255,9 @@ export function DocumentationModal() {
                     Proactive Intelligence
                   </h3>
                   <p className="text-sm text-gray-600 dark:text-gray-400">
-                    Learns your patterns, anticipates needs, and makes intelligent decisions within trusted 
-                    boundaries. Your cognitive extension, not just a task tracker.
+                    Learns your patterns, anticipates needs, and makes
+                    intelligent decisions within trusted boundaries. Your
+                    cognitive extension, not just a task tracker.
                   </p>
                 </div>
 
@@ -232,8 +267,9 @@ export function DocumentationModal() {
                     Connected Workflow
                   </h3>
                   <p className="text-sm text-gray-600 dark:text-gray-400">
-                    Integrates seamlessly with Gmail, Google Calendar, and multiple AI models. 
-                    Works with your existing tools, not against them.
+                    Integrates seamlessly with Gmail, Google Calendar, and
+                    multiple AI models. Works with your existing tools, not
+                    against them.
                   </p>
                 </div>
 
@@ -243,8 +279,9 @@ export function DocumentationModal() {
                     Emotional Partnership
                   </h3>
                   <p className="text-sm text-gray-600 dark:text-gray-400">
-                    Celebrates victories, provides gentle accountability, and adapts communication style 
-                    to your energy levels. Success feels rewarding, not mechanical.
+                    Celebrates victories, provides gentle accountability, and
+                    adapts communication style to your energy levels. Success
+                    feels rewarding, not mechanical.
                   </p>
                 </div>
               </div>
@@ -255,16 +292,31 @@ export function DocumentationModal() {
                   Quick Start
                 </h3>
                 <div className="space-y-2 text-sm">
-                  <p><strong>1. Voice:</strong> Click mic or press Ctrl+Shift+V to start talking</p>
-                  <p><strong>2. Natural:</strong> "I need to finish the quarterly report by Friday"</p>
-                  <p><strong>3. Auto-send:</strong> Pause 2.5 seconds, AI responds and creates tasks</p>
-                  <p><strong>4. Continue:</strong> Keep talking to refine, add details, or switch topics</p>
+                  <p>
+                    <strong>1. Voice:</strong> Click mic or press Ctrl+Shift+V
+                    to start talking
+                  </p>
+                  <p>
+                    <strong>2. Natural:</strong> "I need to finish the quarterly
+                    report by Friday"
+                  </p>
+                  <p>
+                    <strong>3. Auto-send:</strong> Pause 2.5 seconds, AI
+                    responds and creates tasks
+                  </p>
+                  <p>
+                    <strong>4. Continue:</strong> Keep talking to refine, add
+                    details, or switch topics
+                  </p>
                 </div>
               </div>
             </TabsContent>
 
             <TabsContent value="voice">
-              <FeatureCard feature={features.voice} icon={features.voice.icon} />
+              <FeatureCard
+                feature={features.voice}
+                icon={features.voice.icon}
+              />
             </TabsContent>
 
             <TabsContent value="ai">
@@ -272,11 +324,17 @@ export function DocumentationModal() {
             </TabsContent>
 
             <TabsContent value="notifications">
-              <FeatureCard feature={features.notifications} icon={features.notifications.icon} />
+              <FeatureCard
+                feature={features.notifications}
+                icon={features.notifications.icon}
+              />
             </TabsContent>
 
             <TabsContent value="integrations">
-              <FeatureCard feature={features.integrations} icon={features.integrations.icon} />
+              <FeatureCard
+                feature={features.integrations}
+                icon={features.integrations.icon}
+              />
             </TabsContent>
           </div>
         </Tabs>
@@ -288,7 +346,11 @@ export function DocumentationModal() {
             </div>
             <div className="flex items-center gap-2">
               <Badge variant="outline">v1.0.0</Badge>
-              <Button variant="outline" size="sm" onClick={() => setIsOpen(false)}>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setIsOpen(false)}
+              >
                 <X className="h-4 w-4 mr-2" />
                 Close
               </Button>

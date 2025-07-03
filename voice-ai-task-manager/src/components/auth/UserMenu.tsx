@@ -67,7 +67,7 @@ export const UserMenu: React.FC = () => {
           <span>Account Settings</span>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuItem 
+        <DropdownMenuItem
           onClick={handleLogout}
           disabled={isLoggingOut}
           className="text-red-600 focus:text-red-600"

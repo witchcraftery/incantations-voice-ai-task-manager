@@ -1,8 +1,22 @@
 import React, { useState, useMemo } from 'react';
-import { Search, Filter, Plus, BarChart3, CheckCircle2, Clock, AlertTriangle } from 'lucide-react';
+import {
+  Search,
+  Filter,
+  Plus,
+  BarChart3,
+  CheckCircle2,
+  Clock,
+  AlertTriangle,
+} from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from './ui/select';
 import { ScrollArea } from './ui/scroll-area';
 import { TaskCard } from './TaskCard';
 import { Task } from '../types';
@@ -24,7 +38,7 @@ export function TaskDashboard({
   onToggleComplete,
   onEditTask,
   onDeleteTask,
-  onCreateTask
+  onCreateTask,
 }: TaskDashboardProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState<FilterType>('all');
@@ -44,10 +58,11 @@ export function TaskDashboard({
     // Search filter
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(task =>
-        task.title.toLowerCase().includes(query) ||
-        task.description?.toLowerCase().includes(query) ||
-        task.tags.some(tag => tag.toLowerCase().includes(query))
+      filtered = filtered.filter(
+        task =>
+          task.title.toLowerCase().includes(query) ||
+          task.description?.toLowerCase().includes(query) ||
+          task.tags.some(tag => tag.toLowerCase().includes(query))
       );
     }
 
@@ -55,10 +70,9 @@ export function TaskDashboard({
     if (filterType !== 'all') {
       if (filterType === 'overdue') {
         const now = new Date();
-        filtered = filtered.filter(task =>
-          task.dueDate &&
-          task.dueDate < now &&
-          task.status !== 'completed'
+        filtered = filtered.filter(
+          task =>
+            task.dueDate && task.dueDate < now && task.status !== 'completed'
         );
       } else {
         filtered = filtered.filter(task => task.status === filterType);
@@ -99,12 +113,12 @@ export function TaskDashboard({
     const total = tasks.length;
     const completed = tasks.filter(task => task.status === 'completed').length;
     const pending = tasks.filter(task => task.status === 'pending').length;
-    const inProgress = tasks.filter(task => task.status === 'in-progress').length;
+    const inProgress = tasks.filter(
+      task => task.status === 'in-progress'
+    ).length;
     const now = new Date();
-    const overdue = tasks.filter(task =>
-      task.dueDate &&
-      task.dueDate < now &&
-      task.status !== 'completed'
+    const overdue = tasks.filter(
+      task => task.dueDate && task.dueDate < now && task.status !== 'completed'
     ).length;
 
     return { total, completed, pending, inProgress, overdue };
@@ -112,12 +126,18 @@ export function TaskDashboard({
 
   const getFilterCount = (filter: FilterType) => {
     switch (filter) {
-      case 'all': return stats.total;
-      case 'pending': return stats.pending;
-      case 'in-progress': return stats.inProgress;
-      case 'completed': return stats.completed;
-      case 'overdue': return stats.overdue;
-      default: return 0;
+      case 'all':
+        return stats.total;
+      case 'pending':
+        return stats.pending;
+      case 'in-progress':
+        return stats.inProgress;
+      case 'completed':
+        return stats.completed;
+      case 'overdue':
+        return stats.overdue;
+      default:
+        return 0;
     }
   };
 
@@ -153,7 +173,9 @@ export function TaskDashboard({
           <div className="p-3 bg-gray-50 dark:bg-gray-900 rounded-lg">
             <div className="flex items-center gap-2">
               <BarChart3 className="h-4 w-4 text-gray-600 dark:text-gray-400" />
-              <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Total</span>
+              <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                Total
+              </span>
             </div>
             <p className="text-2xl font-bold text-gray-900 dark:text-gray-100 mt-1">
               {stats.total}
@@ -163,7 +185,9 @@ export function TaskDashboard({
           <div className="p-3 bg-green-50 dark:bg-green-950 rounded-lg">
             <div className="flex items-center gap-2">
               <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-400" />
-              <span className="text-sm font-medium text-green-600 dark:text-green-400">Completed</span>
+              <span className="text-sm font-medium text-green-600 dark:text-green-400">
+                Completed
+              </span>
             </div>
             <p className="text-2xl font-bold text-green-700 dark:text-green-300 mt-1">
               {stats.completed}
@@ -173,7 +197,9 @@ export function TaskDashboard({
           <div className="p-3 bg-blue-50 dark:bg-blue-950 rounded-lg">
             <div className="flex items-center gap-2">
               <Clock className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-              <span className="text-sm font-medium text-blue-600 dark:text-blue-400">In Progress</span>
+              <span className="text-sm font-medium text-blue-600 dark:text-blue-400">
+                In Progress
+              </span>
             </div>
             <p className="text-2xl font-bold text-blue-700 dark:text-blue-300 mt-1">
               {stats.inProgress}
@@ -183,7 +209,9 @@ export function TaskDashboard({
           <div className="p-3 bg-gray-50 dark:bg-gray-900 rounded-lg">
             <div className="flex items-center gap-2">
               <Clock className="h-4 w-4 text-gray-600 dark:text-gray-400" />
-              <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Pending</span>
+              <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                Pending
+              </span>
             </div>
             <p className="text-2xl font-bold text-gray-700 dark:text-gray-300 mt-1">
               {stats.pending}
@@ -193,7 +221,9 @@ export function TaskDashboard({
           <div className="p-3 bg-red-50 dark:bg-red-950 rounded-lg">
             <div className="flex items-center gap-2">
               <AlertTriangle className="h-4 w-4 text-red-600 dark:text-red-400" />
-              <span className="text-sm font-medium text-red-600 dark:text-red-400">Overdue</span>
+              <span className="text-sm font-medium text-red-600 dark:text-red-400">
+                Overdue
+              </span>
             </div>
             <p className="text-2xl font-bold text-red-700 dark:text-red-300 mt-1">
               {stats.overdue}
@@ -208,21 +238,34 @@ export function TaskDashboard({
             <Input
               placeholder="Search tasks..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={e => setSearchQuery(e.target.value)}
               className="pl-10"
             />
           </div>
 
-          <Select value={filterType} onValueChange={(value) => setFilterType(value as FilterType)}>
+          <Select
+            value={filterType}
+            onValueChange={value => setFilterType(value as FilterType)}
+          >
             <SelectTrigger>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Tasks ({getFilterCount('all')})</SelectItem>
-              <SelectItem value="pending">Pending ({getFilterCount('pending')})</SelectItem>
-              <SelectItem value="in-progress">In Progress ({getFilterCount('in-progress')})</SelectItem>
-              <SelectItem value="completed">Completed ({getFilterCount('completed')})</SelectItem>
-              <SelectItem value="overdue">Overdue ({getFilterCount('overdue')})</SelectItem>
+              <SelectItem value="all">
+                All Tasks ({getFilterCount('all')})
+              </SelectItem>
+              <SelectItem value="pending">
+                Pending ({getFilterCount('pending')})
+              </SelectItem>
+              <SelectItem value="in-progress">
+                In Progress ({getFilterCount('in-progress')})
+              </SelectItem>
+              <SelectItem value="completed">
+                Completed ({getFilterCount('completed')})
+              </SelectItem>
+              <SelectItem value="overdue">
+                Overdue ({getFilterCount('overdue')})
+              </SelectItem>
             </SelectContent>
           </Select>
 
@@ -232,7 +275,7 @@ export function TaskDashboard({
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Projects</SelectItem>
-              {projects.map((project) => (
+              {projects.map(project => (
                 <SelectItem key={project} value={project}>
                   {project}
                 </SelectItem>
@@ -240,7 +283,10 @@ export function TaskDashboard({
             </SelectContent>
           </Select>
 
-          <Select value={sortType} onValueChange={(value) => setSortType(value as SortType)}>
+          <Select
+            value={sortType}
+            onValueChange={value => setSortType(value as SortType)}
+          >
             <SelectTrigger>
               <SelectValue />
             </SelectTrigger>
@@ -259,7 +305,7 @@ export function TaskDashboard({
       <ScrollArea className="flex-1 p-4">
         <div className="space-y-3">
           <AnimatePresence mode="popLayout">
-            {filteredAndSortedTasks.map((task) => (
+            {filteredAndSortedTasks.map(task => (
               <TaskCard
                 key={task.id}
                 task={task}
@@ -285,12 +331,18 @@ export function TaskDashboard({
                 No tasks found
               </h3>
               <p className="text-gray-500 dark:text-gray-400 mb-4">
-                {searchQuery || filterType !== 'all' || selectedProject !== 'all'
+                {searchQuery ||
+                filterType !== 'all' ||
+                selectedProject !== 'all'
                   ? 'Try adjusting your filters to see more tasks.'
                   : 'Start by having a conversation about your tasks or create one manually.'}
               </p>
               {onCreateTask && (
-                <Button onClick={onCreateTask} variant="outline" className="gap-2">
+                <Button
+                  onClick={onCreateTask}
+                  variant="outline"
+                  className="gap-2"
+                >
                   <Plus className="h-4 w-4" />
                   Create Your First Task
                 </Button>

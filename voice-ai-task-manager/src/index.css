@@ -9,17 +9,26 @@
   }
 
   /* Smooth theme transitions - only for major elements */
-  html, body {
+  html,
+  body {
     transition: background-color 0.25s ease;
   }
-  
+
   /* More selective transitions for interactive elements */
-  .bg-white, .bg-gray-50, .bg-gray-900, .bg-gray-950,
-  .dark\\:bg-gray-800, .dark\\:bg-gray-900, .dark\\:bg-gray-950 {
+  .bg-white,
+  .bg-gray-50,
+  .bg-gray-900,
+  .bg-gray-950,
+  .dark\\:bg-gray-800,
+  .dark\\:bg-gray-900,
+  .dark\\:bg-gray-950 {
     transition: background-color 0.2s ease;
   }
-  
-  .text-gray-900, .text-gray-100, .dark\\:text-gray-100, .dark\\:text-gray-900 {
+
+  .text-gray-900,
+  .text-gray-100,
+  .dark\\:text-gray-100,
+  .dark\\:text-gray-900 {
     transition: color 0.2s ease;
   }
 
@@ -49,7 +58,7 @@
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
     --radius: 0.5rem;
-    
+
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 240 5.3% 26.1%;
     --sidebar-primary: 240 5.9% 10%;
@@ -85,7 +94,7 @@
     --chart-3: 30 80% 55%;
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
-    
+
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
     --sidebar-primary: 224.3 76.3% 48%;
@@ -111,26 +120,27 @@
   .gradient-text {
     @apply bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent;
   }
-  
+
   .glass-effect {
     @apply backdrop-blur-sm bg-white/10 border border-white/20;
   }
-  
+
   .voice-pulse {
     animation: voice-pulse 1.5s ease-in-out infinite;
   }
-  
+
   .task-card-hover {
     @apply transition-all duration-200 hover:shadow-lg hover:-translate-y-1;
   }
-  
+
   .chat-message-animation {
     animation: slideInFromBottom 0.3s ease-out;
   }
 }
 
 @keyframes voice-pulse {
-  0%, 100% {
+  0%,
+  100% {
     transform: scale(1);
     opacity: 1;
   }
@@ -182,13 +192,22 @@
   animation: voice-wave 1.2s ease-in-out infinite;
 }
 
-.voice-wave-bar:nth-child(2) { animation-delay: 0.1s; }
-.voice-wave-bar:nth-child(3) { animation-delay: 0.2s; }
-.voice-wave-bar:nth-child(4) { animation-delay: 0.3s; }
-.voice-wave-bar:nth-child(5) { animation-delay: 0.4s; }
+.voice-wave-bar:nth-child(2) {
+  animation-delay: 0.1s;
+}
+.voice-wave-bar:nth-child(3) {
+  animation-delay: 0.2s;
+}
+.voice-wave-bar:nth-child(4) {
+  animation-delay: 0.3s;
+}
+.voice-wave-bar:nth-child(5) {
+  animation-delay: 0.4s;
+}
 
 @keyframes voice-wave {
-  0%, 100% {
+  0%,
+  100% {
     height: 4px;
   }
   50% {

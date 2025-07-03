@@ -23,13 +23,15 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     if (saved === 'dark') return 'dark';
     if (saved === 'light') return 'light';
     // For system theme, check system preference
-    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    return window.matchMedia('(prefers-color-scheme: dark)').matches
+      ? 'dark'
+      : 'light';
   });
 
   // Remove preload class on mount to enable transitions
   useEffect(() => {
     document.body.classList.remove('preload');
-    
+
     // Set initial theme class immediately
     const root = window.document.documentElement;
     root.classList.remove('light', 'dark');
@@ -43,10 +45,11 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     root.classList.remove('light', 'dark');
 
     if (theme === 'system') {
-      const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches
+      const systemTheme = window.matchMedia('(prefers-color-scheme: dark)')
+        .matches
         ? 'dark'
         : 'light';
-      
+
       setActualTheme(systemTheme);
       root.classList.add(systemTheme);
     } else {
@@ -59,11 +62,11 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     // Listen for system theme changes when using system theme
     if (theme === 'system') {
       const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-      
+
       const handleChange = (e: MediaQueryListEvent) => {
         const root = window.document.documentElement;
         root.classList.remove('light', 'dark');
-        
+
         const newTheme = e.matches ? 'dark' : 'light';
         setActualTheme(newTheme);
         root.classList.add(newTheme);
@@ -84,9 +87,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <ThemeContext.Provider value={value}>
-      {children}
-    </ThemeContext.Provider>
+    <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>
   );
 }
 

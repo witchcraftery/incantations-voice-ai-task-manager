@@ -1,7 +1,13 @@
 import React, { useState } from 'react';
 import { CheckCircle2, Trash2, Edit3, FolderOpen, Tag, X } from 'lucide-react';
 import { Button } from './ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from './ui/select';
 import { Badge } from './ui/badge';
 import { Task } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -19,7 +25,7 @@ export function TaskBulkActions({
   tasks,
   onBulkUpdate,
   onBulkDelete,
-  onClearSelection
+  onClearSelection,
 }: TaskBulkActionsProps) {
   const [showActions, setShowActions] = useState(false);
   const selectedCount = selectedTaskIds.size;
@@ -38,18 +44,26 @@ export function TaskBulkActions({
   };
 
   const handleProjectUpdate = (project: string) => {
-    onBulkUpdate(Array.from(selectedTaskIds), { project: project === 'none' ? undefined : project });
+    onBulkUpdate(Array.from(selectedTaskIds), {
+      project: project === 'none' ? undefined : project,
+    });
     onClearSelection();
   };
 
   const handleBulkDelete = () => {
-    if (window.confirm(`Are you sure you want to delete ${selectedCount} task(s)?`)) {
+    if (
+      window.confirm(
+        `Are you sure you want to delete ${selectedCount} task(s)?`
+      )
+    ) {
       onBulkDelete(Array.from(selectedTaskIds));
     }
   };
 
   // Get unique projects from all tasks
-  const allProjects = Array.from(new Set(tasks.map(task => task.project).filter(Boolean)));
+  const allProjects = Array.from(
+    new Set(tasks.map(task => task.project).filter(Boolean))
+  );
 
   return (
     <AnimatePresence>
@@ -76,11 +90,7 @@ export function TaskBulkActions({
             >
               <Edit3 className="h-4 w-4" />
             </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onClearSelection}
-            >
+            <Button variant="ghost" size="sm" onClick={onClearSelection}>
               <X className="h-4 w-4" />
             </Button>
           </div>

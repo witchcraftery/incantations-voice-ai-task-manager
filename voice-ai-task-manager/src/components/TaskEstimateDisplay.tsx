@@ -12,15 +12,16 @@ interface TaskEstimateDisplayProps {
   size?: 'sm' | 'md' | 'lg';
 }
 
-export function TaskEstimateDisplay({ 
-  task, 
-  estimation, 
-  showDetails = false, 
-  size = 'md' 
+export function TaskEstimateDisplay({
+  task,
+  estimation,
+  showDetails = false,
+  size = 'md',
 }: TaskEstimateDisplayProps) {
-  const estimatedMinutes = estimation?.estimatedMinutes || task.estimatedMinutes || 0;
+  const estimatedMinutes =
+    estimation?.estimatedMinutes || task.estimatedMinutes || 0;
   const confidence = estimation?.confidence || 0.5;
-  
+
   if (estimatedMinutes === 0) return null;
 
   const getConfidenceColor = (conf: number) => {
@@ -38,14 +39,17 @@ export function TaskEstimateDisplay({
   const sizeClasses = {
     sm: 'text-xs',
     md: 'text-sm',
-    lg: 'text-base'
+    lg: 'text-base',
   };
 
   if (!showDetails) {
     return (
       <Tooltip>
         <TooltipTrigger asChild>
-          <Badge variant="outline" className={`flex items-center gap-1 ${sizeClasses[size]}`}>
+          <Badge
+            variant="outline"
+            className={`flex items-center gap-1 ${sizeClasses[size]}`}
+          >
             <Clock className="h-3 w-3" />
             {formatDuration(estimatedMinutes)}
           </Badge>
@@ -71,9 +75,11 @@ export function TaskEstimateDisplay({
     <div className="space-y-2">
       <div className="flex items-center gap-2">
         <Clock className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-        <span className="font-medium">Estimated Time: {formatDuration(estimatedMinutes)}</span>
-        <Badge 
-          variant="outline" 
+        <span className="font-medium">
+          Estimated Time: {formatDuration(estimatedMinutes)}
+        </span>
+        <Badge
+          variant="outline"
           className={`text-xs ${getConfidenceColor(confidence)}`}
         >
           {Math.round(confidence * 100)}% confidence
@@ -85,7 +91,9 @@ export function TaskEstimateDisplay({
           {estimation.basedOnSimilar.length > 0 && (
             <div className="flex items-center gap-1">
               <Users className="h-3 w-3" />
-              <span>Based on {estimation.basedOnSimilar.length} similar tasks</span>
+              <span>
+                Based on {estimation.basedOnSimilar.length} similar tasks
+              </span>
             </div>
           )}
 
@@ -105,7 +113,8 @@ export function TaskEstimateDisplay({
               )}
               {estimation.factors.projectFamiliarity !== 1 && (
                 <Badge variant="secondary" className="text-xs">
-                  Familiarity: {Math.round(estimation.factors.projectFamiliarity * 100)}%
+                  Familiarity:{' '}
+                  {Math.round(estimation.factors.projectFamiliarity * 100)}%
                 </Badge>
               )}
             </div>
@@ -117,13 +126,20 @@ export function TaskEstimateDisplay({
               <span>
                 Actual: {formatDuration(task.actualMinutes)}
                 {task.estimatedMinutes && (
-                  <span className={`ml-1 ${
-                    task.actualMinutes <= task.estimatedMinutes 
-                      ? 'text-green-600' 
-                      : 'text-red-600'
-                  }`}>
+                  <span
+                    className={`ml-1 ${
+                      task.actualMinutes <= task.estimatedMinutes
+                        ? 'text-green-600'
+                        : 'text-red-600'
+                    }`}
+                  >
                     ({task.actualMinutes > task.estimatedMinutes ? '+' : ''}
-                    {Math.round(((task.actualMinutes - task.estimatedMinutes) / task.estimatedMinutes) * 100)}%)
+                    {Math.round(
+                      ((task.actualMinutes - task.estimatedMinutes) /
+                        task.estimatedMinutes) *
+                        100
+                    )}
+                    %)
                   </span>
                 )}
               </span>

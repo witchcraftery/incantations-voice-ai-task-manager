@@ -19,7 +19,7 @@ export function VoiceControls({
   onTranscript,
   onStartListening,
   onStopListening,
-  onAutoSend
+  onAutoSend,
 }: VoiceControlsProps) {
   const {
     voiceState,
@@ -28,7 +28,7 @@ export function VoiceControls({
     stopSpeaking,
     getFinalTranscript,
     isSupported,
-    clearError
+    clearError,
   } = useVoice(preferences, onAutoSend);
 
   const handleStartListening = () => {
@@ -41,11 +41,11 @@ export function VoiceControls({
   const handleStopListening = () => {
     stopListening();
     onStopListening?.();
-    
+
     // Get the final transcript with fallback to displayed transcript
     const finalTranscript = getFinalTranscript();
     const transcriptToSend = finalTranscript || voiceState.transcript.trim();
-    
+
     if (transcriptToSend) {
       console.log('🎤 Sending voice transcript:', transcriptToSend);
       onTranscript(transcriptToSend);
@@ -60,10 +60,12 @@ export function VoiceControls({
 
   // Keyboard shortcuts for voice control
   const { shortcuts } = useKeyboardShortcuts({
-    onToggleVoice: voiceState.isListening ? handleStopListening : handleStartListening,
+    onToggleVoice: voiceState.isListening
+      ? handleStopListening
+      : handleStartListening,
     onStopVoice: handleStopListening,
     isVoiceActive: voiceState.isListening,
-    enabled: preferences.voiceEnabled && isSupported()
+    enabled: preferences.voiceEnabled && isSupported(),
   });
 
   if (!preferences.voiceEnabled || !isSupported()) {
@@ -85,7 +87,7 @@ export function VoiceControls({
 
       {/* Keyboard Shortcuts Hint */}
       {!voiceState.isListening && (
-        <div 
+        <div
           className="hidden lg:flex items-center gap-1 px-2 py-1 bg-gray-100 dark:bg-gray-800 rounded text-xs text-gray-600 dark:text-gray-400"
           title="Keyboard shortcuts available"
         >
@@ -96,12 +98,18 @@ export function VoiceControls({
 
       {/* Listening Button */}
       <Button
-        variant={voiceState.isListening ? "destructive" : "default"}
+        variant={voiceState.isListening ? 'destructive' : 'default'}
         size="icon"
-        onClick={voiceState.isListening ? handleStopListening : handleStartListening}
+        onClick={
+          voiceState.isListening ? handleStopListening : handleStartListening
+        }
         disabled={voiceState.isProcessing}
         className="relative"
-        title={voiceState.isListening ? 'Stop recording (Esc)' : 'Start recording (Ctrl+Shift+V or Space)'}
+        title={
+          voiceState.isListening
+            ? 'Stop recording (Esc)'
+            : 'Start recording (Ctrl+Shift+V or Space)'
+        }
       >
         {voiceState.isListening ? (
           <>
@@ -183,8 +191,8 @@ export function VoiceControls({
             <div className="h-2 w-2 bg-yellow-500 rounded-full animate-pulse" />
           )}
           <span>
-            {voiceState.error.includes('network') 
-              ? 'Reconnecting...' 
+            {voiceState.error.includes('network')
+              ? 'Reconnecting...'
               : voiceState.error}
           </span>
         </motion.div>

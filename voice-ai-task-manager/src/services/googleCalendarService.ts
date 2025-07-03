@@ -37,9 +37,10 @@ export class GoogleCalendarService {
 
   constructor(config: CalendarConfig) {
     this.config = {
-      discoveryDoc: 'https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest',
+      discoveryDoc:
+        'https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest',
       scopes: ['https://www.googleapis.com/auth/calendar.readonly'],
-      ...config
+      ...config,
     };
   }
 
@@ -51,14 +52,14 @@ export class GoogleCalendarService {
       }
 
       this.gapi = window.gapi;
-      
+
       // Initialize the API
       await this.gapi.load('client:auth2', async () => {
         await this.gapi.client.init({
           apiKey: this.config.apiKey,
           clientId: this.config.clientId,
           discoveryDocs: [this.config.discoveryDoc],
-          scope: this.config.scopes.join(' ')
+          scope: this.config.scopes.join(' '),
         });
 
         this.isInitialized = true;
@@ -124,11 +125,13 @@ export class GoogleCalendarService {
       const params: any = {
         calendarId: 'primary',
         timeMin: (timeMin || now).toISOString(),
-        timeMax: (timeMax || new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000)).toISOString(),
+        timeMax: (
+          timeMax || new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000)
+        ).toISOString(),
         showDeleted: false,
         singleEvents: true,
         maxResults,
-        orderBy: 'startTime'
+        orderBy: 'startTime',
       };
 
       const response = await this.gapi.client.calendar.events.list(params);
@@ -141,16 +144,24 @@ export class GoogleCalendarService {
 
   async getTodaysEvents(): Promise<CalendarEvent[]> {
     const today = new Date();
-    const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-    const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1);
-    
+    const startOfDay = new Date(
+      today.getFullYear(),
+      today.getMonth(),
+      today.getDate()
+    );
+    const endOfDay = new Date(
+      today.getFullYear(),
+      today.getMonth(),
+      today.getDate() + 1
+    );
+
     return this.getEvents(startOfDay, endOfDay);
   }
 
   async getUpcomingEvents(days: number = 7): Promise<CalendarEvent[]> {
     const now = new Date();
     const future = new Date(now.getTime() + days * 24 * 60 * 60 * 1000);
-    
+
     return this.getEvents(now, future);
   }
 
@@ -166,8 +177,10 @@ export class GoogleCalendarService {
     const tasks: Array<any> = [];
 
     events.forEach(event => {
-      const eventDate = new Date(event.start.dateTime || event.start.date || '');
-      
+      const eventDate = new Date(
+        event.start.dateTime || event.start.date || ''
+      );
+
       // Extract preparation tasks for meetings
       if (this.isMeeting(event)) {
         tasks.push({
@@ -176,7 +189,7 @@ export class GoogleCalendarService {
           dueDate: new Date(eventDate.getTime() - 30 * 60 * 1000), // 30 minutes before
           priority: this.determinePriority(event),
           tags: ['meeting', 'preparation'],
-          project: 'Meetings'
+          project: 'Meetings',
         });
       }
 
@@ -188,7 +201,7 @@ export class GoogleCalendarService {
           dueDate: new Date(eventDate.getTime() + 24 * 60 * 60 * 1000), // Next day
           priority: 'medium',
           tags: ['follow-up', 'meeting'],
-          project: 'Meetings'
+          project: 'Meetings',
         });
       }
 
@@ -200,7 +213,7 @@ export class GoogleCalendarService {
           dueDate: eventDate,
           priority: 'high',
           tags: ['deadline'],
-          project: 'Deadlines'
+          project: 'Deadlines',
         });
       }
     });
@@ -209,28 +222,33 @@ export class GoogleCalendarService {
   }
 
   private isMeeting(event: CalendarEvent): boolean {
-    return !!(event.attendees && event.attendees.length > 0) ||
-           event.summary.toLowerCase().includes('meeting') ||
-           event.summary.toLowerCase().includes('call') ||
-           event.summary.toLowerCase().includes('sync');
+    return (
+      !!(event.attendees && event.attendees.length > 0) ||
+      event.summary.toLowerCase().includes('meeting') ||
+      event.summary.toLowerCase().includes('call') ||
+      event.summary.toLowerCase().includes('sync')
+    );
   }
 
   private isDeadlineEvent(event: CalendarEvent): boolean {
     const summary = event.summary.toLowerCase();
-    return summary.includes('deadline') ||
-           summary.includes('due') ||
-           summary.includes('submit') ||
-           summary.includes('deliver');
+    return (
+      summary.includes('deadline') ||
+      summary.includes('due') ||
+      summary.includes('submit') ||
+      summary.includes('deliver')
+    );
   }
 
   private determinePriority(event: CalendarEvent): 'low' | 'medium' | 'high' {
     const summary = event.summary.toLowerCase();
     const attendeeCount = event.attendees?.length || 0;
 
-    if (summary.includes('urgent') || summary.includes('critical')) return 'high';
+    if (summary.includes('urgent') || summary.includes('critical'))
+      return 'high';
     if (attendeeCount > 5) return 'high';
     if (attendeeCount > 2) return 'medium';
-    
+
     return 'low';
   }
 
@@ -238,12 +256,14 @@ export class GoogleCalendarService {
   async checkForConflicts(taskDueDate: Date): Promise<CalendarEvent[]> {
     const startTime = new Date(taskDueDate.getTime() - 60 * 60 * 1000); // 1 hour before
     const endTime = new Date(taskDueDate.getTime() + 60 * 60 * 1000); // 1 hour after
-    
+
     const events = await this.getEvents(startTime, endTime);
     return events.filter(event => {
-      const eventStart = new Date(event.start.dateTime || event.start.date || '');
+      const eventStart = new Date(
+        event.start.dateTime || event.start.date || ''
+      );
       const eventEnd = new Date(event.end.dateTime || event.end.date || '');
-      
+
       return eventStart <= taskDueDate && eventEnd >= taskDueDate;
     });
   }
@@ -259,9 +279,12 @@ export class GoogleCalendarService {
 
   get userEmail(): string | null {
     if (!this.isSignedIn) return null;
-    
+
     try {
-      const profile = this.gapi.auth2.getAuthInstance().currentUser.get().getBasicProfile();
+      const profile = this.gapi.auth2
+        .getAuthInstance()
+        .currentUser.get()
+        .getBasicProfile();
       return profile.getEmail();
     } catch (error) {
       console.error('Failed to get user email:', error);

@@ -20,27 +20,27 @@ interface BackgroundAgentState {
 }
 
 export function useBackgroundAgent(
-  preferences: UserPreferences, 
+  preferences: UserPreferences,
   options: UseBackgroundAgentOptions = {
     enabled: true,
     aggressiveness: 'normal',
-    checkInterval: 5 * 60 * 1000 // 5 minutes
+    checkInterval: 5 * 60 * 1000, // 5 minutes
   }
 ) {
   const { toast } = useToast();
-  
+
   const [state, setState] = useState<BackgroundAgentState>({
     isRunning: false,
     lastSuggestion: null,
     suggestionCount: 0,
     emailMonitoring: false,
-    error: null
+    error: null,
   });
 
   const [services] = useState(() => ({
     backgroundAgent: new BackgroundAgentService(preferences),
     voiceNotifications: new VoiceNotificationService(preferences),
-    gmailAgent: new GmailAgentService(preferences)
+    gmailAgent: new GmailAgentService(preferences),
   }));
 
   // Update services when preferences change
@@ -55,16 +55,21 @@ export function useBackgroundAgent(
     // Background agent suggestions
     services.backgroundAgent.onNotification(async (message, type) => {
       console.log(`🤖 Background Agent: ${type} - ${message}`);
-      
+
       setState(prev => ({
         ...prev,
         lastSuggestion: message,
-        suggestionCount: prev.suggestionCount + 1
+        suggestionCount: prev.suggestionCount + 1,
       }));
 
       // Show toast notification
       toast({
-        title: type === 'alert' ? '🚨 Alert' : type === 'coaching' ? '💪 Coaching' : '💡 Suggestion',
+        title:
+          type === 'alert'
+            ? '🚨 Alert'
+            : type === 'coaching'
+              ? '💪 Coaching'
+              : '💡 Suggestion',
         description: message,
         duration: 5000,
       });
@@ -74,27 +79,30 @@ export function useBackgroundAgent(
     });
 
     // Gmail agent email analysis
-    services.gmailAgent.onEmailAnalysis(async (analysis) => {
+    services.gmailAgent.onEmailAnalysis(async analysis => {
       console.log('📧 Email Analysis:', analysis);
-      
+
       if (analysis.shouldNotify) {
         const taskCount = analysis.extractedTasks.length;
-        
+
         if (taskCount > 0) {
           toast({
             title: '📧 New Email Tasks',
             description: `${taskCount} actionable item${taskCount > 1 ? 's' : ''} found in recent emails`,
             duration: 4000,
           });
-          
+
           await services.voiceNotifications.playEmailNotification(taskCount);
-        } else if (analysis.urgency === 'urgent' || analysis.urgency === 'high') {
+        } else if (
+          analysis.urgency === 'urgent' ||
+          analysis.urgency === 'high'
+        ) {
           toast({
             title: '📧 Important Email',
             description: `${analysis.urgency} priority email received`,
             duration: 4000,
           });
-          
+
           await services.voiceNotifications.playPriorityAlert();
         }
       }
@@ -112,14 +120,17 @@ export function useBackgroundAgent(
       services.backgroundAgent.start({
         enabled: true,
         checkInterval: options.checkInterval,
-        aggressiveness: options.aggressiveness
+        aggressiveness: options.aggressiveness,
       });
 
       // Start Gmail monitoring if enabled
-      if (preferences.googleIntegration?.enabled && preferences.googleIntegration?.gmailEnabled) {
+      if (
+        preferences.googleIntegration?.enabled &&
+        preferences.googleIntegration?.gmailEnabled
+      ) {
         const gmailStarted = await services.gmailAgent.startMonitoring();
         setState(prev => ({ ...prev, emailMonitoring: gmailStarted }));
-        
+
         if (gmailStarted) {
           toast({
             title: '📧 Gmail Agent Started',
@@ -137,20 +148,21 @@ export function useBackgroundAgent(
 
       return true;
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      setState(prev => ({ 
-        ...prev, 
-        isRunning: false, 
-        error: errorMessage 
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error';
+      setState(prev => ({
+        ...prev,
+        isRunning: false,
+        error: errorMessage,
       }));
-      
+
       toast({
         title: '❌ Agent Start Failed',
         description: errorMessage,
         variant: 'destructive',
         duration: 4000,
       });
-      
+
       return false;
     }
   }, [options, preferences, services, toast]);
@@ -159,12 +171,12 @@ export function useBackgroundAgent(
   const stopAgent = useCallback(() => {
     services.backgroundAgent.stop();
     services.gmailAgent.stopMonitoring();
-    
+
     setState(prev => ({
       ...prev,
       isRunning: false,
       emailMonitoring: false,
-      error: null
+      error: null,
     }));
 
     toast({
@@ -181,7 +193,7 @@ export function useBackgroundAgent(
     try {
       // Trigger background agent analysis
       await (services.backgroundAgent as any).performBackgroundAnalysis();
-      
+
       toast({
         title: '🔄 Manual Check Complete',
         description: 'Background analysis triggered',
@@ -198,7 +210,7 @@ export function useBackgroundAgent(
     try {
       const analyses = await services.gmailAgent.manualEmailCheck();
       const actionable = analyses.filter(a => a.isActionable);
-      
+
       if (actionable.length > 0) {
         toast({
           title: '📧 Email Check Complete',
@@ -206,7 +218,7 @@ export function useBackgroundAgent(
           duration: 3000,
         });
       }
-      
+
       return actionable;
     } catch (error) {
       console.error('Email check failed:', error);
@@ -216,7 +228,7 @@ export function useBackgroundAgent(
 
   const getEmailTasks = useCallback(async () => {
     if (!state.emailMonitoring) return [];
-    
+
     try {
       return await services.gmailAgent.getEmailTasks();
     } catch (error) {
@@ -230,16 +242,19 @@ export function useBackgroundAgent(
     await services.voiceNotifications.testAllNotifications();
   }, [services]);
 
-  const playCustomCelebration = useCallback(async (taskTitle: string) => {
-    await services.voiceNotifications.playCelebration(taskTitle);
-  }, [services]);
+  const playCustomCelebration = useCallback(
+    async (taskTitle: string) => {
+      await services.voiceNotifications.playCelebration(taskTitle);
+    },
+    [services]
+  );
 
   // Auto-start on mount if enabled
   useEffect(() => {
     if (options.enabled && !state.isRunning) {
       startAgent();
     }
-    
+
     return () => {
       stopAgent();
     };
@@ -248,21 +263,21 @@ export function useBackgroundAgent(
   return {
     // State
     state,
-    
+
     // Control methods
     startAgent,
     stopAgent,
-    
+
     // Manual triggers
     triggerManualCheck,
     triggerEmailCheck,
     getEmailTasks,
-    
+
     // Voice testing
     testVoiceNotifications,
     playCustomCelebration,
-    
+
     // Service access
-    services
+    services,
   };
 }

@@ -1,4 +1,10 @@
-import { Task, TaskAnalytics, ProductivityPattern, EnergyWindow, TaskEstimation } from '../types';
+import {
+  Task,
+  TaskAnalytics,
+  ProductivityPattern,
+  EnergyWindow,
+  TaskEstimation,
+} from '../types';
 import { v4 as uuidv4 } from 'uuid';
 
 export class AnalyticsService {
@@ -18,11 +24,11 @@ export class AnalyticsService {
     try {
       const stored = localStorage.getItem(this.ANALYTICS_KEY);
       if (!stored) return [];
-      
+
       const analytics = JSON.parse(stored);
       return analytics.map((item: any) => ({
         ...item,
-        completedAt: new Date(item.completedAt)
+        completedAt: new Date(item.completedAt),
       }));
     } catch (error) {
       console.error('Failed to load analytics:', error);
@@ -32,10 +38,13 @@ export class AnalyticsService {
 
   // Track task completion
   trackTaskCompletion(task: Task): void {
-    if (task.status !== 'completed' || !task.completedAt || !task.startedAt) return;
+    if (task.status !== 'completed' || !task.completedAt || !task.startedAt)
+      return;
 
-    const actualMinutes = Math.round((task.completedAt.getTime() - task.startedAt.getTime()) / (1000 * 60));
-    
+    const actualMinutes = Math.round(
+      (task.completedAt.getTime() - task.startedAt.getTime()) / (1000 * 60)
+    );
+
     const analytics: TaskAnalytics = {
       id: uuidv4(),
       taskId: task.id,
@@ -45,7 +54,7 @@ export class AnalyticsService {
       tags: task.tags,
       project: task.project,
       hourOfDay: task.completedAt.getHours(),
-      dayOfWeek: task.completedAt.getDay()
+      dayOfWeek: task.completedAt.getDay(),
     };
 
     const existingAnalytics = this.loadTaskAnalytics();
@@ -56,7 +65,10 @@ export class AnalyticsService {
   // Calculate productivity patterns by hour
   calculateProductivityPatterns(): ProductivityPattern[] {
     const analytics = this.loadTaskAnalytics();
-    const patterns: Record<number, { total: number; count: number; completed: number }> = {};
+    const patterns: Record<
+      number,
+      { total: number; count: number; completed: number }
+    > = {};
 
     // Initialize all hours
     for (let hour = 0; hour < 24; hour++) {
@@ -76,7 +88,7 @@ export class AnalyticsService {
       hourOfDay: parseInt(hour),
       completionRate: data.count > 0 ? data.completed / data.count : 0,
       avgCompletionTime: data.count > 0 ? data.total / data.count : 0,
-      taskCount: data.count
+      taskCount: data.count,
     }));
   }
 
@@ -86,20 +98,34 @@ export class AnalyticsService {
     const windows: EnergyWindow[] = [];
 
     // Find high-energy periods (high completion rate + low avg time)
-    const avgCompletionRate = patterns.reduce((sum, p) => sum + p.completionRate, 0) / patterns.length;
-    const avgCompletionTime = patterns.filter(p => p.taskCount > 0)
-      .reduce((sum, p) => sum + p.avgCompletionTime, 0) / patterns.filter(p => p.taskCount > 0).length;
+    const avgCompletionRate =
+      patterns.reduce((sum, p) => sum + p.completionRate, 0) / patterns.length;
+    const avgCompletionTime =
+      patterns
+        .filter(p => p.taskCount > 0)
+        .reduce((sum, p) => sum + p.avgCompletionTime, 0) /
+      patterns.filter(p => p.taskCount > 0).length;
 
-    let currentWindow: { start: number; end: number; level: 'high' | 'medium' | 'low' } | null = null;
+    let currentWindow: {
+      start: number;
+      end: number;
+      level: 'high' | 'medium' | 'low';
+    } | null = null;
 
     patterns.forEach((pattern, hour) => {
       if (pattern.taskCount === 0) return;
 
       let energyLevel: 'high' | 'medium' | 'low' = 'medium';
-      
-      if (pattern.completionRate > avgCompletionRate * 1.2 && pattern.avgCompletionTime < avgCompletionTime * 0.8) {
+
+      if (
+        pattern.completionRate > avgCompletionRate * 1.2 &&
+        pattern.avgCompletionTime < avgCompletionTime * 0.8
+      ) {
         energyLevel = 'high';
-      } else if (pattern.completionRate < avgCompletionRate * 0.8 || pattern.avgCompletionTime > avgCompletionTime * 1.2) {
+      } else if (
+        pattern.completionRate < avgCompletionRate * 0.8 ||
+        pattern.avgCompletionTime > avgCompletionTime * 1.2
+      ) {
         energyLevel = 'low';
       }
 
@@ -109,7 +135,10 @@ export class AnalyticsService {
             startHour: currentWindow.start,
             endHour: currentWindow.end,
             energyLevel: currentWindow.level,
-            confidence: Math.min(1, patterns[currentWindow.start].taskCount / 10)
+            confidence: Math.min(
+              1,
+              patterns[currentWindow.start].taskCount / 10
+            ),
           });
         }
         currentWindow = { start: hour, end: hour, level: energyLevel };
@@ -123,7 +152,7 @@ export class AnalyticsService {
         startHour: currentWindow.start,
         endHour: currentWindow.end,
         energyLevel: currentWindow.level,
-        confidence: Math.min(1, patterns[currentWindow.start].taskCount / 10)
+        confidence: Math.min(1, patterns[currentWindow.start].taskCount / 10),
       });
     }
 
@@ -140,7 +169,7 @@ export class AnalyticsService {
       priority: 1,
       complexity: 1,
       projectFamiliarity: 1,
-      tagSimilarity: 1
+      tagSimilarity: 1,
     };
 
     if (analytics.length === 0) {
@@ -149,30 +178,31 @@ export class AnalyticsService {
         estimatedMinutes,
         confidence,
         basedOnSimilar,
-        factors
+        factors,
       };
     }
 
     // Find similar tasks
     const similarTasks = analytics.filter(item => {
       let similarity = 0;
-      
+
       // Priority match
       if (item.priority === task.priority) {
         similarity += 0.3;
         factors.priority = 1.2;
       }
-      
+
       // Project match
       if (task.project && item.project === task.project) {
         similarity += 0.3;
         factors.projectFamiliarity = 1.3;
       }
-      
+
       // Tag similarity
       if (task.tags && task.tags.length > 0) {
         const commonTags = task.tags.filter(tag => item.tags.includes(tag));
-        const tagSimilarity = commonTags.length / Math.max(task.tags.length, item.tags.length);
+        const tagSimilarity =
+          commonTags.length / Math.max(task.tags.length, item.tags.length);
         similarity += tagSimilarity * 0.4;
         factors.tagSimilarity = 1 + tagSimilarity;
       }
@@ -182,9 +212,12 @@ export class AnalyticsService {
 
     if (similarTasks.length > 0) {
       // Calculate weighted average based on similarity
-      const totalTime = similarTasks.reduce((sum, item) => sum + item.actualMinutes, 0);
+      const totalTime = similarTasks.reduce(
+        (sum, item) => sum + item.actualMinutes,
+        0
+      );
       estimatedMinutes = Math.round(totalTime / similarTasks.length);
-      confidence = Math.min(0.9, 0.4 + (similarTasks.length * 0.1));
+      confidence = Math.min(0.9, 0.4 + similarTasks.length * 0.1);
       basedOnSimilar.push(...similarTasks.map(t => t.taskId).slice(0, 5));
     } else {
       // Use priority-based estimation
@@ -192,7 +225,7 @@ export class AnalyticsService {
         low: 20,
         medium: 45,
         high: 75,
-        urgent: 120
+        urgent: 120,
       };
       estimatedMinutes = priorityEstimates[task.priority || 'medium'];
       confidence = 0.4;
@@ -214,27 +247,37 @@ export class AnalyticsService {
       estimatedMinutes: Math.max(5, estimatedMinutes), // Minimum 5 minutes
       confidence,
       basedOnSimilar,
-      factors
+      factors,
     };
   }
 
   // Get optimal time suggestions for a task
-  getOptimalTimeSuggestions(task: Task): { hour: number; energyLevel: string; confidence: number }[] {
+  getOptimalTimeSuggestions(
+    task: Task
+  ): { hour: number; energyLevel: string; confidence: number }[] {
     const energyWindows = this.detectEnergyWindows();
-    const suggestions: { hour: number; energyLevel: string; confidence: number }[] = [];
+    const suggestions: {
+      hour: number;
+      energyLevel: string;
+      confidence: number;
+    }[] = [];
 
     // Suggest high-energy periods for important tasks
     const isImportant = task.priority === 'high' || task.priority === 'urgent';
     const targetEnergyLevel = isImportant ? 'high' : 'medium';
 
     energyWindows
-      .filter(window => window.energyLevel === targetEnergyLevel || (targetEnergyLevel === 'high' && window.energyLevel === 'medium'))
+      .filter(
+        window =>
+          window.energyLevel === targetEnergyLevel ||
+          (targetEnergyLevel === 'high' && window.energyLevel === 'medium')
+      )
       .forEach(window => {
         for (let hour = window.startHour; hour <= window.endHour; hour++) {
           suggestions.push({
             hour,
             energyLevel: window.energyLevel,
-            confidence: window.confidence
+            confidence: window.confidence,
           });
         }
       });
@@ -243,11 +286,16 @@ export class AnalyticsService {
   }
 
   // Calculate task reordering recommendations
-  calculateTaskOrder(tasks: Task[]): { taskId: string; score: number; reasons: string[] }[] {
+  calculateTaskOrder(
+    tasks: Task[]
+  ): { taskId: string; score: number; reasons: string[] }[] {
     const now = new Date();
     const currentHour = now.getHours();
     const energyWindows = this.detectEnergyWindows();
-    const currentEnergyLevel = this.getCurrentEnergyLevel(currentHour, energyWindows);
+    const currentEnergyLevel = this.getCurrentEnergyLevel(
+      currentHour,
+      energyWindows
+    );
 
     return tasks
       .filter(task => task.status === 'pending')
@@ -262,7 +310,8 @@ export class AnalyticsService {
 
         // Deadline urgency
         if (task.dueDate) {
-          const hoursUntilDue = (task.dueDate.getTime() - now.getTime()) / (1000 * 60 * 60);
+          const hoursUntilDue =
+            (task.dueDate.getTime() - now.getTime()) / (1000 * 60 * 60);
           if (hoursUntilDue < 24) {
             score += 30;
             reasons.push('Due within 24 hours');
@@ -273,7 +322,10 @@ export class AnalyticsService {
         }
 
         // Energy level matching
-        if (currentEnergyLevel === 'high' && (task.priority === 'high' || task.priority === 'urgent')) {
+        if (
+          currentEnergyLevel === 'high' &&
+          (task.priority === 'high' || task.priority === 'urgent')
+        ) {
           score += 20;
           reasons.push('High energy period - good for important tasks');
         } else if (currentEnergyLevel === 'low' && task.priority === 'low') {
@@ -291,14 +343,19 @@ export class AnalyticsService {
         return {
           taskId: task.id,
           score,
-          reasons
+          reasons,
         };
       })
       .sort((a, b) => b.score - a.score);
   }
 
-  private getCurrentEnergyLevel(hour: number, energyWindows: EnergyWindow[]): 'high' | 'medium' | 'low' {
-    const window = energyWindows.find(w => hour >= w.startHour && hour <= w.endHour);
+  private getCurrentEnergyLevel(
+    hour: number,
+    energyWindows: EnergyWindow[]
+  ): 'high' | 'medium' | 'low' {
+    const window = energyWindows.find(
+      w => hour >= w.startHour && hour <= w.endHour
+    );
     return window?.energyLevel || 'medium';
   }
 }

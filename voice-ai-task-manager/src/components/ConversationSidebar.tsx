@@ -1,5 +1,12 @@
 import React, { useState } from 'react';
-import { MessageSquare, Plus, Trash2, Edit3, Search, Calendar } from 'lucide-react';
+import {
+  MessageSquare,
+  Plus,
+  Trash2,
+  Edit3,
+  Search,
+  Calendar,
+} from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { ScrollArea } from './ui/scroll-area';
@@ -32,17 +39,18 @@ export function ConversationSidebar({
   minimized = false,
   onToggleMinimized,
   settingsComponent,
-  docsComponent
+  docsComponent,
 }: ConversationSidebarProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingTitle, setEditingTitle] = useState('');
 
-  const filteredConversations = conversations.filter(conv =>
-    conv.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    conv.messages.some(msg =>
-      msg.content.toLowerCase().includes(searchQuery.toLowerCase())
-    )
+  const filteredConversations = conversations.filter(
+    conv =>
+      conv.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      conv.messages.some(msg =>
+        msg.content.toLowerCase().includes(searchQuery.toLowerCase())
+      )
   );
 
   const handleStartEdit = (conversation: Conversation) => {
@@ -73,12 +81,16 @@ export function ConversationSidebar({
       today: [] as Conversation[],
       yesterday: [] as Conversation[],
       thisWeek: [] as Conversation[],
-      older: [] as Conversation[]
+      older: [] as Conversation[],
     };
 
     conversations.forEach(conv => {
-      const convDate = new Date(conv.updatedAt.getFullYear(), conv.updatedAt.getMonth(), conv.updatedAt.getDate());
-      
+      const convDate = new Date(
+        conv.updatedAt.getFullYear(),
+        conv.updatedAt.getMonth(),
+        conv.updatedAt.getDate()
+      );
+
       if (convDate.getTime() === today.getTime()) {
         groups.today.push(conv);
       } else if (convDate.getTime() === yesterday.getTime()) {
@@ -95,7 +107,11 @@ export function ConversationSidebar({
 
   const conversationGroups = groupConversationsByDate(filteredConversations);
 
-  const ConversationItem = ({ conversation }: { conversation: Conversation }) => {
+  const ConversationItem = ({
+    conversation,
+  }: {
+    conversation: Conversation;
+  }) => {
     const isActive = conversation.id === currentConversationId;
     const isEditing = editingId === conversation.id;
     const messageCount = conversation.messages.length;
@@ -120,19 +136,15 @@ export function ConversationSidebar({
               <div className="flex gap-1">
                 <Input
                   value={editingTitle}
-                  onChange={(e) => setEditingTitle(e.target.value)}
-                  onKeyDown={(e) => {
+                  onChange={e => setEditingTitle(e.target.value)}
+                  onKeyDown={e => {
                     if (e.key === 'Enter') handleSaveEdit();
                     if (e.key === 'Escape') handleCancelEdit();
                   }}
                   className="h-7 text-sm"
                   autoFocus
                 />
-                <Button
-                  size="sm"
-                  onClick={handleSaveEdit}
-                  className="h-7 px-2"
-                >
+                <Button size="sm" onClick={handleSaveEdit} className="h-7 px-2">
                   ✓
                 </Button>
                 <Button
@@ -146,30 +158,40 @@ export function ConversationSidebar({
               </div>
             ) : (
               <>
-                <h3 className={`font-medium text-sm leading-tight mb-1 ${
-                  isActive
-                    ? 'text-blue-800 dark:text-blue-200'
-                    : 'text-gray-900 dark:text-gray-100'
-                }`}>
+                <h3
+                  className={`font-medium text-sm leading-tight mb-1 ${
+                    isActive
+                      ? 'text-blue-800 dark:text-blue-200'
+                      : 'text-gray-900 dark:text-gray-100'
+                  }`}
+                >
                   {conversation.title}
                 </h3>
-                
-                <p className={`text-xs leading-relaxed mb-2 ${
-                  isActive
-                    ? 'text-blue-600 dark:text-blue-300'
-                    : 'text-gray-500 dark:text-gray-400'
-                }`}>
+
+                <p
+                  className={`text-xs leading-relaxed mb-2 ${
+                    isActive
+                      ? 'text-blue-600 dark:text-blue-300'
+                      : 'text-gray-500 dark:text-gray-400'
+                  }`}
+                >
                   {getConversationSummary(conversation.id)}
                 </p>
 
-                <div className={`flex items-center justify-between text-xs ${
-                  isActive
-                    ? 'text-blue-600 dark:text-blue-400'
-                    : 'text-gray-400 dark:text-gray-500'
-                }`}>
-                  <span>{messageCount} message{messageCount !== 1 ? 's' : ''}</span>
+                <div
+                  className={`flex items-center justify-between text-xs ${
+                    isActive
+                      ? 'text-blue-600 dark:text-blue-400'
+                      : 'text-gray-400 dark:text-gray-500'
+                  }`}
+                >
                   <span>
-                    {formatDistanceToNow(conversation.updatedAt, { addSuffix: true })}
+                    {messageCount} message{messageCount !== 1 ? 's' : ''}
+                  </span>
+                  <span>
+                    {formatDistanceToNow(conversation.updatedAt, {
+                      addSuffix: true,
+                    })}
                   </span>
                 </div>
               </>
@@ -182,7 +204,7 @@ export function ConversationSidebar({
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={(e) => {
+                  onClick={e => {
                     e.stopPropagation();
                     handleStartEdit(conversation);
                   }}
@@ -194,7 +216,7 @@ export function ConversationSidebar({
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={(e) => {
+                onClick={e => {
                   e.stopPropagation();
                   onDeleteConversation(conversation.id);
                 }}
@@ -209,7 +231,13 @@ export function ConversationSidebar({
     );
   };
 
-  const ConversationGroup = ({ title, conversations }: { title: string, conversations: Conversation[] }) => {
+  const ConversationGroup = ({
+    title,
+    conversations,
+  }: {
+    title: string;
+    conversations: Conversation[];
+  }) => {
     if (conversations.length === 0) return null;
 
     return (
@@ -219,8 +247,11 @@ export function ConversationSidebar({
         </h4>
         <div className="space-y-1">
           <AnimatePresence mode="popLayout">
-            {conversations.map((conversation) => (
-              <ConversationItem key={conversation.id} conversation={conversation} />
+            {conversations.map(conversation => (
+              <ConversationItem
+                key={conversation.id}
+                conversation={conversation}
+              />
             ))}
           </AnimatePresence>
         </div>
@@ -229,7 +260,9 @@ export function ConversationSidebar({
   };
 
   return (
-    <div className={`${minimized ? 'w-20' : 'w-80'} border-r bg-white dark:bg-gray-950 flex flex-col h-full transition-all duration-300`}>
+    <div
+      className={`${minimized ? 'w-20' : 'w-80'} border-r bg-white dark:bg-gray-950 flex flex-col h-full transition-all duration-300`}
+    >
       {/* Header */}
       <div className="p-4 border-b">
         <div className="flex items-center justify-between mb-3">
@@ -245,10 +278,10 @@ export function ConversationSidebar({
             onClick={onNewConversation}
             size="sm"
             className={`gap-1 h-8 ${minimized ? 'w-full justify-center' : ''}`}
-            title={minimized ? "New Conversation" : ""}
+            title={minimized ? 'New Conversation' : ''}
           >
             <Plus className="h-3 w-3" />
-            {!minimized && "New"}
+            {!minimized && 'New'}
           </Button>
         </div>
 
@@ -259,12 +292,12 @@ export function ConversationSidebar({
             <Input
               placeholder="Search conversations..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={e => setSearchQuery(e.target.value)}
               className="pl-10 h-8"
             />
           </div>
         )}
-        
+
         {minimized && (
           <div className="flex justify-center">
             <Button
@@ -303,26 +336,43 @@ export function ConversationSidebar({
           </div>
         ) : (
           <div>
-            <ConversationGroup title="Today" conversations={conversationGroups.today} />
-            <ConversationGroup title="Yesterday" conversations={conversationGroups.yesterday} />
-            <ConversationGroup title="This Week" conversations={conversationGroups.thisWeek} />
-            <ConversationGroup title="Older" conversations={conversationGroups.older} />
+            <ConversationGroup
+              title="Today"
+              conversations={conversationGroups.today}
+            />
+            <ConversationGroup
+              title="Yesterday"
+              conversations={conversationGroups.yesterday}
+            />
+            <ConversationGroup
+              title="This Week"
+              conversations={conversationGroups.thisWeek}
+            />
+            <ConversationGroup
+              title="Older"
+              conversations={conversationGroups.older}
+            />
           </div>
         )}
       </ScrollArea>
-      
+
       {/* Bottom Controls */}
       <div className="border-t p-3">
-        <div className={`flex ${minimized ? 'flex-col gap-2' : 'gap-3'} items-center`}>
+        <div
+          className={`flex ${minimized ? 'flex-col gap-2' : 'gap-3'} items-center`}
+        >
           {!minimized && (
             <div className="flex-1">
               <p className="text-xs text-gray-500 dark:text-gray-400">
-                {conversations.length} conversation{conversations.length !== 1 ? 's' : ''}
+                {conversations.length} conversation
+                {conversations.length !== 1 ? 's' : ''}
               </p>
             </div>
           )}
-          
-          <div className={`flex ${minimized ? 'flex-col gap-1' : ''} gap-1 ${minimized ? 'w-full justify-center' : ''}`}>
+
+          <div
+            className={`flex ${minimized ? 'flex-col gap-1' : ''} gap-1 ${minimized ? 'w-full justify-center' : ''}`}
+          >
             {docsComponent}
             {settingsComponent}
           </div>

@@ -1,9 +1,9 @@
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
-import { ErrorBoundary } from './components/ErrorBoundary.tsx'
-import { Toaster } from './components/ui/toaster.tsx'
-import './index.css'
-import App from './App.tsx'
+import { StrictMode } from 'react';
+import { createRoot } from 'react-dom/client';
+import { ErrorBoundary } from './components/ErrorBoundary.tsx';
+import { Toaster } from './components/ui/toaster.tsx';
+import './index.css';
+import App from './App.tsx';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
@@ -11,5 +11,5 @@ createRoot(document.getElementById('root')!).render(
       <App />
       <Toaster />
     </ErrorBoundary>
-  </StrictMode>,
-)
+  </StrictMode>
+);

@@ -3,7 +3,13 @@ import { Bookmark, Star, Tag, X } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Textarea } from './ui/textarea';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from './ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from './ui/dialog';
 import { Badge } from './ui/badge';
 import { Switch } from './ui/switch';
 import { ConversationBookmark, Message } from '../types';
@@ -11,7 +17,12 @@ import { ConversationBookmark, Message } from '../types';
 interface BookmarkDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (title: string, description: string, tags: string[], isStarred: boolean) => void;
+  onSave: (
+    title: string,
+    description: string,
+    tags: string[],
+    isStarred: boolean
+  ) => void;
   bookmark?: ConversationBookmark | null;
   message?: Message | null;
   mode: 'create' | 'edit';
@@ -23,7 +34,7 @@ export function BookmarkDialog({
   onSave,
   bookmark,
   message,
-  mode
+  mode,
 }: BookmarkDialogProps) {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -68,10 +79,13 @@ export function BookmarkDialog({
   const generateTitleFromMessage = (msg: Message): string => {
     const content = msg.content.trim();
     const maxLength = 50;
-    
+
     // Remove common filler words
     const cleanContent = content
-      .replace(/^(well|so|um|uh|okay|alright|now|let me|i think|i need to|i want to|can you|could you)\s+/i, '')
+      .replace(
+        /^(well|so|um|uh|okay|alright|now|let me|i think|i need to|i want to|can you|could you)\s+/i,
+        ''
+      )
       .replace(/\s+/g, ' ');
 
     if (cleanContent.length <= maxLength) {
@@ -87,7 +101,7 @@ export function BookmarkDialog({
     // Truncate at word boundary
     const words = cleanContent.split(' ');
     let result = '';
-    
+
     for (const word of words) {
       if ((result + ' ' + word).length > maxLength) {
         break;
@@ -101,17 +115,17 @@ export function BookmarkDialog({
   const extractTagsFromMessage = (msg: Message): string[] => {
     const content = msg.content.toLowerCase();
     const extractedTags: string[] = [];
-    
+
     // Topic patterns
     const topicPatterns = {
-      'task': /\b(task|todo|need to|have to|remind|deadline)\b/,
-      'project': /\b(project|work on|working on|development)\b/,
-      'meeting': /\b(meeting|call|discuss|presentation)\b/,
-      'planning': /\b(plan|schedule|organize|strategy)\b/,
-      'idea': /\b(idea|thought|concept|brainstorm)\b/,
-      'question': /\b(question|ask|wonder|clarify)\b/,
-      'decision': /\b(decide|decision|choose|option)\b/,
-      'priority': /\b(urgent|important|priority|critical)\b/
+      task: /\b(task|todo|need to|have to|remind|deadline)\b/,
+      project: /\b(project|work on|working on|development)\b/,
+      meeting: /\b(meeting|call|discuss|presentation)\b/,
+      planning: /\b(plan|schedule|organize|strategy)\b/,
+      idea: /\b(idea|thought|concept|brainstorm)\b/,
+      question: /\b(question|ask|wonder|clarify)\b/,
+      decision: /\b(decide|decision|choose|option)\b/,
+      priority: /\b(urgent|important|priority|critical)\b/,
     };
 
     Object.entries(topicPatterns).forEach(([tag, pattern]) => {
@@ -150,7 +164,7 @@ export function BookmarkDialog({
 
   const handleSave = () => {
     if (!title.trim()) return;
-    
+
     onSave(title.trim(), description.trim(), tags, isStarred);
     onClose();
   };
@@ -166,7 +180,7 @@ export function BookmarkDialog({
             {mode === 'create' ? 'Create Bookmark' : 'Edit Bookmark'}
           </DialogTitle>
         </DialogHeader>
-        
+
         <div className="space-y-4">
           {/* Title */}
           <div>
@@ -175,7 +189,7 @@ export function BookmarkDialog({
             </label>
             <Input
               value={title}
-              onChange={(e) => setTitle(e.target.value)}
+              onChange={e => setTitle(e.target.value)}
               placeholder="Enter bookmark title..."
               className="w-full"
             />
@@ -188,7 +202,7 @@ export function BookmarkDialog({
             </label>
             <Textarea
               value={description}
-              onChange={(e) => setDescription(e.target.value)}
+              onChange={e => setDescription(e.target.value)}
               placeholder="Add a description to help you remember this moment..."
               rows={3}
               className="w-full resize-none"
@@ -200,12 +214,12 @@ export function BookmarkDialog({
             <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
               Tags
             </label>
-            
+
             {/* Tag input */}
             <div className="flex gap-2 mb-2">
               <Input
                 value={tagInput}
-                onChange={(e) => setTagInput(e.target.value)}
+                onChange={e => setTagInput(e.target.value)}
                 onKeyPress={handleTagInputKeyPress}
                 placeholder="Add a tag..."
                 className="flex-1"
@@ -215,17 +229,24 @@ export function BookmarkDialog({
                 variant="outline"
                 size="sm"
                 onClick={handleAddTag}
-                disabled={!tagInput.trim() || tags.includes(tagInput.trim().toLowerCase())}
+                disabled={
+                  !tagInput.trim() ||
+                  tags.includes(tagInput.trim().toLowerCase())
+                }
               >
                 Add
               </Button>
             </div>
-            
+
             {/* Tag list */}
             {tags.length > 0 && (
               <div className="flex flex-wrap gap-1">
-                {tags.map((tag) => (
-                  <Badge key={tag} variant="secondary" className="flex items-center gap-1">
+                {tags.map(tag => (
+                  <Badge
+                    key={tag}
+                    variant="secondary"
+                    className="flex items-center gap-1"
+                  >
                     <Tag className="h-3 w-3" />
                     {tag}
                     <button
@@ -243,15 +264,14 @@ export function BookmarkDialog({
           {/* Star toggle */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Star className={`h-4 w-4 ${isStarred ? 'fill-yellow-400 text-yellow-400' : 'text-gray-400'}`} />
+              <Star
+                className={`h-4 w-4 ${isStarred ? 'fill-yellow-400 text-yellow-400' : 'text-gray-400'}`}
+              />
               <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
                 Star this bookmark
               </span>
             </div>
-            <Switch
-              checked={isStarred}
-              onCheckedChange={setIsStarred}
-            />
+            <Switch checked={isStarred} onCheckedChange={setIsStarred} />
           </div>
 
           {/* Message preview (for create mode) */}
@@ -274,7 +294,7 @@ export function BookmarkDialog({
           <Button variant="outline" onClick={onClose}>
             Cancel
           </Button>
-          <Button 
+          <Button
             onClick={handleSave}
             disabled={!isValid}
             className="flex items-center gap-2"

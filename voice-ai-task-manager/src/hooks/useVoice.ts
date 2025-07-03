@@ -1,10 +1,13 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { VoiceState, UserPreferences } from '../types';
 import { VoiceService } from '../services/voiceService';
-import { VoiceCommandParser, VoiceCommand } from '../services/voiceCommandParser';
+import {
+  VoiceCommandParser,
+  VoiceCommand,
+} from '../services/voiceCommandParser';
 
 export function useVoice(
-  preferences: UserPreferences, 
+  preferences: UserPreferences,
   onAutoSend?: (transcript: string) => void,
   onVoiceCommand?: (command: VoiceCommand) => void
 ) {
@@ -13,11 +16,13 @@ export function useVoice(
     isProcessing: false,
     isSpeaking: false,
     transcript: '',
-    confidence: 0
+    confidence: 0,
   });
 
   const voiceServiceRef = useRef<VoiceService | null>(null);
-  const voiceCommandParserRef = useRef<VoiceCommandParser>(new VoiceCommandParser());
+  const voiceCommandParserRef = useRef<VoiceCommandParser>(
+    new VoiceCommandParser()
+  );
   const finalTranscriptRef = useRef('');
   const accumulatedTranscriptRef = useRef('');
   const isSessionActiveRef = useRef(false);
@@ -58,10 +63,10 @@ export function useVoice(
           // Accumulate final results with proper spacing
           const cleanTranscript = transcript.trim();
           if (cleanTranscript) {
-            accumulatedTranscriptRef.current = accumulatedTranscriptRef.current 
+            accumulatedTranscriptRef.current = accumulatedTranscriptRef.current
               ? `${accumulatedTranscriptRef.current} ${cleanTranscript}`
               : cleanTranscript;
-            
+
             finalTranscriptRef.current = accumulatedTranscriptRef.current;
           }
 
@@ -69,30 +74,35 @@ export function useVoice(
           setVoiceState(prev => ({
             ...prev,
             transcript: accumulatedTranscriptRef.current,
-            confidence: 0.9
+            confidence: 0.9,
           }));
 
           // Start auto-send timeout after final transcript
           if (accumulatedTranscriptRef.current.trim()) {
             silenceTimeoutRef.current = setTimeout(() => {
-              if (isSessionActiveRef.current && accumulatedTranscriptRef.current.trim()) {
-                const transcriptToSend = accumulatedTranscriptRef.current.trim();
-                
+              if (
+                isSessionActiveRef.current &&
+                accumulatedTranscriptRef.current.trim()
+              ) {
+                const transcriptToSend =
+                  accumulatedTranscriptRef.current.trim();
+
                 // Check if this is a voice command first
-                const command = voiceCommandParserRef.current.parseCommand(transcriptToSend);
-                
+                const command =
+                  voiceCommandParserRef.current.parseCommand(transcriptToSend);
+
                 if (command.type !== 'none' && command.confidence >= 0.6) {
                   console.log('🎯 Voice command detected:', command);
-                  
+
                   // Clear the transcript
                   accumulatedTranscriptRef.current = '';
                   finalTranscriptRef.current = '';
-                  
+
                   // Clear UI
                   setVoiceState(prev => ({
                     ...prev,
                     transcript: '',
-                    confidence: 0
+                    confidence: 0,
                   }));
 
                   // Handle voice command
@@ -101,16 +111,16 @@ export function useVoice(
                   }
                 } else {
                   console.log('🤖 Auto-sending after silence timeout');
-                  
+
                   // Clear the transcript
                   accumulatedTranscriptRef.current = '';
                   finalTranscriptRef.current = '';
-                  
+
                   // Clear UI
                   setVoiceState(prev => ({
                     ...prev,
                     transcript: '',
-                    confidence: 0
+                    confidence: 0,
                   }));
 
                   // Trigger auto-send callback for regular conversation
@@ -123,18 +133,18 @@ export function useVoice(
           }
         } else {
           // Show real-time interim with accumulated context
-          const interimDisplay = accumulatedTranscriptRef.current 
+          const interimDisplay = accumulatedTranscriptRef.current
             ? `${accumulatedTranscriptRef.current} ${transcript}`
             : transcript;
 
           setVoiceState(prev => ({
             ...prev,
             transcript: interimDisplay,
-            confidence: 0.5
+            confidence: 0.5,
           }));
         }
       },
-      (error) => {
+      error => {
         if (silenceTimeoutRef.current) {
           clearTimeout(silenceTimeoutRef.current);
           silenceTimeoutRef.current = null;
@@ -143,14 +153,14 @@ export function useVoice(
         setVoiceState(prev => ({
           ...prev,
           error,
-          isListening: false
+          isListening: false,
         }));
       },
       () => {
         setVoiceState(prev => ({
           ...prev,
           isListening: true,
-          error: undefined
+          error: undefined,
         }));
       },
       () => {
@@ -161,7 +171,7 @@ export function useVoice(
         isSessionActiveRef.current = false;
         setVoiceState(prev => ({
           ...prev,
-          isListening: false
+          isListening: false,
         }));
       }
     );
@@ -180,29 +190,36 @@ export function useVoice(
     }
   }, []);
 
-  const speak = useCallback(async (text: string) => {
-    if (!voiceServiceRef.current || !preferences.voiceEnabled || !preferences.autoSpeak) {
-      return;
-    }
+  const speak = useCallback(
+    async (text: string) => {
+      if (
+        !voiceServiceRef.current ||
+        !preferences.voiceEnabled ||
+        !preferences.autoSpeak
+      ) {
+        return;
+      }
 
-    try {
-      setVoiceState(prev => ({ ...prev, isSpeaking: true }));
-      
-      await voiceServiceRef.current.speak(text, {
-        rate: preferences.voiceSettings.rate,
-        pitch: preferences.voiceSettings.pitch,
-        volume: preferences.voiceSettings.volume,
-        voice: preferences.voiceSettings.useDeepgram 
-          ? preferences.voiceSettings.deepgramVoice 
-          : preferences.voiceSettings.voice,
-        useDeepgram: preferences.voiceSettings.useDeepgram
-      });
-    } catch (error) {
-      console.error('Speech synthesis failed:', error);
-    } finally {
-      setVoiceState(prev => ({ ...prev, isSpeaking: false }));
-    }
-  }, [preferences]);
+      try {
+        setVoiceState(prev => ({ ...prev, isSpeaking: true }));
+
+        await voiceServiceRef.current.speak(text, {
+          rate: preferences.voiceSettings.rate,
+          pitch: preferences.voiceSettings.pitch,
+          volume: preferences.voiceSettings.volume,
+          voice: preferences.voiceSettings.useDeepgram
+            ? preferences.voiceSettings.deepgramVoice
+            : preferences.voiceSettings.voice,
+          useDeepgram: preferences.voiceSettings.useDeepgram,
+        });
+      } catch (error) {
+        console.error('Speech synthesis failed:', error);
+      } finally {
+        setVoiceState(prev => ({ ...prev, isSpeaking: false }));
+      }
+    },
+    [preferences]
+  );
 
   const stopSpeaking = useCallback(() => {
     if (voiceServiceRef.current) {
@@ -220,12 +237,13 @@ export function useVoice(
   }, []);
 
   const getFinalTranscript = useCallback(() => {
-    const transcript = finalTranscriptRef.current || accumulatedTranscriptRef.current;
-    
+    const transcript =
+      finalTranscriptRef.current || accumulatedTranscriptRef.current;
+
     // Clear refs after retrieval
     finalTranscriptRef.current = '';
     accumulatedTranscriptRef.current = '';
-    
+
     return transcript.trim();
   }, []);
 
@@ -266,6 +284,6 @@ export function useVoice(
     clearError,
     parseVoiceCommand,
     isQuickCommand,
-    getCommandSuggestions
+    getCommandSuggestions,
   };
 }

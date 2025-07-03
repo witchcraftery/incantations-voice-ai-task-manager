@@ -4,15 +4,23 @@ export class VoiceService {
   private recognition: any | null = null;
   private synthesis: SpeechSynthesis;
   private isInitialized = false;
-  private backendApiUrl = process.env.NODE_ENV === 'production' 
-    ? 'http://137.184.13.35:3001' 
-    : 'http://localhost:3001';
+  private backendApiUrl =
+    process.env.NODE_ENV === 'production'
+      ? 'http://137.184.13.35:3001'
+      : 'http://localhost:3001';
   private deepgramVoices = [
-    'aura-asteria-en', 'aura-luna-en', 'aura-stella-en', 'aura-athena-en', 
-    'aura-hera-en', 'aura-orion-en', 'aura-arcas-en', 'aura-perseus-en',
-    'aura-angus-en', 'aura-orpheus-en'
+    'aura-asteria-en',
+    'aura-luna-en',
+    'aura-stella-en',
+    'aura-athena-en',
+    'aura-hera-en',
+    'aura-orion-en',
+    'aura-arcas-en',
+    'aura-perseus-en',
+    'aura-angus-en',
+    'aura-orpheus-en',
   ];
-  
+
   // Auto-restart handling
   private autoRestartEnabled = true;
   private restartTimeoutId: NodeJS.Timeout | null = null;
@@ -24,17 +32,19 @@ export class VoiceService {
   } = {};
 
   // Audio device management
-  async getAvailableAudioInputs(): Promise<Array<{deviceId: string, label: string}>> {
+  async getAvailableAudioInputs(): Promise<
+    Array<{ deviceId: string; label: string }>
+  > {
     try {
       // Request permission first
       await navigator.mediaDevices.getUserMedia({ audio: true });
-      
+
       const devices = await navigator.mediaDevices.enumerateDevices();
       return devices
         .filter(device => device.kind === 'audioinput')
         .map(device => ({
           deviceId: device.deviceId,
-          label: device.label || `Microphone ${device.deviceId.slice(0, 8)}`
+          label: device.label || `Microphone ${device.deviceId.slice(0, 8)}`,
         }));
     } catch (error) {
       console.error('Failed to enumerate audio devices:', error);
@@ -56,19 +66,24 @@ export class VoiceService {
   }
 
   private initializeSpeechRecognition() {
-    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+    if (
+      !('webkitSpeechRecognition' in window) &&
+      !('SpeechRecognition' in window)
+    ) {
       console.warn('Speech recognition not supported in this browser');
       return;
     }
 
-    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    const SpeechRecognition =
+      (window as any).SpeechRecognition ||
+      (window as any).webkitSpeechRecognition;
     this.recognition = new SpeechRecognition();
-    
+
     this.recognition.continuous = true;
     this.recognition.interimResults = true;
     this.recognition.lang = 'en-US';
     this.recognition.maxAlternatives = 1;
-    
+
     this.isInitialized = true;
   }
 
@@ -100,7 +115,7 @@ export class VoiceService {
         this.restartTimeoutId = null;
       }
 
-      this.recognition.onresult = (event) => {
+      this.recognition.onresult = event => {
         let finalTranscript = '';
         let interimTranscript = '';
 
@@ -113,21 +128,28 @@ export class VoiceService {
           }
         }
 
-        this.currentCallbacks.onResult?.(finalTranscript || interimTranscript, !!finalTranscript);
+        this.currentCallbacks.onResult?.(
+          finalTranscript || interimTranscript,
+          !!finalTranscript
+        );
       };
 
-      this.recognition.onerror = (event) => {
+      this.recognition.onerror = event => {
         console.log('Speech recognition error:', event.error);
-        
+
         // Handle network errors with auto-restart
         if (event.error === 'network' && this.autoRestartEnabled) {
-          console.log('🔄 Network error detected, restarting speech recognition...');
+          console.log(
+            '🔄 Network error detected, restarting speech recognition...'
+          );
           this.scheduleRestart();
         } else if (event.error === 'no-speech' && this.autoRestartEnabled) {
           console.log('🔄 No speech detected, restarting...');
           this.scheduleRestart();
         } else {
-          this.currentCallbacks.onError?.(`Speech recognition error: ${event.error}`);
+          this.currentCallbacks.onError?.(
+            `Speech recognition error: ${event.error}`
+          );
         }
       };
 
@@ -138,7 +160,7 @@ export class VoiceService {
 
       this.recognition.onend = () => {
         console.log('🎤 Speech recognition ended');
-        
+
         // Auto-restart if enabled and not manually stopped
         if (this.autoRestartEnabled) {
           console.log('🔄 Auto-restarting speech recognition...');
@@ -151,7 +173,9 @@ export class VoiceService {
       this.recognition.start();
       return true;
     } catch (error) {
-      this.currentCallbacks.onError?.(`Failed to start speech recognition: ${error}`);
+      this.currentCallbacks.onError?.(
+        `Failed to start speech recognition: ${error}`
+      );
       return false;
     }
   }
@@ -173,16 +197,16 @@ export class VoiceService {
 
   stopListening() {
     this.autoRestartEnabled = false;
-    
+
     if (this.restartTimeoutId) {
       clearTimeout(this.restartTimeoutId);
       this.restartTimeoutId = null;
     }
-    
+
     if (this.recognition) {
       this.recognition.stop();
     }
-    
+
     // Call the end callback when manually stopped
     this.currentCallbacks.onEnd?.();
   }
@@ -203,7 +227,10 @@ export class VoiceService {
         await this.speakWithDeepgram(text, options.voice, options);
         return;
       } catch (error) {
-        console.warn('Deepgram TTS failed, falling back to Web Speech API:', error);
+        console.warn(
+          'Deepgram TTS failed, falling back to Web Speech API:',
+          error
+        );
         // Fall through to Web Speech API
       }
     }
@@ -213,40 +240,49 @@ export class VoiceService {
   }
 
   private async speakWithDeepgram(
-    text: string, 
+    text: string,
     voice: string = 'aura-asteria-en',
     options: any = {}
   ): Promise<void> {
     return new Promise(async (resolve, reject) => {
       try {
-        console.log(`🎤 Using Deepgram TTS: "${text.slice(0, 50)}..." with voice: ${voice}`);
-        
-        const response = await fetch(`${this.backendApiUrl}/api/tts/synthesize`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            text: text,
-            voice: voice,
-            speed: options.rate || 1.0
-          })
-        });
+        console.log(
+          `🎤 Using Deepgram TTS: "${text.slice(0, 50)}..." with voice: ${voice}`
+        );
+
+        const response = await fetch(
+          `${this.backendApiUrl}/api/tts/synthesize`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              text: text,
+              voice: voice,
+              speed: options.rate || 1.0,
+            }),
+          }
+        );
 
         if (!response.ok) {
-          const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
-          throw new Error(`Deepgram API error: ${response.status} - ${errorData.error}`);
+          const errorData = await response
+            .json()
+            .catch(() => ({ error: 'Unknown error' }));
+          throw new Error(
+            `Deepgram API error: ${response.status} - ${errorData.error}`
+          );
         }
 
         const audioBlob = await response.blob();
         const audio = new Audio(URL.createObjectURL(audioBlob));
-        
+
         audio.onended = () => {
           console.log('✅ Deepgram TTS playback completed');
           resolve();
         };
         audio.onerror = () => reject(new Error('Audio playback failed'));
-        
+
         audio.volume = options.volume || 1;
         await audio.play();
       } catch (error) {
@@ -275,21 +311,24 @@ export class VoiceService {
       this.synthesis.cancel();
 
       const utterance = new SpeechSynthesisUtterance(text);
-      
+
       utterance.rate = options.rate || 1;
       utterance.pitch = options.pitch || 1;
       utterance.volume = options.volume || 1;
 
       if (options.voice && !this.isDeepgramVoice(options.voice)) {
         const voices = this.synthesis.getVoices();
-        const selectedVoice = voices.find(voice => voice.name === options.voice);
+        const selectedVoice = voices.find(
+          voice => voice.name === options.voice
+        );
         if (selectedVoice) {
           utterance.voice = selectedVoice;
         }
       }
 
       utterance.onend = () => resolve();
-      utterance.onerror = (event) => reject(new Error(`Speech synthesis error: ${event.error}`));
+      utterance.onerror = event =>
+        reject(new Error(`Speech synthesis error: ${event.error}`));
 
       this.synthesis.speak(utterance);
     });
@@ -301,17 +340,23 @@ export class VoiceService {
     }
   }
 
-  getAvailableVoices(): Array<{name: string, displayName: string, type: 'web' | 'deepgram'}> {
-    const webVoices = this.synthesis ? this.synthesis.getVoices().map(voice => ({
-      name: voice.name,
-      displayName: `${voice.name} (${voice.lang})`,
-      type: 'web' as const
-    })) : [];
+  getAvailableVoices(): Array<{
+    name: string;
+    displayName: string;
+    type: 'web' | 'deepgram';
+  }> {
+    const webVoices = this.synthesis
+      ? this.synthesis.getVoices().map(voice => ({
+          name: voice.name,
+          displayName: `${voice.name} (${voice.lang})`,
+          type: 'web' as const,
+        }))
+      : [];
 
     const deepgramVoicesFormatted = this.deepgramVoices.map(voice => ({
       name: voice,
       displayName: `${voice.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())} (Deepgram)`,
-      type: 'deepgram' as const
+      type: 'deepgram' as const,
     }));
 
     return [...deepgramVoicesFormatted, ...webVoices];
@@ -327,7 +372,9 @@ export class VoiceService {
 
   async testDeepgramConnection(): Promise<boolean> {
     try {
-      const response = await fetch(`${this.backendApiUrl}/api/tts/health`, { method: 'GET' });
+      const response = await fetch(`${this.backendApiUrl}/api/tts/health`, {
+        method: 'GET',
+      });
       if (response.ok) {
         const data = await response.json();
         return data.status === 'healthy';

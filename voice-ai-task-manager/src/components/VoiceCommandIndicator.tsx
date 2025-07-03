@@ -1,5 +1,12 @@
 import React from 'react';
-import { Command, Zap, CheckCircle2, Search, Timer, Calendar } from 'lucide-react';
+import {
+  Command,
+  Zap,
+  CheckCircle2,
+  Search,
+  Timer,
+  Calendar,
+} from 'lucide-react';
 import { Badge } from './ui/badge';
 import { VoiceCommand } from '../services/voiceCommandParser';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -9,7 +16,10 @@ interface VoiceCommandIndicatorProps {
   isProcessing?: boolean;
 }
 
-export function VoiceCommandIndicator({ command, isProcessing }: VoiceCommandIndicatorProps) {
+export function VoiceCommandIndicator({
+  command,
+  isProcessing,
+}: VoiceCommandIndicatorProps) {
   if (!command || command.type === 'none') {
     return null;
   }
@@ -72,8 +82,12 @@ export function VoiceCommandIndicator({ command, isProcessing }: VoiceCommandInd
   };
 
   const confidenceLevel = command.confidence;
-  const confidenceColor = confidenceLevel >= 0.8 ? 'text-green-600' : 
-                         confidenceLevel >= 0.6 ? 'text-yellow-600' : 'text-red-600';
+  const confidenceColor =
+    confidenceLevel >= 0.8
+      ? 'text-green-600'
+      : confidenceLevel >= 0.6
+        ? 'text-yellow-600'
+        : 'text-red-600';
 
   return (
     <AnimatePresence>
@@ -86,33 +100,35 @@ export function VoiceCommandIndicator({ command, isProcessing }: VoiceCommandInd
       >
         <div className="bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-lg p-3 shadow-lg max-w-sm">
           <div className="flex items-center gap-3">
-            <Badge className={`${getCommandColor(command.type)} flex items-center gap-1`}>
+            <Badge
+              className={`${getCommandColor(command.type)} flex items-center gap-1`}
+            >
               {getCommandIcon(command.type)}
               {getCommandLabel(command.type)}
             </Badge>
-            
+
             {isProcessing && (
               <div className="animate-spin rounded-full h-4 w-4 border-2 border-blue-600 border-t-transparent"></div>
             )}
           </div>
-          
+
           <div className="mt-2 text-sm text-gray-600 dark:text-gray-400">
-            <div className="font-medium truncate">
-              "{command.originalText}"
-            </div>
-            
+            <div className="font-medium truncate">"{command.originalText}"</div>
+
             <div className="flex items-center justify-between mt-1">
               <span className="text-xs text-gray-500">
-                Confidence: <span className={confidenceColor}>
+                Confidence:{' '}
+                <span className={confidenceColor}>
                   {Math.round(confidenceLevel * 100)}%
                 </span>
               </span>
-              
-              {command.parameters && Object.keys(command.parameters).length > 0 && (
-                <span className="text-xs text-blue-600 dark:text-blue-400">
-                  {command.action}
-                </span>
-              )}
+
+              {command.parameters &&
+                Object.keys(command.parameters).length > 0 && (
+                  <span className="text-xs text-blue-600 dark:text-blue-400">
+                    {command.action}
+                  </span>
+                )}
             </div>
           </div>
         </div>

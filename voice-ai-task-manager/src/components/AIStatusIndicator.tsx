@@ -11,12 +11,12 @@ interface AIStatusIndicatorProps {
   className?: string;
 }
 
-export function AIStatusIndicator({ 
-  current, 
-  model, 
-  enhanced, 
-  connected, 
-  className = '' 
+export function AIStatusIndicator({
+  current,
+  model,
+  enhanced,
+  connected,
+  className = '',
 }: AIStatusIndicatorProps) {
   const getStatusColor = () => {
     if (!connected && current === 'openrouter') return 'destructive';
@@ -25,7 +25,8 @@ export function AIStatusIndicator({
   };
 
   const getStatusIcon = () => {
-    if (!connected && current === 'openrouter') return <WifiOff className="h-3 w-3" />;
+    if (!connected && current === 'openrouter')
+      return <WifiOff className="h-3 w-3" />;
     if (enhanced) return <Zap className="h-3 w-3" />;
     return <Brain className="h-3 w-3" />;
   };
@@ -52,8 +53,8 @@ export function AIStatusIndicator({
   return (
     <Tooltip>
       <TooltipTrigger asChild>
-        <Badge 
-          variant={getStatusColor()} 
+        <Badge
+          variant={getStatusColor()}
           className={`flex items-center gap-1 text-xs ${className}`}
         >
           {getStatusIcon()}

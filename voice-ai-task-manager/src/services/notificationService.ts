@@ -85,7 +85,7 @@ export class NotificationService {
       body: `"${taskTitle}" is due ${dueTime}`,
       tag: 'task-due',
       requireInteraction: true,
-      data: { type: 'task-due', taskTitle }
+      data: { type: 'task-due', taskTitle },
     });
   }
 
@@ -95,7 +95,7 @@ export class NotificationService {
       body: `"${taskTitle}" is overdue and needs attention`,
       tag: 'task-overdue',
       requireInteraction: true,
-      data: { type: 'task-overdue', taskTitle }
+      data: { type: 'task-overdue', taskTitle },
     });
   }
 
@@ -104,7 +104,7 @@ export class NotificationService {
       title: '📋 Daily Agenda Ready!',
       body: `You have ${taskCount} tasks planned for today. Ready to be productive?`,
       tag: 'daily-agenda',
-      data: { type: 'daily-agenda', taskCount }
+      data: { type: 'daily-agenda', taskCount },
     });
   }
 
@@ -113,7 +113,7 @@ export class NotificationService {
       title: '✅ Task Completed!',
       body: `Great job finishing "${taskTitle}"!`,
       tag: 'task-completed',
-      data: { type: 'task-completed', taskTitle }
+      data: { type: 'task-completed', taskTitle },
     });
   }
 
@@ -122,7 +122,7 @@ export class NotificationService {
       title: '💡 Smart Suggestion',
       body: suggestion,
       tag: 'smart-suggestion',
-      data: { type: 'suggestion', suggestion }
+      data: { type: 'suggestion', suggestion },
     });
   }
 

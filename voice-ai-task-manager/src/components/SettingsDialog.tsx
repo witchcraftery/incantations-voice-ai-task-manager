@@ -12,7 +12,13 @@ import { Button } from './ui/button';
 import { Label } from './ui/label';
 import { Slider } from './ui/slider';
 import { Switch } from './ui/switch';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from './ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { notificationService } from '../services/notificationService';
 import { Settings, Volume2, Mic, Zap, Play, Check, X } from 'lucide-react';
@@ -25,13 +31,23 @@ interface SettingsDialogProps {
   onPreferencesChange: (preferences: UserPreferences) => void;
 }
 
-export function SettingsDialog({ preferences, onPreferencesChange }: SettingsDialogProps) {
-  const [localPreferences, setLocalPreferences] = useState<UserPreferences>(preferences);
-  const [availableVoices, setAvailableVoices] = useState<Array<{name: string, displayName: string, type: 'web' | 'deepgram'}>>([]);
-  const [availableAudioInputs, setAvailableAudioInputs] = useState<Array<{deviceId: string, label: string}>>([]);
+export function SettingsDialog({
+  preferences,
+  onPreferencesChange,
+}: SettingsDialogProps) {
+  const [localPreferences, setLocalPreferences] =
+    useState<UserPreferences>(preferences);
+  const [availableVoices, setAvailableVoices] = useState<
+    Array<{ name: string; displayName: string; type: 'web' | 'deepgram' }>
+  >([]);
+  const [availableAudioInputs, setAvailableAudioInputs] = useState<
+    Array<{ deviceId: string; label: string }>
+  >([]);
   const [deepgramConnected, setDeepgramConnected] = useState(false);
   const [isTesting, setIsTesting] = useState(false);
-  const [notificationPermission, setNotificationPermission] = useState(notificationService.permissionStatus);
+  const [notificationPermission, setNotificationPermission] = useState(
+    notificationService.permissionStatus
+  );
   const [isOpen, setIsOpen] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const voiceService = new VoiceService();
@@ -51,21 +67,23 @@ export function SettingsDialog({ preferences, onPreferencesChange }: SettingsDia
   // Auto-save changes with proper change detection and smarter notifications
   useEffect(() => {
     const timeoutId = setTimeout(() => {
-      const hasChanges = JSON.stringify(localPreferences) !== JSON.stringify(preferences);
+      const hasChanges =
+        JSON.stringify(localPreferences) !== JSON.stringify(preferences);
       if (hasChanges) {
         console.log('Auto-saving preferences:', localPreferences);
         onPreferencesChange(localPreferences);
         setHasUnsavedChanges(false);
-        
+
         // Only show toast notification if user made actual meaningful changes
-        const changedFields = Object.keys(localPreferences).filter(key => 
-          JSON.stringify(localPreferences[key as keyof UserPreferences]) !== 
-          JSON.stringify(preferences[key as keyof UserPreferences])
+        const changedFields = Object.keys(localPreferences).filter(
+          key =>
+            JSON.stringify(localPreferences[key as keyof UserPreferences]) !==
+            JSON.stringify(preferences[key as keyof UserPreferences])
         );
-        
+
         if (changedFields.length > 0) {
           toast({
-            title: "Settings saved!",
+            title: 'Settings saved!',
             description: `Updated: ${changedFields.join(', ')}`,
             duration: 2000,
           });
@@ -78,7 +96,8 @@ export function SettingsDialog({ preferences, onPreferencesChange }: SettingsDia
 
   // Track unsaved changes for UI feedback
   useEffect(() => {
-    const hasChanges = JSON.stringify(localPreferences) !== JSON.stringify(preferences);
+    const hasChanges =
+      JSON.stringify(localPreferences) !== JSON.stringify(preferences);
     setHasUnsavedChanges(hasChanges);
   }, [localPreferences, preferences]);
 
@@ -108,12 +127,12 @@ export function SettingsDialog({ preferences, onPreferencesChange }: SettingsDia
   const handlePreferenceChange = (path: string[], value: any) => {
     const newPreferences = { ...localPreferences };
     let current: any = newPreferences;
-    
+
     for (let i = 0; i < path.length - 1; i++) {
       current = current[path[i]];
     }
     current[path[path.length - 1]] = value;
-    
+
     setLocalPreferences(newPreferences);
   };
 
@@ -121,15 +140,15 @@ export function SettingsDialog({ preferences, onPreferencesChange }: SettingsDia
     // Update local preferences immediately
     const updatedPreferences = {
       ...localPreferences,
-      theme: newTheme
+      theme: newTheme,
     };
     setLocalPreferences(updatedPreferences);
-    
+
     // Apply theme change immediately (no wait for auto-save)
     onPreferencesChange(updatedPreferences);
-    
+
     toast({
-      title: "Theme updated!",
+      title: 'Theme updated!',
       description: `Switched to ${newTheme} mode.`,
       duration: 2000,
     });
@@ -138,15 +157,15 @@ export function SettingsDialog({ preferences, onPreferencesChange }: SettingsDia
   const testVoice = async () => {
     if (isTesting) return;
     setIsTesting(true);
-    
+
     try {
-      const testText = "Hello! This is a voice preview test.";
+      const testText = 'Hello! This is a voice preview test.';
       await voiceService.speak(testText, {
         ...localPreferences.voiceSettings,
-        voice: localPreferences.voiceSettings.useDeepgram 
-          ? localPreferences.voiceSettings.deepgramVoice 
+        voice: localPreferences.voiceSettings.useDeepgram
+          ? localPreferences.voiceSettings.deepgramVoice
           : localPreferences.voiceSettings.voice,
-        useDeepgram: localPreferences.voiceSettings.useDeepgram
+        useDeepgram: localPreferences.voiceSettings.useDeepgram,
       });
     } catch (error) {
       console.error('Voice test failed:', error);
@@ -159,28 +178,30 @@ export function SettingsDialog({ preferences, onPreferencesChange }: SettingsDia
     try {
       const granted = await notificationService.requestPermission();
       setNotificationPermission(notificationService.permissionStatus);
-      
+
       if (granted) {
         toast({
-          title: "Notifications Enabled!",
-          description: "You'll now receive task reminders and productivity suggestions.",
+          title: 'Notifications Enabled!',
+          description:
+            "You'll now receive task reminders and productivity suggestions.",
         });
-        
+
         // Auto-enable notification settings when permission is granted
         handlePreferenceChange(['notificationSettings', 'enabled'], true);
       } else {
         toast({
-          title: "Notifications Blocked",
-          description: "Enable notifications in your browser settings to get task reminders.",
-          variant: "destructive",
+          title: 'Notifications Blocked',
+          description:
+            'Enable notifications in your browser settings to get task reminders.',
+          variant: 'destructive',
         });
       }
     } catch (error) {
       console.error('Error requesting notification permission:', error);
       toast({
-        title: "Error",
-        description: "Failed to request notification permission.",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to request notification permission.',
+        variant: 'destructive',
       });
     }
   };
@@ -192,7 +213,7 @@ export function SettingsDialog({ preferences, onPreferencesChange }: SettingsDia
           <Settings className="h-4 w-4" />
         </Button>
       </DialogTrigger>
-      
+
       <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
@@ -218,24 +239,32 @@ export function SettingsDialog({ preferences, onPreferencesChange }: SettingsDia
               <div className="flex items-center justify-between">
                 <div>
                   <Label htmlFor="voice-enabled">Voice Features</Label>
-                  <p className="text-sm text-gray-500">Enable voice input and output</p>
+                  <p className="text-sm text-gray-500">
+                    Enable voice input and output
+                  </p>
                 </div>
                 <Switch
                   id="voice-enabled"
                   checked={localPreferences.voiceEnabled}
-                  onCheckedChange={(checked) => handlePreferenceChange(['voiceEnabled'], checked)}
+                  onCheckedChange={checked =>
+                    handlePreferenceChange(['voiceEnabled'], checked)
+                  }
                 />
               </div>
 
               <div className="flex items-center justify-between">
                 <div>
                   <Label htmlFor="auto-speak">Auto-speak Responses</Label>
-                  <p className="text-sm text-gray-500">Automatically speak AI responses</p>
+                  <p className="text-sm text-gray-500">
+                    Automatically speak AI responses
+                  </p>
                 </div>
                 <Switch
                   id="auto-speak"
                   checked={localPreferences.autoSpeak}
-                  onCheckedChange={(checked) => handlePreferenceChange(['autoSpeak'], checked)}
+                  onCheckedChange={checked =>
+                    handlePreferenceChange(['autoSpeak'], checked)
+                  }
                 />
               </div>
 
@@ -243,10 +272,17 @@ export function SettingsDialog({ preferences, onPreferencesChange }: SettingsDia
               <div className="space-y-3">
                 <Label htmlFor="microphone">Microphone Input</Label>
                 <Select
-                  value={localPreferences.voiceSettings.microphoneId || 'default'}
-                  onValueChange={(value) => {
-                    handlePreferenceChange(['voiceSettings', 'microphoneId'], value === 'default' ? undefined : value);
-                    voiceService.setAudioInput(value === 'default' ? undefined : value);
+                  value={
+                    localPreferences.voiceSettings.microphoneId || 'default'
+                  }
+                  onValueChange={value => {
+                    handlePreferenceChange(
+                      ['voiceSettings', 'microphoneId'],
+                      value === 'default' ? undefined : value
+                    );
+                    voiceService.setAudioInput(
+                      value === 'default' ? undefined : value
+                    );
                   }}
                 >
                   <SelectTrigger>
@@ -254,7 +290,7 @@ export function SettingsDialog({ preferences, onPreferencesChange }: SettingsDia
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="default">System Default</SelectItem>
-                    {availableAudioInputs.map((input) => (
+                    {availableAudioInputs.map(input => (
                       <SelectItem key={input.deviceId} value={input.deviceId}>
                         {input.label}
                       </SelectItem>
@@ -272,20 +308,33 @@ export function SettingsDialog({ preferences, onPreferencesChange }: SettingsDia
                   <Zap className="h-4 w-4 text-blue-600" />
                   <Label className="font-medium">Deepgram AI TTS</Label>
                   {deepgramConnected ? (
-                    <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">Connected</span>
+                    <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">
+                      Connected
+                    </span>
                   ) : (
-                    <span className="text-xs bg-red-100 text-red-800 px-2 py-1 rounded">Offline</span>
+                    <span className="text-xs bg-red-100 text-red-800 px-2 py-1 rounded">
+                      Offline
+                    </span>
                   )}
                 </div>
-                
+
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm">Use Deepgram AI for premium voice quality</p>
-                    <p className="text-xs text-gray-500">Cloud-based neural TTS with 10 voices</p>
+                    <p className="text-sm">
+                      Use Deepgram AI for premium voice quality
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      Cloud-based neural TTS with 10 voices
+                    </p>
                   </div>
                   <Switch
                     checked={localPreferences.voiceSettings.useDeepgram}
-                    onCheckedChange={(checked) => handlePreferenceChange(['voiceSettings', 'useDeepgram'], checked)}
+                    onCheckedChange={checked =>
+                      handlePreferenceChange(
+                        ['voiceSettings', 'useDeepgram'],
+                        checked
+                      )
+                    }
                     disabled={!deepgramConnected}
                   />
                 </div>
@@ -295,7 +344,12 @@ export function SettingsDialog({ preferences, onPreferencesChange }: SettingsDia
                     <Label htmlFor="deepgram-voice">Deepgram Voice</Label>
                     <Select
                       value={localPreferences.voiceSettings.deepgramVoice}
-                      onValueChange={(value) => handlePreferenceChange(['voiceSettings', 'deepgramVoice'], value)}
+                      onValueChange={value =>
+                        handlePreferenceChange(
+                          ['voiceSettings', 'deepgramVoice'],
+                          value
+                        )
+                      }
                     >
                       <SelectTrigger>
                         <SelectValue />
@@ -303,7 +357,7 @@ export function SettingsDialog({ preferences, onPreferencesChange }: SettingsDia
                       <SelectContent>
                         {availableVoices
                           .filter(voice => voice.type === 'deepgram')
-                          .map((voice) => (
+                          .map(voice => (
                             <SelectItem key={voice.name} value={voice.name}>
                               {voice.displayName}
                             </SelectItem>
@@ -320,7 +374,9 @@ export function SettingsDialog({ preferences, onPreferencesChange }: SettingsDia
                   <Label htmlFor="web-voice">Browser Voice</Label>
                   <Select
                     value={localPreferences.voiceSettings.voice || ''}
-                    onValueChange={(value) => handlePreferenceChange(['voiceSettings', 'voice'], value)}
+                    onValueChange={value =>
+                      handlePreferenceChange(['voiceSettings', 'voice'], value)
+                    }
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Select voice" />
@@ -328,7 +384,7 @@ export function SettingsDialog({ preferences, onPreferencesChange }: SettingsDia
                     <SelectContent>
                       {availableVoices
                         .filter(voice => voice.type === 'web')
-                        .map((voice) => (
+                        .map(voice => (
                           <SelectItem key={voice.name} value={voice.name}>
                             {voice.displayName}
                           </SelectItem>
@@ -341,10 +397,14 @@ export function SettingsDialog({ preferences, onPreferencesChange }: SettingsDia
               {/* Voice Controls */}
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <Label>Speech Rate: {localPreferences.voiceSettings.rate}</Label>
+                  <Label>
+                    Speech Rate: {localPreferences.voiceSettings.rate}
+                  </Label>
                   <Slider
                     value={[localPreferences.voiceSettings.rate]}
-                    onValueChange={([value]) => handlePreferenceChange(['voiceSettings', 'rate'], value)}
+                    onValueChange={([value]) =>
+                      handlePreferenceChange(['voiceSettings', 'rate'], value)
+                    }
                     min={0.5}
                     max={2}
                     step={0.1}
@@ -353,10 +413,15 @@ export function SettingsDialog({ preferences, onPreferencesChange }: SettingsDia
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Volume: {Math.round(localPreferences.voiceSettings.volume * 100)}%</Label>
+                  <Label>
+                    Volume:{' '}
+                    {Math.round(localPreferences.voiceSettings.volume * 100)}%
+                  </Label>
                   <Slider
                     value={[localPreferences.voiceSettings.volume]}
-                    onValueChange={([value]) => handlePreferenceChange(['voiceSettings', 'volume'], value)}
+                    onValueChange={([value]) =>
+                      handlePreferenceChange(['voiceSettings', 'volume'], value)
+                    }
                     min={0}
                     max={1}
                     step={0.1}
@@ -369,7 +434,12 @@ export function SettingsDialog({ preferences, onPreferencesChange }: SettingsDia
                     <Label>Pitch: {localPreferences.voiceSettings.pitch}</Label>
                     <Slider
                       value={[localPreferences.voiceSettings.pitch]}
-                      onValueChange={([value]) => handlePreferenceChange(['voiceSettings', 'pitch'], value)}
+                      onValueChange={([value]) =>
+                        handlePreferenceChange(
+                          ['voiceSettings', 'pitch'],
+                          value
+                        )
+                      }
                       min={0.5}
                       max={2}
                       step={0.1}
@@ -380,8 +450,8 @@ export function SettingsDialog({ preferences, onPreferencesChange }: SettingsDia
               </div>
 
               {/* Voice Test */}
-              <Button 
-                onClick={testVoice} 
+              <Button
+                onClick={testVoice}
                 disabled={isTesting || !localPreferences.voiceEnabled}
                 className="w-full"
                 variant="outline"
@@ -391,31 +461,36 @@ export function SettingsDialog({ preferences, onPreferencesChange }: SettingsDia
               </Button>
 
               {/* Voice Notifications Test */}
-              <Button 
+              <Button
                 onClick={async () => {
                   if (!localPreferences.voiceEnabled) return;
                   setIsTesting(true);
                   try {
                     // Test celebration notification
-                    await voiceService.speak("Hell yeah! Task mastery achieved!", {
-                      ...localPreferences.voiceSettings,
-                      voice: localPreferences.voiceSettings.useDeepgram 
-                        ? localPreferences.voiceSettings.deepgramVoice 
-                        : localPreferences.voiceSettings.voice,
-                      useDeepgram: localPreferences.voiceSettings.useDeepgram
-                    });
+                    await voiceService.speak(
+                      'Hell yeah! Task mastery achieved!',
+                      {
+                        ...localPreferences.voiceSettings,
+                        voice: localPreferences.voiceSettings.useDeepgram
+                          ? localPreferences.voiceSettings.deepgramVoice
+                          : localPreferences.voiceSettings.voice,
+                        useDeepgram: localPreferences.voiceSettings.useDeepgram,
+                      }
+                    );
                   } catch (error) {
                     console.error('Voice notification test failed:', error);
                   } finally {
                     setIsTesting(false);
                   }
-                }} 
+                }}
                 disabled={isTesting || !localPreferences.voiceEnabled}
                 className="w-full"
                 variant="outline"
               >
                 <Volume2 className="h-4 w-4 mr-2" />
-                {isTesting ? 'Testing Notification...' : 'Test Voice Notification'}
+                {isTesting
+                  ? 'Testing Notification...'
+                  : 'Test Voice Notification'}
               </Button>
             </div>
           </TabsContent>
@@ -426,7 +501,12 @@ export function SettingsDialog({ preferences, onPreferencesChange }: SettingsDia
                 <Label htmlFor="response-style">AI Response Style</Label>
                 <Select
                   value={localPreferences.aiSettings.responseStyle}
-                  onValueChange={(value: any) => handlePreferenceChange(['aiSettings', 'responseStyle'], value)}
+                  onValueChange={(value: any) =>
+                    handlePreferenceChange(
+                      ['aiSettings', 'responseStyle'],
+                      value
+                    )
+                  }
                 >
                   <SelectTrigger>
                     <SelectValue />
@@ -440,18 +520,31 @@ export function SettingsDialog({ preferences, onPreferencesChange }: SettingsDia
               </div>
 
               <div className="space-y-3">
-                <Label htmlFor="extraction-sensitivity">Task Extraction Sensitivity</Label>
+                <Label htmlFor="extraction-sensitivity">
+                  Task Extraction Sensitivity
+                </Label>
                 <Select
                   value={localPreferences.aiSettings.taskExtractionSensitivity}
-                  onValueChange={(value: any) => handlePreferenceChange(['aiSettings', 'taskExtractionSensitivity'], value)}
+                  onValueChange={(value: any) =>
+                    handlePreferenceChange(
+                      ['aiSettings', 'taskExtractionSensitivity'],
+                      value
+                    )
+                  }
                 >
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="low">Low - Only obvious tasks</SelectItem>
-                    <SelectItem value="medium">Medium - Balanced detection</SelectItem>
-                    <SelectItem value="high">High - Detect subtle hints</SelectItem>
+                    <SelectItem value="low">
+                      Low - Only obvious tasks
+                    </SelectItem>
+                    <SelectItem value="medium">
+                      Medium - Balanced detection
+                    </SelectItem>
+                    <SelectItem value="high">
+                      High - Detect subtle hints
+                    </SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -463,13 +556,17 @@ export function SettingsDialog({ preferences, onPreferencesChange }: SettingsDia
                   className="w-full h-32 p-3 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 resize-vertical focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="Customize how your AI assistant behaves. For example: 'You are a productivity-focused assistant who is encouraging but direct. Always prioritize actionable advice.'"
                   value={localPreferences.aiSettings.systemPrompt || ''}
-                  onChange={(e) => {
+                  onChange={e => {
                     console.log('System prompt changed:', e.target.value);
-                    handlePreferenceChange(['aiSettings', 'systemPrompt'], e.target.value);
+                    handlePreferenceChange(
+                      ['aiSettings', 'systemPrompt'],
+                      e.target.value
+                    );
                   }}
                 />
                 <p className="text-xs text-gray-500 dark:text-gray-400">
-                  Define your AI's personality and response style. Leave empty for default behavior.
+                  Define your AI's personality and response style. Leave empty
+                  for default behavior.
                 </p>
               </div>
 
@@ -478,29 +575,53 @@ export function SettingsDialog({ preferences, onPreferencesChange }: SettingsDia
                 <div className="flex items-center justify-between">
                   <div>
                     <Label htmlFor="use-openrouter">Use OpenRouter API</Label>
-                    <p className="text-sm text-gray-500">Access multiple AI models for enhanced task extraction</p>
+                    <p className="text-sm text-gray-500">
+                      Access multiple AI models for enhanced task extraction
+                    </p>
                   </div>
                   <Switch
                     id="use-openrouter"
                     checked={localPreferences.aiSettings.useOpenRouter || false}
-                    onCheckedChange={(checked) => handlePreferenceChange(['aiSettings', 'useOpenRouter'], checked)}
+                    onCheckedChange={checked =>
+                      handlePreferenceChange(
+                        ['aiSettings', 'useOpenRouter'],
+                        checked
+                      )
+                    }
                   />
                 </div>
 
                 {localPreferences.aiSettings.useOpenRouter && (
                   <>
                     <div className="space-y-3">
-                      <Label htmlFor="openrouter-api-key">OpenRouter API Key</Label>
+                      <Label htmlFor="openrouter-api-key">
+                        OpenRouter API Key
+                      </Label>
                       <input
                         id="openrouter-api-key"
                         type="password"
                         className="w-full p-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
                         placeholder="sk-or-..."
-                        value={localPreferences.aiSettings.openRouterApiKey || ''}
-                        onChange={(e) => handlePreferenceChange(['aiSettings', 'openRouterApiKey'], e.target.value)}
+                        value={
+                          localPreferences.aiSettings.openRouterApiKey || ''
+                        }
+                        onChange={e =>
+                          handlePreferenceChange(
+                            ['aiSettings', 'openRouterApiKey'],
+                            e.target.value
+                          )
+                        }
                       />
                       <p className="text-xs text-gray-500 dark:text-gray-400">
-                        Get your API key from <a href="https://openrouter.ai/keys" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">openrouter.ai/keys</a>
+                        Get your API key from{' '}
+                        <a
+                          href="https://openrouter.ai/keys"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-500 hover:underline"
+                        >
+                          openrouter.ai/keys
+                        </a>
                       </p>
                     </div>
 
@@ -508,7 +629,12 @@ export function SettingsDialog({ preferences, onPreferencesChange }: SettingsDia
                       <Label htmlFor="selected-model">AI Model</Label>
                       <Select
                         value={localPreferences.aiSettings.selectedModel}
-                        onValueChange={(value) => handlePreferenceChange(['aiSettings', 'selectedModel'], value)}
+                        onValueChange={value =>
+                          handlePreferenceChange(
+                            ['aiSettings', 'selectedModel'],
+                            value
+                          )
+                        }
                       >
                         <SelectTrigger>
                           <SelectValue />
@@ -517,10 +643,12 @@ export function SettingsDialog({ preferences, onPreferencesChange }: SettingsDia
                           <SelectItem value="simulation">
                             <div className="flex flex-col">
                               <span>Local Simulation</span>
-                              <span className="text-xs text-gray-500">FREE • Offline fallback</span>
+                              <span className="text-xs text-gray-500">
+                                FREE • Offline fallback
+                              </span>
                             </div>
                           </SelectItem>
-                          
+
                           {/* Popular Models Section */}
                           <div className="px-2 py-1 text-xs font-semibold text-gray-500 border-b">
                             ⭐ Popular Models
@@ -528,31 +656,41 @@ export function SettingsDialog({ preferences, onPreferencesChange }: SettingsDia
                           <SelectItem value="anthropic/claude-3.5-sonnet">
                             <div className="flex flex-col">
                               <span>Claude 3.5 Sonnet</span>
-                              <span className="text-xs text-gray-500">200K context • $3/M tokens • ⭐ Popular</span>
+                              <span className="text-xs text-gray-500">
+                                200K context • $3/M tokens • ⭐ Popular
+                              </span>
                             </div>
                           </SelectItem>
                           <SelectItem value="openai/gpt-4o">
                             <div className="flex flex-col">
                               <span>GPT-4o</span>
-                              <span className="text-xs text-gray-500">128K context • $2.50/M tokens • ⭐ Popular</span>
+                              <span className="text-xs text-gray-500">
+                                128K context • $2.50/M tokens • ⭐ Popular
+                              </span>
                             </div>
                           </SelectItem>
                           <SelectItem value="openai/gpt-4o-mini">
                             <div className="flex flex-col">
                               <span>GPT-4o Mini</span>
-                              <span className="text-xs text-gray-500">128K context • $0.15/M tokens • ⭐ Popular</span>
+                              <span className="text-xs text-gray-500">
+                                128K context • $0.15/M tokens • ⭐ Popular
+                              </span>
                             </div>
                           </SelectItem>
                           <SelectItem value="anthropic/claude-3-haiku">
                             <div className="flex flex-col">
                               <span>Claude 3 Haiku</span>
-                              <span className="text-xs text-gray-500">200K context • $0.25/M tokens • ⭐ Popular</span>
+                              <span className="text-xs text-gray-500">
+                                200K context • $0.25/M tokens • ⭐ Popular
+                              </span>
                             </div>
                           </SelectItem>
                           <SelectItem value="google/gemini-flash-1.5">
                             <div className="flex flex-col">
                               <span>Gemini Flash 1.5</span>
-                              <span className="text-xs text-gray-500">1M context • $0.075/M tokens • ⭐ Popular</span>
+                              <span className="text-xs text-gray-500">
+                                1M context • $0.075/M tokens • ⭐ Popular
+                              </span>
                             </div>
                           </SelectItem>
 
@@ -563,13 +701,17 @@ export function SettingsDialog({ preferences, onPreferencesChange }: SettingsDia
                           <SelectItem value="meta-llama/llama-3.1-8b-instruct:free">
                             <div className="flex flex-col">
                               <span>Llama 3.1 8B Instruct</span>
-                              <span className="text-xs text-green-600">128K context • FREE</span>
+                              <span className="text-xs text-green-600">
+                                128K context • FREE
+                              </span>
                             </div>
                           </SelectItem>
                           <SelectItem value="mistralai/mistral-7b-instruct:free">
                             <div className="flex flex-col">
                               <span>Mistral 7B Instruct</span>
-                              <span className="text-xs text-green-600">32K context • FREE</span>
+                              <span className="text-xs text-green-600">
+                                32K context • FREE
+                              </span>
                             </div>
                           </SelectItem>
 
@@ -580,53 +722,86 @@ export function SettingsDialog({ preferences, onPreferencesChange }: SettingsDia
                           <SelectItem value="meta-llama/llama-3.1-70b-instruct">
                             <div className="flex flex-col">
                               <span>Llama 3.1 70B Instruct</span>
-                              <span className="text-xs text-gray-500">128K context • $0.35/M tokens</span>
+                              <span className="text-xs text-gray-500">
+                                128K context • $0.35/M tokens
+                              </span>
                             </div>
                           </SelectItem>
                           <SelectItem value="google/gemini-pro-1.5">
                             <div className="flex flex-col">
                               <span>Gemini Pro 1.5</span>
-                              <span className="text-xs text-gray-500">2M context • $1.25/M tokens</span>
+                              <span className="text-xs text-gray-500">
+                                2M context • $1.25/M tokens
+                              </span>
                             </div>
                           </SelectItem>
                           <SelectItem value="cohere/command-r-plus">
                             <div className="flex flex-col">
                               <span>Command R+</span>
-                              <span className="text-xs text-gray-500">128K context • $2.50/M tokens</span>
+                              <span className="text-xs text-gray-500">
+                                128K context • $2.50/M tokens
+                              </span>
                             </div>
                           </SelectItem>
                         </SelectContent>
                       </Select>
                       <p className="text-xs text-gray-500 dark:text-gray-400">
-                        ⭐ Popular models are optimized for task management. 💰 Free models have usage limits.
+                        ⭐ Popular models are optimized for task management. 💰
+                        Free models have usage limits.
                       </p>
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-3">
-                        <Label htmlFor="temperature">Temperature: {localPreferences.aiSettings.temperature?.toFixed(1) || '0.7'}</Label>
+                        <Label htmlFor="temperature">
+                          Temperature:{' '}
+                          {localPreferences.aiSettings.temperature?.toFixed(
+                            1
+                          ) || '0.7'}
+                        </Label>
                         <Slider
-                          value={[localPreferences.aiSettings.temperature || 0.7]}
-                          onValueChange={([value]) => handlePreferenceChange(['aiSettings', 'temperature'], value)}
+                          value={[
+                            localPreferences.aiSettings.temperature || 0.7,
+                          ]}
+                          onValueChange={([value]) =>
+                            handlePreferenceChange(
+                              ['aiSettings', 'temperature'],
+                              value
+                            )
+                          }
                           max={1.0}
                           min={0.0}
                           step={0.1}
                           className="w-full"
                         />
-                        <p className="text-xs text-gray-500">Higher = more creative, Lower = more focused</p>
+                        <p className="text-xs text-gray-500">
+                          Higher = more creative, Lower = more focused
+                        </p>
                       </div>
 
                       <div className="space-y-3">
-                        <Label htmlFor="max-tokens">Max Tokens: {localPreferences.aiSettings.maxTokens || 1000}</Label>
+                        <Label htmlFor="max-tokens">
+                          Max Tokens:{' '}
+                          {localPreferences.aiSettings.maxTokens || 1000}
+                        </Label>
                         <Slider
-                          value={[localPreferences.aiSettings.maxTokens || 1000]}
-                          onValueChange={([value]) => handlePreferenceChange(['aiSettings', 'maxTokens'], value)}
+                          value={[
+                            localPreferences.aiSettings.maxTokens || 1000,
+                          ]}
+                          onValueChange={([value]) =>
+                            handlePreferenceChange(
+                              ['aiSettings', 'maxTokens'],
+                              value
+                            )
+                          }
                           max={4000}
                           min={100}
                           step={100}
                           className="w-full"
                         />
-                        <p className="text-xs text-gray-500">Response length limit</p>
+                        <p className="text-xs text-gray-500">
+                          Response length limit
+                        </p>
                       </div>
                     </div>
                   </>
@@ -641,23 +816,26 @@ export function SettingsDialog({ preferences, onPreferencesChange }: SettingsDia
               <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
                 <div className="flex items-center justify-between">
                   <div>
-                    <Label className="text-blue-900 dark:text-blue-100">Browser Notification Permission</Label>
+                    <Label className="text-blue-900 dark:text-blue-100">
+                      Browser Notification Permission
+                    </Label>
                     <p className="text-sm text-blue-700 dark:text-blue-300">
-                      {notificationPermission === 'granted' 
+                      {notificationPermission === 'granted'
                         ? 'Notifications are enabled and ready to use!'
                         : notificationPermission === 'denied'
-                        ? 'Notifications are blocked. Enable them in browser settings.'
-                        : 'Grant permission to receive task reminders and updates.'
-                      }
+                          ? 'Notifications are blocked. Enable them in browser settings.'
+                          : 'Grant permission to receive task reminders and updates.'}
                     </p>
                   </div>
                   {notificationPermission !== 'granted' && (
-                    <Button 
+                    <Button
                       onClick={requestNotificationPermission}
                       size="sm"
                       className="bg-blue-600 hover:bg-blue-700"
                     >
-                      {notificationPermission === 'denied' ? 'Check Settings' : 'Enable Notifications'}
+                      {notificationPermission === 'denied'
+                        ? 'Check Settings'
+                        : 'Enable Notifications'}
                     </Button>
                   )}
                 </div>
@@ -665,61 +843,113 @@ export function SettingsDialog({ preferences, onPreferencesChange }: SettingsDia
 
               <div className="flex items-center justify-between">
                 <div>
-                  <Label htmlFor="notifications-enabled">Enable Notifications</Label>
-                  <p className="text-sm text-gray-500">Allow browser notifications for task reminders</p>
+                  <Label htmlFor="notifications-enabled">
+                    Enable Notifications
+                  </Label>
+                  <p className="text-sm text-gray-500">
+                    Allow browser notifications for task reminders
+                  </p>
                 </div>
                 <Switch
                   id="notifications-enabled"
-                  checked={localPreferences.notificationSettings?.enabled || false}
-                  onCheckedChange={(checked) => handlePreferenceChange(['notificationSettings', 'enabled'], checked)}
+                  checked={
+                    localPreferences.notificationSettings?.enabled || false
+                  }
+                  onCheckedChange={checked =>
+                    handlePreferenceChange(
+                      ['notificationSettings', 'enabled'],
+                      checked
+                    )
+                  }
                 />
               </div>
 
               <div className="flex items-center justify-between">
                 <div>
                   <Label htmlFor="daily-agenda">Daily Agenda</Label>
-                  <p className="text-sm text-gray-500">Get a morning summary of your tasks</p>
+                  <p className="text-sm text-gray-500">
+                    Get a morning summary of your tasks
+                  </p>
                 </div>
                 <Switch
                   id="daily-agenda"
-                  checked={localPreferences.notificationSettings?.dailyAgenda || false}
-                  onCheckedChange={(checked) => handlePreferenceChange(['notificationSettings', 'dailyAgenda'], checked)}
+                  checked={
+                    localPreferences.notificationSettings?.dailyAgenda || false
+                  }
+                  onCheckedChange={checked =>
+                    handlePreferenceChange(
+                      ['notificationSettings', 'dailyAgenda'],
+                      checked
+                    )
+                  }
                 />
               </div>
 
               <div className="flex items-center justify-between">
                 <div>
                   <Label htmlFor="task-reminders">Task Reminders</Label>
-                  <p className="text-sm text-gray-500">Get notified about due and overdue tasks</p>
+                  <p className="text-sm text-gray-500">
+                    Get notified about due and overdue tasks
+                  </p>
                 </div>
                 <Switch
                   id="task-reminders"
-                  checked={localPreferences.notificationSettings?.taskReminders || false}
-                  onCheckedChange={(checked) => handlePreferenceChange(['notificationSettings', 'taskReminders'], checked)}
+                  checked={
+                    localPreferences.notificationSettings?.taskReminders ||
+                    false
+                  }
+                  onCheckedChange={checked =>
+                    handlePreferenceChange(
+                      ['notificationSettings', 'taskReminders'],
+                      checked
+                    )
+                  }
                 />
               </div>
 
               <div className="flex items-center justify-between">
                 <div>
-                  <Label htmlFor="celebrate-completions">Celebrate Completions</Label>
-                  <p className="text-sm text-gray-500">Get celebration notifications when you complete tasks</p>
+                  <Label htmlFor="celebrate-completions">
+                    Celebrate Completions
+                  </Label>
+                  <p className="text-sm text-gray-500">
+                    Get celebration notifications when you complete tasks
+                  </p>
                 </div>
                 <Switch
                   id="celebrate-completions"
-                  checked={localPreferences.notificationSettings?.celebrateCompletions || false}
-                  onCheckedChange={(checked) => handlePreferenceChange(['notificationSettings', 'celebrateCompletions'], checked)}
+                  checked={
+                    localPreferences.notificationSettings
+                      ?.celebrateCompletions || false
+                  }
+                  onCheckedChange={checked =>
+                    handlePreferenceChange(
+                      ['notificationSettings', 'celebrateCompletions'],
+                      checked
+                    )
+                  }
                 />
               </div>
 
               <div className="flex items-center justify-between">
                 <div>
                   <Label htmlFor="smart-suggestions">Smart Suggestions</Label>
-                  <p className="text-sm text-gray-500">Receive AI-powered productivity suggestions</p>
+                  <p className="text-sm text-gray-500">
+                    Receive AI-powered productivity suggestions
+                  </p>
                 </div>
                 <Switch
                   id="smart-suggestions"
-                  checked={localPreferences.notificationSettings?.smartSuggestions || false}
-                  onCheckedChange={(checked) => handlePreferenceChange(['notificationSettings', 'smartSuggestions'], checked)}
+                  checked={
+                    localPreferences.notificationSettings?.smartSuggestions ||
+                    false
+                  }
+                  onCheckedChange={checked =>
+                    handlePreferenceChange(
+                      ['notificationSettings', 'smartSuggestions'],
+                      checked
+                    )
+                  }
                 />
               </div>
             </div>
@@ -729,13 +959,22 @@ export function SettingsDialog({ preferences, onPreferencesChange }: SettingsDia
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <Label htmlFor="google-integration">Enable Google Integration</Label>
-                  <p className="text-sm text-gray-500">Connect Calendar and Gmail for enhanced task management</p>
+                  <Label htmlFor="google-integration">
+                    Enable Google Integration
+                  </Label>
+                  <p className="text-sm text-gray-500">
+                    Connect Calendar and Gmail for enhanced task management
+                  </p>
                 </div>
                 <Switch
                   id="google-integration"
                   checked={localPreferences.googleIntegration?.enabled || false}
-                  onCheckedChange={(checked) => handlePreferenceChange(['googleIntegration', 'enabled'], checked)}
+                  onCheckedChange={checked =>
+                    handlePreferenceChange(
+                      ['googleIntegration', 'enabled'],
+                      checked
+                    )
+                  }
                 />
               </div>
 
@@ -749,10 +988,23 @@ export function SettingsDialog({ preferences, onPreferencesChange }: SettingsDia
                       className="w-full p-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
                       placeholder="123456789-abcdefghijklmnop.apps.googleusercontent.com"
                       value={localPreferences.googleIntegration?.clientId || ''}
-                      onChange={(e) => handlePreferenceChange(['googleIntegration', 'clientId'], e.target.value)}
+                      onChange={e =>
+                        handlePreferenceChange(
+                          ['googleIntegration', 'clientId'],
+                          e.target.value
+                        )
+                      }
                     />
                     <p className="text-xs text-gray-500 dark:text-gray-400">
-                      Get from <a href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">Google Cloud Console</a>
+                      Get from{' '}
+                      <a
+                        href="https://console.cloud.google.com/apis/credentials"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-500 hover:underline"
+                      >
+                        Google Cloud Console
+                      </a>
                     </p>
                   </div>
 
@@ -764,55 +1016,101 @@ export function SettingsDialog({ preferences, onPreferencesChange }: SettingsDia
                       className="w-full p-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
                       placeholder="AIzaSyA..."
                       value={localPreferences.googleIntegration?.apiKey || ''}
-                      onChange={(e) => handlePreferenceChange(['googleIntegration', 'apiKey'], e.target.value)}
+                      onChange={e =>
+                        handlePreferenceChange(
+                          ['googleIntegration', 'apiKey'],
+                          e.target.value
+                        )
+                      }
                     />
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
                     <div className="flex items-center justify-between">
                       <div>
-                        <Label htmlFor="calendar-enabled">Calendar Integration</Label>
-                        <p className="text-xs text-gray-500">Extract tasks from calendar events</p>
+                        <Label htmlFor="calendar-enabled">
+                          Calendar Integration
+                        </Label>
+                        <p className="text-xs text-gray-500">
+                          Extract tasks from calendar events
+                        </p>
                       </div>
                       <Switch
                         id="calendar-enabled"
-                        checked={localPreferences.googleIntegration?.calendarEnabled || false}
-                        onCheckedChange={(checked) => handlePreferenceChange(['googleIntegration', 'calendarEnabled'], checked)}
+                        checked={
+                          localPreferences.googleIntegration?.calendarEnabled ||
+                          false
+                        }
+                        onCheckedChange={checked =>
+                          handlePreferenceChange(
+                            ['googleIntegration', 'calendarEnabled'],
+                            checked
+                          )
+                        }
                       />
                     </div>
 
                     <div className="flex items-center justify-between">
                       <div>
                         <Label htmlFor="gmail-enabled">Gmail Integration</Label>
-                        <p className="text-xs text-gray-500">Extract tasks from emails</p>
+                        <p className="text-xs text-gray-500">
+                          Extract tasks from emails
+                        </p>
                       </div>
                       <Switch
                         id="gmail-enabled"
-                        checked={localPreferences.googleIntegration?.gmailEnabled || false}
-                        onCheckedChange={(checked) => handlePreferenceChange(['googleIntegration', 'gmailEnabled'], checked)}
+                        checked={
+                          localPreferences.googleIntegration?.gmailEnabled ||
+                          false
+                        }
+                        onCheckedChange={checked =>
+                          handlePreferenceChange(
+                            ['googleIntegration', 'gmailEnabled'],
+                            checked
+                          )
+                        }
                       />
                     </div>
                   </div>
 
                   <div className="flex items-center justify-between">
                     <div>
-                      <Label htmlFor="auto-extract-tasks">Auto-Extract Tasks</Label>
-                      <p className="text-sm text-gray-500">Automatically create tasks from emails and calendar events</p>
+                      <Label htmlFor="auto-extract-tasks">
+                        Auto-Extract Tasks
+                      </Label>
+                      <p className="text-sm text-gray-500">
+                        Automatically create tasks from emails and calendar
+                        events
+                      </p>
                     </div>
                     <Switch
                       id="auto-extract-tasks"
-                      checked={localPreferences.googleIntegration?.autoExtractTasks || false}
-                      onCheckedChange={(checked) => handlePreferenceChange(['googleIntegration', 'autoExtractTasks'], checked)}
+                      checked={
+                        localPreferences.googleIntegration?.autoExtractTasks ||
+                        false
+                      }
+                      onCheckedChange={checked =>
+                        handlePreferenceChange(
+                          ['googleIntegration', 'autoExtractTasks'],
+                          checked
+                        )
+                      }
                     />
                   </div>
 
                   <div className="p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800">
-                    <h4 className="font-medium text-yellow-900 dark:text-yellow-100 mb-2">Setup Required</h4>
+                    <h4 className="font-medium text-yellow-900 dark:text-yellow-100 mb-2">
+                      Setup Required
+                    </h4>
                     <p className="text-sm text-yellow-700 dark:text-yellow-300 mb-3">
-                      To use Google integration, you'll need to set up OAuth credentials in Google Cloud Console:
+                      To use Google integration, you'll need to set up OAuth
+                      credentials in Google Cloud Console:
                     </p>
                     <ol className="text-xs text-yellow-700 dark:text-yellow-300 space-y-1 list-decimal list-inside">
-                      <li>Go to Google Cloud Console → APIs & Services → Credentials</li>
+                      <li>
+                        Go to Google Cloud Console → APIs & Services →
+                        Credentials
+                      </li>
                       <li>Create OAuth 2.0 Client ID for web application</li>
                       <li>Add your domain to authorized origins</li>
                       <li>Enable Calendar and Gmail APIs</li>
@@ -847,7 +1145,9 @@ export function SettingsDialog({ preferences, onPreferencesChange }: SettingsDia
                 <Label htmlFor="language">Language</Label>
                 <Select
                   value={localPreferences.language}
-                  onValueChange={(value) => handlePreferenceChange(['language'], value)}
+                  onValueChange={value =>
+                    handlePreferenceChange(['language'], value)
+                  }
                 >
                   <SelectTrigger>
                     <SelectValue />
@@ -879,16 +1179,16 @@ export function SettingsDialog({ preferences, onPreferencesChange }: SettingsDia
               </span>
             )}
           </div>
-          
+
           <div className="flex gap-2">
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               onClick={() => {
                 setLocalPreferences(preferences);
                 setHasUnsavedChanges(false);
                 toast({
-                  title: "Settings reset",
-                  description: "Preferences restored to saved state.",
+                  title: 'Settings reset',
+                  description: 'Preferences restored to saved state.',
                   duration: 2000,
                 });
               }}
@@ -896,7 +1196,7 @@ export function SettingsDialog({ preferences, onPreferencesChange }: SettingsDia
               Reset Changes
             </Button>
             <DialogClose asChild>
-              <Button 
+              <Button
                 onClick={() => {
                   setIsOpen(false);
                   setHasUnsavedChanges(false);
