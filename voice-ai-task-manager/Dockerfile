@@ -38,8 +38,8 @@ CMD ["npm", "run", "dev"]
 FROM base AS build
 ENV NODE_ENV=production
 
-# Install dependencies
-RUN npm ci --only=production
+# Install dependencies (including devDependencies for TypeScript)
+RUN npm ci
 
 # Copy source code
 COPY . .

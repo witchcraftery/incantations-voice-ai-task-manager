@@ -36,8 +36,8 @@ CMD ["npm", "run", "dev"]
 FROM base AS production
 ENV NODE_ENV=production
 
-# Install only production dependencies
-RUN npm ci --only=production && npm cache clean --force
+# Install dependencies (including devDependencies for TypeScript build)
+RUN npm ci && npm cache clean --force
 
 # Copy source code
 COPY . .
