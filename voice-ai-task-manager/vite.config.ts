@@ -10,8 +10,6 @@ export default defineConfig({
     },
   },
   server: {
-    // Disable HTTPS for development to avoid certificate issues
-    https: false,
     host: '0.0.0.0',
     port: process.env.FRONTEND_PORT ? parseInt(process.env.FRONTEND_PORT) : 5174,
     allowedHosts: [
