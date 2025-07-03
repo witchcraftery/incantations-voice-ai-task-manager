@@ -6,12 +6,12 @@ export class VoiceNotificationService {
 
   constructor(preferences: UserPreferences) {
     this.preferences = preferences;
-    this.isEnabled = preferences.voiceSettings?.enabled ?? false;
+    this.isEnabled = preferences.voiceEnabled ?? false;
   }
 
   updateConfig(preferences: UserPreferences) {
     this.preferences = preferences;
-    this.isEnabled = preferences.voiceSettings?.enabled ?? false;
+    this.isEnabled = preferences.voiceEnabled ?? false;
   }
 
   async playBackgroundSuggestion(message: string, type: string) {
