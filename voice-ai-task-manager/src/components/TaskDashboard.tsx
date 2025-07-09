@@ -21,6 +21,8 @@ import { ScrollArea } from './ui/scroll-area';
 import { TaskCard } from './TaskCard';
 import { Task } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
+import { CalendarSidebar } from './CalendarSidebar';
+import { useGoogleIntegration } from '../hooks/useGoogleIntegration';
 
 interface TaskDashboardProps {
   tasks: Task[];
@@ -28,6 +30,8 @@ interface TaskDashboardProps {
   onEditTask?: (taskId: string, updates: Partial<Task>) => void;
   onDeleteTask?: (taskId: string) => void;
   onCreateTask?: () => void;
+  onStartTimer?: (taskId: string) => void;
+  onStopTimer?: (taskId: string) => void;
 }
 
 type FilterType = 'all' | 'pending' | 'in-progress' | 'completed' | 'overdue';
@@ -39,6 +43,8 @@ export function TaskDashboard({
   onEditTask,
   onDeleteTask,
   onCreateTask,
+  onStartTimer,
+  onStopTimer,
 }: TaskDashboardProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState<FilterType>('all');
@@ -141,8 +147,50 @@ export function TaskDashboard({
     }
   };
 
+  // Add Google Calendar integration
+  const googleConfig = {
+    clientId: 'your-google-client-id', // Would come from user preferences
+    apiKey: 'your-google-api-key',     // Would come from user preferences  
+    enabled: true // Would come from user preferences
+  };
+
+  const {
+    state: googleState,
+    connectCalendar,
+    refreshCalendarData,
+    getCalendarTasks,
+    checkTaskConflicts
+  } = useGoogleIntegration(googleConfig);
+
+  // Function to create tasks from calendar events
+  const handleCreateTaskFromEvent = async (eventId: string, taskType: 'prep' | 'followup') => {
+    const event = googleState.calendar.events.find(e => e.id === eventId);
+    if (!event) return;
+
+    const newTask: Partial<Task> = taskType === 'prep' 
+      ? {
+          title: `Prepare for ${event.summary}`,
+          description: `Meeting preparation: ${event.summary}`,
+          priority: 'medium' as const,
+          dueDate: new Date(new Date(event.start.dateTime || event.start.date || '').getTime() - 30 * 60 * 1000),
+          tags: ['meeting', 'preparation'],
+          project: 'Calendar Tasks'
+        }
+      : {
+          title: `Follow up on ${event.summary}`,
+          description: `Post-meeting follow-up: ${event.summary}`,
+          priority: 'medium' as const,
+          dueDate: new Date(new Date(event.start.dateTime || event.start.date || '').getTime() + 24 * 60 * 60 * 1000),
+          tags: ['meeting', 'follow-up'],
+          project: 'Calendar Tasks'
+        };
+
+    // This would integrate with your existing task creation logic
+    console.log('Creating task from calendar event:', newTask);
+  };
+
   return (
-    <div className="flex flex-col h-full">
+    <div className="h-full flex flex-col bg-gray-50 dark:bg-gray-900">
       {/* Header */}
       <div className="border-b bg-white dark:bg-gray-950 p-4">
         <div className="flex items-center justify-between mb-4">
@@ -301,56 +349,80 @@ export function TaskDashboard({
         </div>
       </div>
 
-      {/* Task List */}
-      <ScrollArea className="flex-1 p-4">
-        <div className="space-y-3">
-          <AnimatePresence mode="popLayout">
-            {filteredAndSortedTasks.map(task => (
-              <TaskCard
-                key={task.id}
-                task={task}
-                onToggleComplete={onToggleComplete}
-                onEdit={onEditTask}
-                onDelete={onDeleteTask}
-                showProject={selectedProject === 'all'}
-                showExtractedFrom={true}
-              />
-            ))}
-          </AnimatePresence>
+      {/* Main Content Area */}
+      <div className="flex-1 flex overflow-hidden">
+        {/* Task List */}
+        <div className="flex-1 flex flex-col min-w-0">
+          <ScrollArea className="flex-1 p-4">
+            <div className="space-y-3">
+              <AnimatePresence mode="popLayout">
+                {filteredAndSortedTasks.map(task => (
+                  <TaskCard
+                    key={task.id}
+                    task={task}
+                    onToggleComplete={onToggleComplete}
+                    onEdit={onEditTask}
+                    onDelete={onDeleteTask}
+                    onStartTimer={onStartTimer}
+                    onStopTimer={onStopTimer}
+                    showProject={selectedProject === 'all'}
+                    showExtractedFrom={true}
+                  />
+                ))}
+              </AnimatePresence>
 
-          {filteredAndSortedTasks.length === 0 && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="text-center py-12"
-            >
-              <div className="p-4 bg-gray-100 dark:bg-gray-800 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
-                <CheckCircle2 className="h-8 w-8 text-gray-400" />
-              </div>
-              <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
-                No tasks found
-              </h3>
-              <p className="text-gray-500 dark:text-gray-400 mb-4">
-                {searchQuery ||
-                filterType !== 'all' ||
-                selectedProject !== 'all'
-                  ? 'Try adjusting your filters to see more tasks.'
-                  : 'Start by having a conversation about your tasks or create one manually.'}
-              </p>
-              {onCreateTask && (
-                <Button
-                  onClick={onCreateTask}
-                  variant="outline"
-                  className="gap-2"
+              {filteredAndSortedTasks.length === 0 && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="text-center py-12"
                 >
-                  <Plus className="h-4 w-4" />
-                  Create Your First Task
-                </Button>
+                  <div className="p-4 bg-gray-100 dark:bg-gray-800 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+                    <CheckCircle2 className="h-8 w-8 text-gray-400" />
+                  </div>
+                  <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
+                    No tasks found
+                  </h3>
+                  <p className="text-gray-500 dark:text-gray-400 mb-4">
+                    {searchQuery ||
+                    filterType !== 'all' ||
+                    selectedProject !== 'all'
+                      ? 'Try adjusting your filters to see more tasks.'
+                      : 'Start by having a conversation about your tasks or create one manually.'}
+                  </p>
+                  {onCreateTask && (
+                    <Button
+                      onClick={onCreateTask}
+                      variant="outline"
+                      className="gap-2"
+                    >
+                      <Plus className="h-4 w-4" />
+                      Create Your First Task
+                    </Button>
+                  )}
+                </motion.div>
               )}
-            </motion.div>
-          )}
+            </div>
+          </ScrollArea>
         </div>
-      </ScrollArea>
+
+        {/* Calendar Sidebar */}
+        <div className="w-80 border-l border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-950 overflow-y-auto">
+          <div className="p-4 space-y-4">
+            <CalendarSidebar
+              events={googleState.calendar.events}
+              todaysEvents={googleState.calendar.todaysEvents}
+              isConnected={googleState.calendar.connected}
+              isLoading={googleState.calendar.loading}
+              error={googleState.calendar.error}
+              onConnect={connectCalendar}
+              onRefresh={refreshCalendarData}
+              onCreateTaskFromEvent={handleCreateTaskFromEvent}
+              conflictingTasks={[]} // Would implement conflict detection here
+            />
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
