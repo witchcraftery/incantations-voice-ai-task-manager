@@ -25,7 +25,7 @@ import { useChat } from '../hooks/useChat';
 import { useTasks } from '../hooks/useTasks';
 import { useVoice } from '../hooks/useVoice';
 import { useNotifications } from '../hooks/useNotifications';
-// import { useBackgroundAgent } from '../hooks/useBackgroundAgent';
+import { useBackgroundAgent } from '../hooks/useBackgroundAgent';
 import { StorageService } from '../services/storageService';
 import { AnalyticsService } from '../services/analyticsService';
 import { UserPreferences } from '../types';
@@ -96,11 +96,11 @@ export function VoiceTaskManager() {
   const recommendations = analyticsService.calculateTaskOrder(tasks);
 
   // Initialize background agent
-  // const backgroundAgent = useBackgroundAgent(preferences, {
-  //   enabled: preferences.notificationSettings?.enabled || false,
-  //   aggressiveness: 'normal',
-  //   checkInterval: 5 * 60 * 1000 // 5 minutes
-  // });
+  const backgroundAgent = useBackgroundAgent(preferences, {
+    enabled: preferences.notificationSettings?.enabled || false,
+    aggressiveness: 'normal',
+    checkInterval: 5 * 60 * 1000 // 5 minutes
+  });
 
   const {
     requestPermission: requestNotificationPermission,
@@ -217,7 +217,7 @@ export function VoiceTaskManager() {
         completeTask(taskId);
         // Celebrate task completion with notification AND voice
         await celebrateCompletion(task.title);
-        // await backgroundAgent.playCustomCelebration(task.title);
+        await backgroundAgent.playCustomCelebration(task.title);
       }
     }
   };
@@ -338,7 +338,7 @@ export function VoiceTaskManager() {
                     </span>
                   </div>
                 )}
-                {/* {backgroundAgent.state.isRunning && (
+                {backgroundAgent.state.isRunning && (
                 <div className="flex items-center gap-2">
                   <Bot className="h-4 w-4 text-orange-600" />
                   <span className="text-gray-600 dark:text-gray-400">
@@ -350,7 +350,7 @@ export function VoiceTaskManager() {
                     </span>
                   )}
                 </div>
-              )} */}
+              )}
               </div>
 
               <div className="flex items-center gap-3">
