@@ -22,7 +22,7 @@ cd voice-ai-task-manager
 npm run dev
 ```
 
-**Local Development**: `http://localhost:5173/`
+**Local Development**: `http://localhost:5174/`
 
 ## 📁 Project Structure
 

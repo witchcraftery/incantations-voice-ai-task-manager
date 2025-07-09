@@ -42,9 +42,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   const API_BASE =
-    process.env.NODE_ENV === 'production'
-      ? 'https://api.incantations.witchcraftery.io'
-      : 'http://localhost:3001';
+    window.location.hostname === 'localhost'
+      ? 'http://localhost:3001'
+      : 'https://api.incantations.witchcraftery.io';
 
   useEffect(() => {
     checkAuthStatus();

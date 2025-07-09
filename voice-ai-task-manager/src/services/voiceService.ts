@@ -5,9 +5,9 @@ export class VoiceService {
   private synthesis: SpeechSynthesis;
   private isInitialized = false;
   private backendApiUrl =
-    process.env.NODE_ENV === 'production'
-      ? 'http://137.184.13.35:3001'
-      : 'http://localhost:3001';
+    window.location.hostname === 'localhost'
+      ? 'http://localhost:3001'
+      : 'http://137.184.13.35:3001';
   private deepgramVoices = [
     'aura-asteria-en',
     'aura-luna-en',
