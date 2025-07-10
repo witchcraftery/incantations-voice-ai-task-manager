@@ -108,6 +108,8 @@ export interface UserPreferences {
     useOpenRouter: boolean;
     openRouterApiKey?: string;
     selectedModel: string;
+    lillyModel?: string; // Lilly's conversational AI model
+    agentModel?: string; // Autonomous agents model
     temperature: number;
     maxTokens: number;
   };

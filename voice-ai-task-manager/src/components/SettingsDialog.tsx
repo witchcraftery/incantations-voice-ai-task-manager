@@ -625,130 +625,172 @@ export function SettingsDialog({
                       </p>
                     </div>
 
-                    <div className="space-y-3">
-                      <Label htmlFor="selected-model">AI Model</Label>
-                      <Select
-                        value={localPreferences.aiSettings.selectedModel}
-                        onValueChange={value =>
-                          handlePreferenceChange(
-                            ['aiSettings', 'selectedModel'],
-                            value
-                          )
-                        }
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent className="max-h-96">
-                          <SelectItem value="simulation">
-                            <div className="flex flex-col">
-                              <span>Local Simulation</span>
-                              <span className="text-xs text-gray-500">
-                                FREE • Offline fallback
-                              </span>
+                    <div className="space-y-6">
+                      {/* Lilly - Conversational AI */}
+                      <div className="space-y-3 p-4 bg-purple-50 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-800 rounded-lg">
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className="text-lg">🧙‍♀️</span>
+                          <Label className="text-purple-900 dark:text-purple-100 font-medium">
+                            Lilly - Your AI Companion
+                          </Label>
+                        </div>
+                        <p className="text-xs text-purple-700 dark:text-purple-300 mb-3">
+                          Named after Lilith, the first witch. Lilly learns your patterns, understands your needs, and grows with you.
+                        </p>
+                        <Select
+                          value={localPreferences.aiSettings.lillyModel || localPreferences.aiSettings.selectedModel}
+                          onValueChange={value =>
+                            handlePreferenceChange(['aiSettings', 'lillyModel'], value)
+                          }
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent className="max-h-96">
+                            <div className="px-2 py-1 text-xs font-semibold text-gray-500 border-b">
+                              🧙‍♀️ Recommended for Lilly
                             </div>
-                          </SelectItem>
+                            <SelectItem value="anthropic/claude-3.5-sonnet">
+                              <div className="flex flex-col">
+                                <span>Claude 3.5 Sonnet ⭐</span>
+                                <span className="text-xs text-gray-500">
+                                  200K context • Best emotional intelligence
+                                </span>
+                              </div>
+                            </SelectItem>
+                            <SelectItem value="openai/gpt-4o">
+                              <div className="flex flex-col">
+                                <span>GPT-4o ⭐</span>
+                                <span className="text-xs text-gray-500">
+                                  128K context • Excellent conversation
+                                </span>
+                              </div>
+                            </SelectItem>
+                            <SelectItem value="anthropic/claude-3-haiku">
+                              <div className="flex flex-col">
+                                <span>Claude 3 Haiku</span>
+                                <span className="text-xs text-gray-500">
+                                  200K context • Fast & empathetic
+                                </span>
+                              </div>
+                            </SelectItem>
+                            <SelectItem value="openai/gpt-4o-mini">
+                              <div className="flex flex-col">
+                                <span>GPT-4o Mini</span>
+                                <span className="text-xs text-gray-500">
+                                  128K context • Cost-effective
+                                </span>
+                              </div>
+                            </SelectItem>
+                            <div className="px-2 py-1 text-xs font-semibold text-gray-500 border-b border-t">
+                              💰 Budget Options
+                            </div>
+                            <SelectItem value="meta-llama/llama-3.1-8b-instruct:free">
+                              <div className="flex flex-col">
+                                <span>Llama 3.1 8B 💰</span>
+                                <span className="text-xs text-green-600">
+                                  128K context • FREE with limits
+                                </span>
+                              </div>
+                            </SelectItem>
+                            <SelectItem value="mistralai/mistral-7b-instruct:free">
+                              <div className="flex flex-col">
+                                <span>Mistral 7B 💰</span>
+                                <span className="text-xs text-green-600">
+                                  32K context • FREE with limits
+                                </span>
+                              </div>
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
 
-                          {/* Popular Models Section */}
-                          <div className="px-2 py-1 text-xs font-semibold text-gray-500 border-b">
-                            ⭐ Popular Models
-                          </div>
-                          <SelectItem value="anthropic/claude-3.5-sonnet">
-                            <div className="flex flex-col">
-                              <span>Claude 3.5 Sonnet</span>
-                              <span className="text-xs text-gray-500">
-                                200K context • $3/M tokens • ⭐ Popular
-                              </span>
+                      {/* Autonomous Agents */}
+                      <div className="space-y-3 p-4 bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg">
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className="text-lg">🤖</span>
+                          <Label className="text-blue-900 dark:text-blue-100 font-medium">
+                            Autonomous Agents
+                          </Label>
+                        </div>
+                        <p className="text-xs text-blue-700 dark:text-blue-300 mb-3">
+                          Background workers for Gmail, Calendar, and task analysis. Focused on efficiency and accuracy.
+                        </p>
+                        <Select
+                          value={localPreferences.aiSettings.agentModel || localPreferences.aiSettings.selectedModel}
+                          onValueChange={value =>
+                            handlePreferenceChange(['aiSettings', 'agentModel'], value)
+                          }
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent className="max-h-96">
+                            <div className="px-2 py-1 text-xs font-semibold text-gray-500 border-b">
+                              🤖 Recommended for Agents
                             </div>
-                          </SelectItem>
-                          <SelectItem value="openai/gpt-4o">
-                            <div className="flex flex-col">
-                              <span>GPT-4o</span>
-                              <span className="text-xs text-gray-500">
-                                128K context • $2.50/M tokens • ⭐ Popular
-                              </span>
+                            <SelectItem value="anthropic/claude-3.5-sonnet">
+                              <div className="flex flex-col">
+                                <span>Claude 3.5 Sonnet ⭐</span>
+                                <span className="text-xs text-gray-500">
+                                  200K context • Best reasoning & analysis
+                                </span>
+                              </div>
+                            </SelectItem>
+                            <SelectItem value="meta-llama/llama-3.1-70b-instruct">
+                              <div className="flex flex-col">
+                                <span>Llama 3.1 70B Instruct ⭐</span>
+                                <span className="text-xs text-gray-500">
+                                  128K context • Cost-effective powerhouse
+                                </span>
+                              </div>
+                            </SelectItem>
+                            <SelectItem value="openai/gpt-4o">
+                              <div className="flex flex-col">
+                                <span>GPT-4o</span>
+                                <span className="text-xs text-gray-500">
+                                  128K context • Structured analysis
+                                </span>
+                              </div>
+                            </SelectItem>
+                            <SelectItem value="google/gemini-flash-1.5">
+                              <div className="flex flex-col">
+                                <span>Gemini Flash 1.5</span>
+                                <span className="text-xs text-gray-500">
+                                  1M context • Speed optimized
+                                </span>
+                              </div>
+                            </SelectItem>
+                            <div className="px-2 py-1 text-xs font-semibold text-gray-500 border-b border-t">
+                              💰 Budget Options
                             </div>
-                          </SelectItem>
-                          <SelectItem value="openai/gpt-4o-mini">
-                            <div className="flex flex-col">
-                              <span>GPT-4o Mini</span>
-                              <span className="text-xs text-gray-500">
-                                128K context • $0.15/M tokens • ⭐ Popular
-                              </span>
-                            </div>
-                          </SelectItem>
-                          <SelectItem value="anthropic/claude-3-haiku">
-                            <div className="flex flex-col">
-                              <span>Claude 3 Haiku</span>
-                              <span className="text-xs text-gray-500">
-                                200K context • $0.25/M tokens • ⭐ Popular
-                              </span>
-                            </div>
-                          </SelectItem>
-                          <SelectItem value="google/gemini-flash-1.5">
-                            <div className="flex flex-col">
-                              <span>Gemini Flash 1.5</span>
-                              <span className="text-xs text-gray-500">
-                                1M context • $0.075/M tokens • ⭐ Popular
-                              </span>
-                            </div>
-                          </SelectItem>
-
-                          {/* Free Models Section */}
-                          <div className="px-2 py-1 text-xs font-semibold text-gray-500 border-b border-t">
-                            💰 Free Models
-                          </div>
-                          <SelectItem value="meta-llama/llama-3.1-8b-instruct:free">
-                            <div className="flex flex-col">
-                              <span>Llama 3.1 8B Instruct</span>
-                              <span className="text-xs text-green-600">
-                                128K context • FREE
-                              </span>
-                            </div>
-                          </SelectItem>
-                          <SelectItem value="mistralai/mistral-7b-instruct:free">
-                            <div className="flex flex-col">
-                              <span>Mistral 7B Instruct</span>
-                              <span className="text-xs text-green-600">
-                                32K context • FREE
-                              </span>
-                            </div>
-                          </SelectItem>
-
-                          {/* Other Models Section */}
-                          <div className="px-2 py-1 text-xs font-semibold text-gray-500 border-b border-t">
-                            🔧 Other Models
-                          </div>
-                          <SelectItem value="meta-llama/llama-3.1-70b-instruct">
-                            <div className="flex flex-col">
-                              <span>Llama 3.1 70B Instruct</span>
-                              <span className="text-xs text-gray-500">
-                                128K context • $0.35/M tokens
-                              </span>
-                            </div>
-                          </SelectItem>
-                          <SelectItem value="google/gemini-pro-1.5">
-                            <div className="flex flex-col">
-                              <span>Gemini Pro 1.5</span>
-                              <span className="text-xs text-gray-500">
-                                2M context • $1.25/M tokens
-                              </span>
-                            </div>
-                          </SelectItem>
-                          <SelectItem value="cohere/command-r-plus">
-                            <div className="flex flex-col">
-                              <span>Command R+</span>
-                              <span className="text-xs text-gray-500">
-                                128K context • $2.50/M tokens
-                              </span>
-                            </div>
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">
-                        ⭐ Popular models are optimized for task management. 💰
-                        Free models have usage limits.
-                      </p>
+                            <SelectItem value="meta-llama/llama-3.1-8b-instruct:free">
+                              <div className="flex flex-col">
+                                <span>Llama 3.1 8B 💰</span>
+                                <span className="text-xs text-green-600">
+                                  128K context • FREE with limits
+                                </span>
+                              </div>
+                            </SelectItem>
+                            <SelectItem value="mistralai/mistral-7b-instruct:free">
+                              <div className="flex flex-col">
+                                <span>Mistral 7B 💰</span>
+                                <span className="text-xs text-green-600">
+                                  32K context • FREE with limits
+                                </span>
+                              </div>
+                            </SelectItem>
+                            <SelectItem value="simulation">
+                              <div className="flex flex-col">
+                                <span>Local Simulation 💰</span>
+                                <span className="text-xs text-green-600">
+                                  FREE • Offline fallback
+                                </span>
+                              </div>
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
@@ -980,49 +1022,17 @@ export function SettingsDialog({
 
               {localPreferences.googleIntegration?.enabled && (
                 <>
-                  <div className="space-y-3">
-                    <Label htmlFor="google-client-id">Google Client ID</Label>
-                    <input
-                      id="google-client-id"
-                      type="text"
-                      className="w-full p-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
-                      placeholder="123456789-abcdefghijklmnop.apps.googleusercontent.com"
-                      value={localPreferences.googleIntegration?.clientId || ''}
-                      onChange={e =>
-                        handlePreferenceChange(
-                          ['googleIntegration', 'clientId'],
-                          e.target.value
-                        )
-                      }
-                    />
-                    <p className="text-xs text-gray-500 dark:text-gray-400">
-                      Get from{' '}
-                      <a
-                        href="https://console.cloud.google.com/apis/credentials"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-blue-500 hover:underline"
-                      >
-                        Google Cloud Console
-                      </a>
+                  <div className="p-3 bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 rounded-lg">
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="h-2 w-2 bg-green-500 rounded-full"></div>
+                      <span className="text-sm font-medium text-green-900 dark:text-green-100">
+                        Google Services Configured
+                      </span>
+                    </div>
+                    <p className="text-xs text-green-700 dark:text-green-300">
+                      🔐 Google API credentials are securely configured on the server. 
+                      No manual setup required - just enable the features below!
                     </p>
-                  </div>
-
-                  <div className="space-y-3">
-                    <Label htmlFor="google-api-key">Google API Key</Label>
-                    <input
-                      id="google-api-key"
-                      type="password"
-                      className="w-full p-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
-                      placeholder="AIzaSyA..."
-                      value={localPreferences.googleIntegration?.apiKey || ''}
-                      onChange={e =>
-                        handlePreferenceChange(
-                          ['googleIntegration', 'apiKey'],
-                          e.target.value
-                        )
-                      }
-                    />
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
@@ -1098,24 +1108,22 @@ export function SettingsDialog({
                     />
                   </div>
 
-                  <div className="p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800">
-                    <h4 className="font-medium text-yellow-900 dark:text-yellow-100 mb-2">
-                      Setup Required
+                  <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                    <h4 className="font-medium text-blue-900 dark:text-blue-100 mb-2">
+                      🎯 Ready to Use!
                     </h4>
-                    <p className="text-sm text-yellow-700 dark:text-yellow-300 mb-3">
-                      To use Google integration, you'll need to set up OAuth
-                      credentials in Google Cloud Console:
+                    <p className="text-sm text-blue-700 dark:text-blue-300 mb-3">
+                      Your Google integration is pre-configured and ready to go:
                     </p>
-                    <ol className="text-xs text-yellow-700 dark:text-yellow-300 space-y-1 list-decimal list-inside">
-                      <li>
-                        Go to Google Cloud Console → APIs & Services →
-                        Credentials
-                      </li>
-                      <li>Create OAuth 2.0 Client ID for web application</li>
-                      <li>Add your domain to authorized origins</li>
-                      <li>Enable Calendar and Gmail APIs</li>
-                      <li>Copy Client ID and API Key to settings above</li>
-                    </ol>
+                    <ul className="text-xs text-blue-700 dark:text-blue-300 space-y-1 list-disc list-inside">
+                      <li>✅ Google Calendar API - Extract tasks from meetings</li>
+                      <li>✅ Gmail API - Create tasks from important emails</li>
+                      <li>✅ OAuth 2.0 Authentication - Secure access to your data</li>
+                      <li>✅ Auto-sync - Background updates every 15 minutes</li>
+                    </ul>
+                    <p className="text-xs text-blue-600 dark:text-blue-400 mt-2 font-medium">
+                      Just toggle the features above and start using! 🚀
+                    </p>
                   </div>
                 </>
               )}
