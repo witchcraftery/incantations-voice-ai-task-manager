@@ -185,9 +185,8 @@ export function DocumentationModal() {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button variant="ghost" size="sm" className="gap-2">
+        <Button variant="ghost" size="sm" className="p-2" title="Documentation">
           <BookOpen className="h-4 w-4" />
-          Documentation
         </Button>
       </DialogTrigger>
 

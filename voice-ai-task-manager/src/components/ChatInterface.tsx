@@ -7,6 +7,8 @@ import { VoiceControls } from './VoiceControls';
 import { Message, UserPreferences } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
 import { formatDistanceToNow } from 'date-fns';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 interface ChatInterfaceProps {
   messages: Message[];
@@ -141,7 +143,15 @@ export function ChatInterface({
                   }`}
                 >
                   <div className="flex items-start justify-between gap-2">
-                    <p className="whitespace-pre-wrap">{message.content}</p>
+                    {message.type === 'assistant' ? (
+                      <div className="prose prose-sm dark:prose-invert max-w-none">
+                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                          {message.content}
+                        </ReactMarkdown>
+                      </div>
+                    ) : (
+                      <p className="whitespace-pre-wrap">{message.content}</p>
+                    )}
 
                     <div className="flex items-center gap-1 flex-shrink-0">
                       {message.type === 'assistant' &&

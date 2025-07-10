@@ -24,6 +24,7 @@ interface ConversationSidebarProps {
   getConversationSummary: (conversationId: string) => string;
   minimized?: boolean;
   onToggleMinimized?: () => void;
+  onChatClick?: () => void;
   settingsComponent?: React.ReactNode;
   docsComponent?: React.ReactNode;
 }
@@ -38,6 +39,7 @@ export function ConversationSidebar({
   getConversationSummary,
   minimized = false,
   onToggleMinimized,
+  onChatClick,
   settingsComponent,
   docsComponent,
 }: ConversationSidebarProps) {
@@ -317,10 +319,17 @@ export function ConversationSidebar({
       <ScrollArea className="flex-1 p-2">
         {minimized ? (
           <div className="text-center py-6">
-            <MessageSquare className="h-6 w-6 text-gray-300 dark:text-gray-600 mx-auto mb-2" />
-            <p className="text-xs text-gray-500 dark:text-gray-400">
-              {conversations.length}
-            </p>
+            <Button
+              onClick={onChatClick}
+              variant="ghost"
+              className="w-full h-auto p-3 flex flex-col items-center gap-2"
+              title="Open Chat"
+            >
+              <MessageSquare className="h-6 w-6 text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors" />
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                {conversations.length}
+              </p>
+            </Button>
           </div>
         ) : filteredConversations.length === 0 ? (
           <div className="text-center py-8">

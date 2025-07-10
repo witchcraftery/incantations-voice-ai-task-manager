@@ -6,6 +6,9 @@ import {
   CheckCircle2,
   MessageSquare,
   Bot,
+  Menu,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
 import { Button } from './ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
@@ -44,7 +47,10 @@ export function VoiceTaskManager() {
     return storage.loadPreferences();
   });
   const [activeTab, setActiveTab] = useState('tasks');
-  const [sidebarVisible, setSidebarVisible] = useState(true);
+  const [sidebarVisible, setSidebarVisible] = useState(() => {
+    const stored = localStorage.getItem('incantations_sidebar_visible');
+    return stored !== null ? JSON.parse(stored) : true;
+  });
   const [sidebarMinimized, setSidebarMinimized] = useState(false);
 
   // Enhanced preferences handler that syncs to cloud if authenticated
@@ -223,7 +229,16 @@ export function VoiceTaskManager() {
   };
 
   const toggleSidebar = () => {
-    setSidebarVisible(!sidebarVisible);
+    const newVisibility = !sidebarVisible;
+    setSidebarVisible(newVisibility);
+    localStorage.setItem('incantations_sidebar_visible', JSON.stringify(newVisibility));
+  };
+
+  // Open sidebar and navigate to Chat tab
+  const openChatSidebar = () => {
+    setSidebarVisible(true);
+    setActiveTab('chat');
+    localStorage.setItem('incantations_sidebar_visible', JSON.stringify(true));
   };
 
   const stats = {
@@ -259,6 +274,7 @@ export function VoiceTaskManager() {
             getConversationSummary={getConversationSummary}
             minimized={sidebarMinimized}
             onToggleMinimized={() => setSidebarMinimized(!sidebarMinimized)}
+            onChatClick={openChatSidebar}
             settingsComponent={
               <SettingsDialog
                 preferences={preferences}
@@ -286,22 +302,28 @@ export function VoiceTaskManager() {
           <header className="bg-white dark:bg-gray-950 border-b border-gray-200 dark:border-gray-800 p-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={toggleSidebar}
-                  className="md:hidden"
-                >
-                  <MessageSquare className="h-4 w-4" />
-                </Button>
-
                 <div className="flex items-center gap-3">
+                  {/* Sidebar Toggle - aligned with brain icon */}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={toggleSidebar}
+                    className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg"
+                    title={sidebarVisible ? 'Hide sidebar' : 'Show sidebar'}
+                  >
+                    {sidebarVisible ? (
+                      <ChevronLeft className="h-6 w-6 text-gray-600 dark:text-gray-400" />
+                    ) : (
+                      <Menu className="h-6 w-6 text-gray-600 dark:text-gray-400" />
+                    )}
+                  </Button>
+
                   <div className="p-2 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg">
                     <Brain className="h-6 w-6 text-white" />
                   </div>
                   <div>
                     <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">
-                      Voice AI Task Manager
+                      Incantations
                     </h1>
                     <div className="flex items-center gap-2">
                       <p className="text-sm text-gray-500 dark:text-gray-400">

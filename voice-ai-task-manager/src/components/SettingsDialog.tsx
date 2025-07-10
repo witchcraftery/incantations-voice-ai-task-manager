@@ -57,6 +57,22 @@ export function SettingsDialog({
     loadVoices();
     loadAudioInputs();
     testDeepgramConnection();
+
+    // Listen for Web Speech API voices to become available
+    const handleVoicesChanged = () => {
+      console.log('🔄 Reloading voices due to voiceschanged event');
+      loadVoices();
+    };
+
+    if (window.speechSynthesis) {
+      window.speechSynthesis.addEventListener('voiceschanged', handleVoicesChanged);
+    }
+
+    return () => {
+      if (window.speechSynthesis) {
+        window.speechSynthesis.removeEventListener('voiceschanged', handleVoicesChanged);
+      }
+    };
   }, []);
 
   const loadAudioInputs = async () => {

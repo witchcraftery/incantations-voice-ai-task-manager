@@ -345,13 +345,28 @@ export class VoiceService {
     displayName: string;
     type: 'web' | 'deepgram';
   }> {
-    const webVoices = this.synthesis
-      ? this.synthesis.getVoices().map(voice => ({
-          name: voice.name,
-          displayName: `${voice.name} (${voice.lang})`,
-          type: 'web' as const,
-        }))
-      : [];
+    let webVoices: Array<{ name: string; displayName: string; type: 'web' }> = [];
+    
+    if (this.synthesis) {
+      const voices = this.synthesis.getVoices();
+      
+      // If no voices available yet, wait for voiceschanged event
+      if (voices.length === 0) {
+        this.synthesis.addEventListener('voiceschanged', () => {
+          // This will trigger the settings to reload voices
+          console.log('🔄 Web Speech API voices loaded');
+        });
+      }
+      
+      webVoices = voices.map(voice => ({
+        name: voice.name,
+        displayName: `${voice.name} (${voice.lang})`,
+        type: 'web' as const,
+      }));
+
+      // Sort voices by language and name for better UX
+      webVoices.sort((a, b) => a.displayName.localeCompare(b.displayName));
+    }
 
     const deepgramVoicesFormatted = this.deepgramVoices.map(voice => ({
       name: voice,

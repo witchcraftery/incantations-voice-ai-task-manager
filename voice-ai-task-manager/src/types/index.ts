@@ -13,6 +13,7 @@ export interface Task {
   status: 'pending' | 'in-progress' | 'completed' | 'cancelled';
   dueDate?: Date;
   project?: string;
+  client?: string; // Client/Company identifier for filtering and organization
   tags: string[];
   createdAt: Date;
   updatedAt: Date;
