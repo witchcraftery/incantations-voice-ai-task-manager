@@ -6,6 +6,8 @@ import {
   Edit3,
   Search,
   Calendar,
+  Menu,
+  ChevronRight,
 } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
@@ -263,29 +265,51 @@ export function ConversationSidebar({
 
   return (
     <div
-      className={`${minimized ? 'w-20' : 'w-80'} border-r bg-white dark:bg-gray-950 flex flex-col h-full transition-all duration-300`}
+      className="border-r bg-white dark:bg-gray-950 flex flex-col h-screen transition-all duration-300"
     >
       {/* Header */}
       <div className="p-4 border-b">
-        <div className="flex items-center justify-between mb-3">
+        {/* Top buttons row */}
+        <div className="flex items-center gap-2 mb-3">
           {!minimized && (
-            <div className="flex items-center gap-2">
-              <MessageSquare className="h-5 w-5 text-gray-600 dark:text-gray-400" />
-              <h2 className="font-semibold text-gray-900 dark:text-gray-100">
-                Conversations
-              </h2>
-            </div>
+            <Button
+              onClick={onNewConversation}
+              size="sm"
+              className="gap-1 h-8 flex-1"
+              title="New Conversation"
+            >
+              <Plus className="h-3 w-3" />
+              New
+            </Button>
           )}
+          
           <Button
-            onClick={onNewConversation}
+            onClick={onToggleMinimized}
+            variant="ghost"
             size="sm"
-            className={`gap-1 h-8 ${minimized ? 'w-full justify-center' : ''}`}
-            title={minimized ? 'New Conversation' : ''}
+            className={`h-8 w-8 p-0 hover:bg-gray-100 dark:hover:bg-gray-800 ${minimized ? 'w-full' : ''}`}
+            title={minimized ? 'Expand sidebar' : 'Minimize sidebar'}
           >
-            <Plus className="h-3 w-3" />
-            {!minimized && 'New'}
+            {minimized ? (
+              <div className="flex items-center">
+                <Menu className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+                <ChevronRight className="h-3 w-3 text-gray-600 dark:text-gray-400 ml-0.5" />
+              </div>
+            ) : (
+              <Menu className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+            )}
           </Button>
         </div>
+
+        {/* Conversations title */}
+        {!minimized && (
+          <div className="flex items-center gap-2 mb-3">
+            <MessageSquare className="h-5 w-5 text-gray-600 dark:text-gray-400" />
+            <h2 className="font-semibold text-gray-900 dark:text-gray-100">
+              Conversations
+            </h2>
+          </div>
+        )}
 
         {/* Search */}
         {!minimized && (

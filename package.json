@@ -1,0 +1,36 @@
+{
+  "name": "incantations-workspace",
+  "version": "1.0.0",
+  "description": "Incantations Voice AI Task Manager - Full Stack Application",
+  "private": true,
+  "workspaces": [
+    "backend",
+    "voice-ai-task-manager"
+  ],
+  "scripts": {
+    "dev:local": "concurrently \"npm run backend:dev\" \"npm run frontend:dev\"",
+    "backend:dev": "cd backend && npm run dev",
+    "frontend:dev": "cd voice-ai-task-manager && FRONTEND_PORT=5174 npm run dev",
+    "build": "npm run backend:build && npm run frontend:build",
+    "backend:build": "cd backend && npm run build",
+    "frontend:build": "cd voice-ai-task-manager && npm run build",
+    "install:all": "npm install && cd backend && npm install && cd ../voice-ai-task-manager && npm install",
+    "test:setup": "node test-local-setup.js",
+    "smoke:local": "./scripts/smoke_test.sh local",
+    "smoke:staging": "./scripts/smoke_test.sh staging",
+    "smoke:prod": "./scripts/smoke_test.sh production",
+    "validate:local": "./scripts/post_deploy.sh local",
+    "validate:staging": "./scripts/post_deploy.sh staging",
+    "validate:prod": "./scripts/post_deploy.sh production",
+    "test:local": "npm run smoke:local",
+    "health:check": "npm run smoke:local",
+    "dev:test": "npm run dev:local && sleep 10 && npm run smoke:local",
+    "deps:check": "which curl && which jq && which lighthouse && echo '✅ All dependencies installed' || echo '❌ Missing dependencies - run smoke test to auto-install'"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

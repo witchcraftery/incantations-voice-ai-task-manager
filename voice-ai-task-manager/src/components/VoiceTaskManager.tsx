@@ -47,10 +47,6 @@ export function VoiceTaskManager() {
     return storage.loadPreferences();
   });
   const [activeTab, setActiveTab] = useState('tasks');
-  const [sidebarVisible, setSidebarVisible] = useState(() => {
-    const stored = localStorage.getItem('incantations_sidebar_visible');
-    return stored !== null ? JSON.parse(stored) : true;
-  });
   const [sidebarMinimized, setSidebarMinimized] = useState(false);
 
   // Enhanced preferences handler that syncs to cloud if authenticated
@@ -228,17 +224,10 @@ export function VoiceTaskManager() {
     }
   };
 
-  const toggleSidebar = () => {
-    const newVisibility = !sidebarVisible;
-    setSidebarVisible(newVisibility);
-    localStorage.setItem('incantations_sidebar_visible', JSON.stringify(newVisibility));
-  };
-
   // Open sidebar and navigate to Chat tab
   const openChatSidebar = () => {
-    setSidebarVisible(true);
+    setSidebarMinimized(false);
     setActiveTab('chat');
-    localStorage.setItem('incantations_sidebar_visible', JSON.stringify(true));
   };
 
   const stats = {
@@ -253,16 +242,15 @@ export function VoiceTaskManager() {
 
   return (
     <TooltipProvider>
-      <div className="h-screen bg-gray-50 dark:bg-gray-900 flex overflow-hidden">
+      <div className="h-screen bg-gray-50 dark:bg-gray-900 flex overflow-hidden w-full">
         {/* Sidebar */}
         <motion.div
           initial={false}
           animate={{
-            x: sidebarVisible ? 0 : sidebarMinimized ? -240 : -320,
             width: sidebarMinimized ? 80 : 320,
           }}
           transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-          className="absolute left-0 top-0 h-full z-10 md:relative md:z-0"
+          className="flex-shrink-0"
         >
           <ConversationSidebar
             conversations={conversations}
@@ -285,39 +273,15 @@ export function VoiceTaskManager() {
           />
         </motion.div>
 
-        {/* Overlay for mobile */}
-        {sidebarVisible && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black bg-opacity-50 z-0 md:hidden"
-            onClick={toggleSidebar}
-          />
-        )}
+
 
         {/* Main Content */}
-        <div className="flex-1 flex flex-col min-w-0">
+        <div className="flex-1 flex flex-col min-w-0 transition-all duration-300">
           {/* Header */}
           <header className="bg-white dark:bg-gray-950 border-b border-gray-200 dark:border-gray-800 p-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
                 <div className="flex items-center gap-3">
-                  {/* Sidebar Toggle - aligned with brain icon */}
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={toggleSidebar}
-                    className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg"
-                    title={sidebarVisible ? 'Hide sidebar' : 'Show sidebar'}
-                  >
-                    {sidebarVisible ? (
-                      <ChevronLeft className="h-6 w-6 text-gray-600 dark:text-gray-400" />
-                    ) : (
-                      <Menu className="h-6 w-6 text-gray-600 dark:text-gray-400" />
-                    )}
-                  </Button>
-
                   <div className="p-2 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg">
                     <Brain className="h-6 w-6 text-white" />
                   </div>
