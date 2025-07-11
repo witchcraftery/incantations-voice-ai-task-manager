@@ -10,8 +10,13 @@ build/
 
 # Environment variables
 .env
+.env.*
 .env.local
 .env.production
+backend/.env
+backend/.env.*
+voice-ai-task-manager/.env
+voice-ai-task-manager/.env.*
 
 # IDE files
 .vscode/
@@ -31,6 +36,9 @@ Thumbs.db
 # Logs
 logs
 *.log
+backend/*.log
+backend/logs/
+voice-ai-task-manager/logs/
 
 # Runtime data
 pids
