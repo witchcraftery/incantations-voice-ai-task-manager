@@ -32,11 +32,15 @@ export const LoginButton: React.FC = () => {
 
   const initializeGoogleSignIn = () => {
     if (window.google) {
+      const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+      
+      if (!clientId) {
+        console.error('❌ VITE_GOOGLE_CLIENT_ID not configured. Google sign-in disabled.');
+        return;
+      }
+
       window.google.accounts.id.initialize({
-        client_id:
-          process.env.NODE_ENV === 'production'
-            ? 'your_production_google_client_id'
-            : 'your_dev_google_client_id', // You'll need to get this from Google Cloud Console
+        client_id: clientId,
         callback: handleCredentialResponse,
         auto_select: false,
         cancel_on_tap_outside: true,
@@ -53,8 +57,10 @@ export const LoginButton: React.FC = () => {
   };
 
   const handleSignIn = () => {
-    if (window.google) {
+    if (window.google && import.meta.env.VITE_GOOGLE_CLIENT_ID) {
       window.google.accounts.id.prompt();
+    } else {
+      console.error('❌ Google sign-in not available. Check VITE_GOOGLE_CLIENT_ID configuration.');
     }
   };
 
@@ -67,10 +73,12 @@ export const LoginButton: React.FC = () => {
     );
   }
 
+  const isGoogleConfigured = !!import.meta.env.VITE_GOOGLE_CLIENT_ID;
+
   return (
     <Button
       onClick={handleSignIn}
-      disabled={!googleLoaded}
+      disabled={!googleLoaded || !isGoogleConfigured}
       className="w-full bg-white text-gray-900 border hover:bg-gray-50"
     >
       <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
@@ -91,7 +99,12 @@ export const LoginButton: React.FC = () => {
           d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
         />
       </svg>
-      Sign in with Google
+      {!isGoogleConfigured 
+        ? 'Google Sign-In Not Configured' 
+        : !googleLoaded 
+          ? 'Loading Google...' 
+          : 'Sign in with Google'
+      }
     </Button>
   );
 };

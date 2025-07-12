@@ -22,7 +22,7 @@ JWT_SECRET=your_super_secure_jwt_secret_here_replace_me
 # API Keys
 DEEPGRAM_API_KEY=your_new_deepgram_api_key_here
 
-# Google OAuth (Optional - for Calendar/Gmail integration)
+# Google OAuth (REQUIRED for sign-in, Calendar/Gmail integration)
 GOOGLE_CLIENT_ID=your_google_client_id
 GOOGLE_CLIENT_SECRET=your_google_client_secret
 GOOGLE_REDIRECT_URI=https://incantations.witchcraftery.io/auth/callback
@@ -74,6 +74,16 @@ GOOGLE_CLIENT_SECRET=your_google_client_secret
 3. **Regenerate Deepgram API key:**
    - Go to Deepgram console
    - Create new API key to replace the exposed one
+
+4. **Setup Google OAuth (REQUIRED for sign-in):**
+   - Go to [Google Cloud Console](https://console.cloud.google.com/)
+   - Create a new project or select existing one
+   - Enable Google+ API and Google Sign-In API
+   - Go to "Credentials" → "Create Credentials" → "OAuth 2.0 Client IDs"
+   - Application type: "Web application"
+   - Authorized origins: `https://incantations.witchcraftery.io`
+   - Authorized redirect URIs: `https://incantations.witchcraftery.io/auth/callback`
+   - Copy Client ID and Client Secret to your .env files
 
 ## 📋 **Setup Commands on Droplet:**
 
