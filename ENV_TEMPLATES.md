@@ -10,7 +10,8 @@ PORT=3001
 FRONTEND_PORT=5174
 
 # Database Configuration  
-DATABASE_URL=postgresql://incantations_user:your_new_postgres_password@postgres:5432/incantations_dev
+POSTGRES_PASSWORD=your_new_postgres_password
+DATABASE_URL=postgresql://incantations_user:your_new_postgres_password@postgres:5432/incantations_prod
 
 # Redis Configuration
 REDIS_URL=redis://redis:6379
@@ -41,7 +42,7 @@ NODE_ENV=production
 PORT=3001
 
 # Database (matches Docker Compose postgres service)
-DATABASE_URL=postgresql://incantations_user:your_new_postgres_password@postgres:5432/incantations_dev
+DATABASE_URL=postgresql://incantations_user:your_new_postgres_password@postgres:5432/incantations_prod
 
 # Redis (matches Docker Compose redis service)
 REDIS_URL=redis://redis:6379
@@ -84,9 +85,40 @@ nano backend/.env.backend
 # 2. Set proper permissions
 chmod 600 .env.docker backend/.env.backend
 
-# 3. Deploy
+# 3. IMPORTANT: Reset PostgreSQL volume (if password/DB name changed)
 git pull origin main
 docker-compose down
+docker volume rm incantations-voice-ai-task-manager_postgres_data || true
+docker system prune -f
+
+# 4. Deploy with fresh database
 docker-compose build --no-cache
+docker-compose up -d
+
+# 5. Check status
+docker-compose ps
+docker-compose logs postgres
+docker-compose logs backend
+```
+
+## 🐘 **PostgreSQL Volume Reset (Critical!):**
+
+**Why is this needed?**
+- PostgreSQL Docker volumes are persistent
+- Once created, PostgreSQL ignores new environment variables (password, database name)
+- You MUST delete the volume to apply new credentials
+
+**Commands to reset PostgreSQL:**
+```bash
+# Stop everything
+docker-compose down
+
+# Remove the PostgreSQL volume (CAUTION: This deletes all data!)
+docker volume rm incantations-voice-ai-task-manager_postgres_data
+
+# Clean up any old containers/images
+docker system prune -f
+
+# Now PostgreSQL will use your new environment variables
 docker-compose up -d
 ``` 
