@@ -69,29 +69,21 @@ services:
     restart: unless-stopped
     command: npm run dev
 
-  # Frontend (FIXED - Using HTTP internally)
+  # Frontend (PRODUCTION BUILD)
   frontend:
     build:
       context: ./voice-ai-task-manager
       dockerfile: Dockerfile
-      target: development
+      target: production
     container_name: incantations-frontend
     env_file:
       - .env.docker  # ADDED: Load environment from file
     ports:
-      - "5174:5174"
-    volumes:
-      - ./voice-ai-task-manager/src:/app/src
-      - ./voice-ai-task-manager/public:/app/public
-      - ./voice-ai-task-manager/package.json:/app/package.json
-      - ./voice-ai-task-manager/vite.config.ts:/app/vite.config.ts
-      - ./voice-ai-task-manager/tsconfig.json:/app/tsconfig.json
-      - ./voice-ai-task-manager/tailwind.config.js:/app/tailwind.config.js
-      - /app/node_modules
+      - "80:80"
+      - "443:443"
     depends_on:
       - backend
     restart: unless-stopped
-    command: npm run dev  # CHANGED: Remove SSL for now
 
   # Frontend HTTP Fallback (if SSL issues)
   frontend-http:

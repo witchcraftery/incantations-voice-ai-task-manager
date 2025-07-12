@@ -7,7 +7,7 @@ export class VoiceService {
   private backendApiUrl =
     window.location.hostname === 'localhost'
       ? 'http://localhost:3001'
-      : 'http://137.184.13.35:3001';
+      : `${window.location.protocol}//${window.location.hostname}:3001`;
   private deepgramVoices = [
     'aura-asteria-en',
     'aura-luna-en',

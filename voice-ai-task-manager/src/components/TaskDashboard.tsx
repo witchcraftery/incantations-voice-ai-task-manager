@@ -149,9 +149,9 @@ export function TaskDashboard({
 
   // Add Google Calendar integration
   const googleConfig = {
-    clientId: 'your-google-client-id', // Would come from user preferences
-    apiKey: 'your-google-api-key',     // Would come from user preferences  
-    enabled: true // Would come from user preferences
+    clientId: import.meta.env.VITE_GOOGLE_CLIENT_ID || '', 
+    apiKey: import.meta.env.VITE_GOOGLE_API_KEY || '',     
+    enabled: false // Disable until proper credentials are configured
   };
 
   const {
