@@ -18,8 +18,7 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
-    "cypress:open": "cypress open",
-    "cypress:run": "cypress run",
+
     "preview": "vite preview"
   },
   "dependencies": {
@@ -90,7 +89,7 @@
     "@types/react-router-dom": "^5",
     "@vitejs/plugin-react": "^4.3.4",
     "autoprefixer": "10.4.20",
-    "cypress": "^14.5.1",
+
     "eslint": "^9.15.0",
     "eslint-config-prettier": "^10.1.5",
     "eslint-plugin-react-hooks": "^5.0.0",
